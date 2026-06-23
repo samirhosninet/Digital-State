@@ -1,11 +1,11 @@
 ---
-version: 3.1.0
-updated: 2026-06-20
+version: 3.3.0
+updated: 2026-06-24
 compatibility: hermes-agent>=0.14.0
 ---
 # Digital State Final Runtime Package
 
-> **v3.1.0**
+> **v3.3.0** — Reusable Hermes governance overlay: 3 profiles (prime/builder/auditor) with portable config.yaml, Kanban execution, Spec-Kit planning, Premortem Plus risk control, pytest suite, and risk-ledger.
 
 This folder contains the final runtime files for Digital State.
 
@@ -18,19 +18,32 @@ This is the clean final package. Development-only files such as ADRs, old legacy
 ## Contents
 
 ```text
-final/digital-state/
+digital-state/
 ├── .gitignore
 ├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
 ├── distribution.yaml
 ├── AGENTS.md
 ├── README.md
+├── PACKAGE.md
+├── risk-ledger.md
 ├── scripts/
 │   ├── install.ps1
+│   ├── install-simple.ps1
 │   └── validate-final.ps1
 ├── profiles/
-│   ├── prime/SOUL.md
-│   ├── builder/SOUL.md
-│   └── auditor/SOUL.md
+│   ├── prime/
+│   │   ├── SOUL.md
+│   │   └── config.yaml
+│   ├── builder/
+│   │   ├── SOUL.md
+│   │   └── config.yaml
+│   └── auditor/
+│       ├── SOUL.md
+│       └── config.yaml
+├── plugins/
+│   └── audit-matrix/
 └── skills/
     ├── advisory-standard/SKILL.md
     ├── digital-state/SKILL.md
@@ -39,11 +52,11 @@ final/digital-state/
 
 ## Active Profiles
 
-| Profile | Purpose |
-|---|---|
-| `prime` | Kanban orchestrator. Routes decisions and enforces gates. |
-| `builder` | Evidence and authorized implementation operator. |
-| `auditor` | Review, verification, risk, and evidence authority. |
+| Profile | Purpose | Toolsets |
+|---|---|---|
+| `prime` | Kanban orchestrator. Routes decisions and enforces gates. | kanban, terminal, file |
+| `builder` | Evidence and authorized implementation operator. | kanban, terminal, file, web |
+| `auditor` | Review, verification, risk, and evidence authority. | kanban, terminal, file, web, audit-matrix |
 
 ## Skills
 
@@ -91,9 +104,9 @@ Install only after validation passes:
 The installer copies the root Hermes model settings into `prime`, `builder`, and `auditor`, then configures Hermes toolsets per profile:
 
 ```text
-prime   = file, skills, todo, memory, session_search, clarify, delegation, cronjob, kanban, terminal
-builder = web, browser, terminal, file, code_execution, vision, skills, session_search, clarify, kanban
-auditor = web, terminal, file, code_execution, vision, skills, session_search, clarify, kanban
+prime   = kanban, terminal, file
+builder = kanban, terminal, file, web
+auditor = kanban, terminal, file, web, audit-matrix
 ```
 
 Mandatory layers: Kanban and Spec-Kit are required for Digital State. The installer verifies `hermes kanban` and the Hermes `kanban` toolset before configuring profiles. If either is missing, update Hermes Agent before installing. Prime terminal access is limited to Kanban CLI/live-board reads, Kanban routing commands, and routing diagnostics only; implementation remains forbidden by the Prime SOUL.
@@ -112,7 +125,7 @@ Optional target workspace AGENTS.md install:
 
 ## Automatic Tool Policy
 
-The installer (`.\scripts\install.ps1`) reads the Hermes root `config.yaml` model settings and applies them to each profile, then enables or disables toolsets according to the per-profile policy above. Use `-SkipToolConfiguration` to install files without changing toolsets.
+The installer (`.\\scripts\\install.ps1`) reads the Hermes root `config.yaml` model settings and applies them to each profile, then enables or disables toolsets according to the per-profile policy above. Use `-SkipToolConfiguration` to install files without changing toolsets.
 
 ## Verification
 
@@ -131,4 +144,4 @@ hermes -p auditor chat -q "Who are you?"
 
 See CHANGELOG.md for full history.
 
-- **v3.1.0** (2026-06-20) — Scripts moved to `scripts/`, added advisory-standard skill, DRY version from distribution.yaml, added CHANGELOG.md and .gitignore.
+- **v3.1.7** (2026-06-23) — Added config.yaml per profile, risk-ledger.md, fmea-template.md, threat-model.md, concurrency cap validation, Arabic handoff template, install-simple.ps1, audit-matrix plugin.

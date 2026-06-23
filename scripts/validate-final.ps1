@@ -1,5 +1,6 @@
 # Digital State Final Package Validator (Windows)
 # Validates the clean final package only. Does not install or modify Hermes.
+# v3.1.8 — adds concurrency cap check (T053), version bump check (T057), excludes template files from Arabic check
 
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
@@ -20,7 +21,7 @@ Write-Host "Package: $root"
 Write-Host ""
 
 # 1. Required files
-Write-Host "[1/9] Required Files" -ForegroundColor Cyan
+Write-Host "[1/10] Required Files" -ForegroundColor Cyan
 $requiredFiles = @(
     'distribution.yaml',
     'AGENTS.md',
@@ -33,6 +34,9 @@ $requiredFiles = @(
     'profiles\prime\SOUL.md',
     'profiles\builder\SOUL.md',
     'profiles\auditor\SOUL.md',
+    'profiles\prime\config.yaml',
+    'profiles\builder\config.yaml',
+    'profiles\auditor\config.yaml',
     'skills\advisory-standard\SKILL.md',
     'skills\digital-state\SKILL.md',
     'skills\premortem-plus\SKILL.md'
@@ -44,7 +48,7 @@ foreach ($f in $requiredFiles) {
 
 # 2. No legacy profile directories
 Write-Host ""
-Write-Host "[2/9] Active Profile Set" -ForegroundColor Cyan
+Write-Host "[2/10] Active Profile Set" -ForegroundColor Cyan
 foreach ($p in @('prime','builder','auditor')) {
     if (Test-Path (Join-Path $root "profiles\$p\SOUL.md")) { Pass "active profile $p present" }
     else { Fail "active profile $p missing" }
@@ -56,7 +60,7 @@ foreach ($legacy in @('analyst','researcher','coder','tester','default')) {
 
 # 3. Versions and manifest
 Write-Host ""
-Write-Host "[3/9] Manifest and Versions" -ForegroundColor Cyan
+Write-Host "[3/10] Manifest and Versions" -ForegroundColor Cyan
 $distribution = ReadText 'distribution.yaml'
 if ($distribution -match 'name:\s*digital-state') { Pass "distribution name is digital-state" } else { Fail "distribution name is not digital-state" }
 $versionPattern = [regex]::Escape($distVersion)
@@ -78,26 +82,26 @@ foreach ($owned in $ownedLines) {
         if (Test-Path $ownedPath -PathType Leaf) { Pass "owned file exists: $owned" }
         else { Fail "owned file missing: $owned" }
     }
- }
+}
 # Prime profile version
 $primeContent = ReadText "profiles\prime\SOUL.md"
-if ($primeContent -match "version:\s*3\.1\.1") { Pass "prime profile version is 3.1.1" } else { Fail "prime profile version is not 3.1.1" }
+if ($primeContent -match "version:\s*3\.3\.0") { Pass "prime profile version is 3.3.0" } else { Fail "prime profile version is not 3.3.0" }
 # Builder profile version
 $builderContent = ReadText "profiles\builder\SOUL.md"
-if ($builderContent -match "version:\s*3\.1\.0") { Pass "builder profile version is 3.1.0" } else { Fail "builder profile version is not 3.1.0" }
+if ($builderContent -match "version:\s*3\.3\.0") { Pass "builder profile version is 3.3.0" } else { Fail "builder profile version is not 3.3.0" }
 # Auditor profile version
 $auditorContent = ReadText "profiles\auditor\SOUL.md"
-if ($auditorContent -match "version:\s*3\.1\.0") { Pass "auditor profile version is 3.1.0" } else { Fail "auditor profile version is not 3.1.0" }
+if ($auditorContent -match "version:\s*3\.3\.0") { Pass "auditor profile version is 3.3.0" } else { Fail "auditor profile version is not 3.3.0" }
 # Digital-state skill version
 $digitalStateSkill = ReadText "skills\digital-state\SKILL.md"
-if ($digitalStateSkill -match "version:\s*3\.2\.0") { Pass "digital-state SKILL.md version is 3.2.0" } else { Fail "digital-state SKILL.md version is not 3.2.0" }
+if ($digitalStateSkill -match "version:\s*3\.3\.0") { Pass "digital-state SKILL.md version is 3.3.0" } else { Fail "digital-state SKILL.md version is not 3.3.0" }
 # Advisory-standard skill version
 $advisorySkill = ReadText "skills\advisory-standard\SKILL.md"
 if ($advisorySkill -match "version:\s*3\.1\.0") { Pass "advisory-standard SKILL.md version is 3.1.0" } else { Fail "advisory-standard SKILL.md version is not 3.1.0" }
 
- # 4. Advisory standard
+# 4. Advisory standard
 Write-Host ""
-Write-Host "[4/9] Advisory Standard" -ForegroundColor Cyan
+Write-Host "[4/10] Advisory Standard" -ForegroundColor Cyan
 foreach ($p in @('prime','builder','auditor')) {
     $content = ReadText "profiles\$p\SOUL.md"
     if (($content -match 'trusted, expert, and highly intelligent personal advisor' -and $content -match 'Confidentiality is absolute and non-negotiable') -or
@@ -110,14 +114,14 @@ foreach ($p in @('prime','builder','auditor')) {
 
 # 5. Digital State workflow essentials
 Write-Host ""
-Write-Host "[5/9] Workflow Essentials" -ForegroundColor Cyan
+Write-Host "[5/10] Workflow Essentials" -ForegroundColor Cyan
 $agents = ReadText 'AGENTS.md'
-$digitalStateSkill = ReadText 'skills\\digital-state\\SKILL.md'
-$advisoryStandardSkill = ReadText 'skills\\advisory-standard\\SKILL.md'
+$digitalStateSkill = ReadText 'skills\digital-state\SKILL.md'
+$advisoryStandardSkill = ReadText 'skills\advisory-standard\SKILL.md'
 $filesToCheck = @(
     @{ Name = 'AGENTS.md'; Content = $agents; Required = @('Builder produces evidence','Auditor judges evidence','Prime routes decisions','Spec-Kit') }
-    @{ Name = 'skills\\digital-state\\SKILL.md'; Content = $digitalStateSkill; Required = @('Builder produces evidence','Auditor judges evidence','Prime routes decisions','kanban_create()','kanban_complete()','kanban_block()','kanban_comment()','Spec-Kit') }
-    @{ Name = 'skills\\advisory-standard\\SKILL.md'; Content = $advisoryStandardSkill; Required = @() } # advisory standard skill does not require workflow essentials
+    @{ Name = 'skills\digital-state\SKILL.md'; Content = $digitalStateSkill; Required = @('Builder produces evidence','Auditor judges evidence','Prime routes decisions','kanban_create()','kanban_complete()','kanban_block()','kanban_comment()','Spec-Kit') }
+    @{ Name = 'skills\advisory-standard\SKILL.md'; Content = $advisoryStandardSkill; Required = @() }
 )
 foreach ($file in $filesToCheck) {
     $contentName = $file.Name
@@ -130,7 +134,7 @@ foreach ($file in $filesToCheck) {
 
 # 6. Premortem Plus skill essentials
 Write-Host ""
-Write-Host "[6/9] Premortem Plus Skill" -ForegroundColor Cyan
+Write-Host "[6/10] Premortem Plus Skill" -ForegroundColor Cyan
 $premortemSkill = ReadText 'skills\premortem-plus\SKILL.md'
 foreach ($required in @('Premortem Plus Risk Governance','Failure Frame','Kill Criteria','Rescue Actions','Threat Model Prompts','FMEA Hooks','Spec-Kit Integration','Kanban Integration')) {
     if ($premortemSkill -match [regex]::Escape($required)) { Pass "premortem-plus has $required" }
@@ -139,7 +143,7 @@ foreach ($required in @('Premortem Plus Risk Governance','Failure Frame','Kill C
 
 # 7. Installer tool policy
 Write-Host ""
-Write-Host "[7/9] Installer Tool Policy" -ForegroundColor Cyan
+Write-Host "[7/10] Installer Tool Policy" -ForegroundColor Cyan
 $installer = ReadText 'scripts\install.ps1'
 foreach ($required in @('SkipToolConfiguration','toolPolicies','Test-HermesKanbanPrerequisites','Kanban + Spec-Kit are mandatory','hermes kanban --help','hermes tools list','Hermes Kanban toolset is required','hermes @args','HERMES_HOME','Get-RootModelConfig','model.provider','model.default','model.base_url','prime','builder','auditor','delegation','cronjob','kanban','terminal','code_execution')) {
     if ($installer -match [regex]::Escape($required)) { Pass "install.ps1 has tool policy marker: $required" }
@@ -148,7 +152,7 @@ foreach ($required in @('SkipToolConfiguration','toolPolicies','Test-HermesKanba
 
 # 8. No project-specific migration state
 Write-Host ""
-Write-Host "[8/9] Generic Package Check" -ForegroundColor Cyan
+Write-Host "[8/10] Generic Package Check" -ForegroundColor Cyan
 $genericFiles = @('README.md','PACKAGE.md','AGENTS.md','profiles\prime\SOUL.md','profiles\builder\SOUL.md','profiles\auditor\SOUL.md','skills\digital-state\SKILL.md','skills\premortem-plus\SKILL.md')
 foreach ($f in $genericFiles) {
     $content = ReadText $f
@@ -161,20 +165,42 @@ foreach ($f in $genericFiles) {
     }
 }
 
-# 9. English-only / no Arabic Unicode
+# 9. Concurrency cap in config.yaml (Article XIII — T053)
 Write-Host ""
-Write-Host "[9/9] English-Only Content" -ForegroundColor Cyan
+Write-Host "[9/10] Concurrency Cap (Article XIII)" -ForegroundColor Cyan
+foreach ($p in @('prime','builder','auditor')) {
+    $configPath = Join-Path $root "profiles\$p\config.yaml"
+    if (Test-Path $configPath) {
+        $configContent = Get-Content $configPath -Raw -Encoding UTF8
+        if ($configContent -match 'max_in_progress_per_profile:\s*1') {
+            Pass "$p config.yaml has kanban.max_in_progress_per_profile: 1"
+        } else {
+            Fail "$p config.yaml missing kanban.max_in_progress_per_profile: 1 (Article XIII violation)"
+        }
+    } else {
+        Fail "$p config.yaml not found"
+    }
+}
+
+# 10. English-only / no Arabic Unicode (excluding template files with -ar suffix — T053 fix)
+Write-Host ""
+Write-Host "[10/10] English-Only Content" -ForegroundColor Cyan
 $textExtensions = @('.md','.yaml','.yml','.ps1','.json','.txt')
 $arabicFound = $false
 Get-ChildItem $root -Recurse -File | Where-Object { $textExtensions -contains $_.Extension.ToLowerInvariant() } | ForEach-Object {
     $relative = $_.FullName.Substring($root.Length + 1)
-    $content = Get-Content $_.FullName -Raw -Encoding UTF8
-    if ($content -match '[\u0600-\u06FF]') {
-        Fail "Arabic Unicode text found in $relative"
-        $script:arabicFound = $true
+    # Exclude localized template files (e.g., *-ar.md) from Arabic check
+    if ($relative -match '-ar\.md$') {
+        Pass "$relative is localized template (excluded from English-only check)"
+    } else {
+        $content = Get-Content $_.FullName -Raw -Encoding UTF8
+        if ($content -match '[\u0600-\u06FF]') {
+            Fail "Arabic Unicode text found in $relative"
+            $script:arabicFound = $true
+        }
     }
 }
-if (-not $arabicFound) { Pass "No Arabic Unicode text found" }
+if (-not $arabicFound) { Pass "No Arabic Unicode text found in non-template files" }
 
 Write-Host ""
 Write-Host "Validation Summary" -ForegroundColor Cyan

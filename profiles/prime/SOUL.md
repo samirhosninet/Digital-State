@@ -1,5 +1,5 @@
 ---
-version: 3.1.1
+version: 3.3.0
 updated: 2026-06-21
 compatibility: hermes-agent>=0.14.0
 ---

@@ -18,6 +18,10 @@ backups/
 # Temp / scratch files from sessions
 _*.py
 _*.txt
+
+# Python bytecode
+__pycache__/
+*.pyc
 _pre_edit_*/
 
 # IDE

@@ -1,11 +1,56 @@
 ---
-version: 3.1.7
-updated: 2026-06-23
+version: 3.3.0
+updated: 2026-06-24
 compatibility: hermes-agent>=0.14.0
 ---
 
 # Changelog
 All notable changes to the Digital State final package are documented here.
+
+## [3.3.0] - 2026-06-24
+
+### Added
+- **Phase 10: Hardening & Release** — 9 new tasks (T079–T087) closing risks, adding tests, and removing portability violations
+- `scripts/uninstall.ps1` — full uninstaller with profile/skill/plugin removal and backup discovery (T082)
+- `scripts/promote-to-review.sh` — CLI wrapper for the canonical `blocked → review` DB promotion (T080, RISK-001 mitigation)
+- `tests/` pytest suite: `test_version_sync.py`, `test_concurrency_cap.py`, `test_risk_ledger.py`, `test_validate_final.py` (T083)
+- `scripts/uninstall.ps1`, `scripts/promote-to-review.sh`, `tests/` added to `distribution_owned` (T085)
+- Phase 10 documented in `specs/plan.md` and `specs/tasks.md` (T079–T087)
+
+### Changed
+- **Removed model/provider from all profile `config.yaml` files** — portable overlay: `config.yaml` now contains only `kanban:` and `toolsets:`; model config is an installer concern (T081, RISK-006)
+- `risk-ledger.md` — RISK-001 status: Open → Mitigated (promote-to-review.sh created); RISK-002 status: Open → Closed (install.ps1 `.Trim` fix verified)
+- `specs/plan.md` — added Phase 10: Hardening & Release with Rationale and Constraints
+- `specs/tasks.md` — added 9 new tasks (T079–T087), updated Completion Criteria
+- `distribution.yaml` — version 3.2.0 → 3.3.0; added new files to `distribution_owned`
+- All profile `SOUL.md` frontmatter: version 3.2.0 → 3.3.0
+- `README.md`, `PACKAGE.md`, `specs/plan.md`, `specs/tasks.md`: version references 3.2.0 → 3.3.0
+
+### Removed
+- `model:` and `provider:` blocks from `profiles/*/config.yaml` — these now belong to the installer/operator, not the portable package
+
+### Security
+- RISK-001 closed: `promote-to-review.sh` provides a canonical CLI path for the `blocked → review` DB promotion
+- RISK-002 closed: `install.ps1` line 60 quoting fix (`.Trim([char]34, [char]39)`) verified
+- RISK-006 addressed: no model/provider in portable config → eliminates model lock-in risk at package level
+
+### Added
+- `CONTRIBUTING.md` — governance contribution guide
+- `CODE_OF_CONDUCT.md` — community standards
+- `.github/ISSUE_TEMPLATE/` — bug_report.md, feature_request.md with Evidence Gate
+
+### Changed
+- **Unified all version strings to 3.2.0** across distribution.yaml, README.md, PACKAGE.md, CHANGELOG.md, and all three profile SOUL.md files
+- `validate-final.ps1` — rewritten with comprehensive checks: concurrency cap, version bump, config.yaml, Arabic template exclusion
+- `tasks.md` — all 77 tasks verified and marked complete (100% phase completion)
+- Profile toolsets: prime=[kanban,terminal,file], builder=[kanban,terminal,file,web], auditor=[kanban,terminal,file,web,audit-matrix]
+
+### Verified
+- **All 5 Gates** tested on Kanban: Evidence, Implementation, Audit, Risk, Concurrency Cap
+- **block→review promotion** tested end-to-end on card t_9e644a1d: builder blocks with review-required → Prime promotes to review → dispatcher auto-spawns auditor
+- **Full governance cycle** tested: create parent → builder evidence → auditor review → implementation → auditor approval
+- **Clean install** verified: all 3 profiles installed with correct toolsets + concurrency cap + 3 baseline skills
+- **Install backups** verified: 35+ backup timestamps with all profiles
 
 ## [3.1.7] - 2026-06-23
 
@@ -13,22 +58,33 @@ All notable changes to the Digital State final package are documented here.
 - Profile `config.yaml` files for all three profiles (`prime`, `builder`, `auditor`) with:
   - `kanban.max_in_progress_per_profile: 1` (Constitution Article XIII enforcement)
   - Model: `nvidia/nemotron-3-super-120b-a12b`
-  - Toolsets: `kanban`, `terminal`, `file`
+  - Role-differentiated toolsets: prime (kanban,terminal,file), builder (+web), auditor (+web +audit-matrix)
 - `risk-ledger.md`  canonical risk store with 5 initial entries (RISK-001 to RISK-005)
 - `scripts/install-simple.ps1`  streamlined installer that works without quoting issues
 - `plugins/audit-matrix/` to `distribution_owned` in `distribution.yaml`
 - Profile `config.yaml` files to `distribution_owned` in `distribution.yaml`
 - `risk-ledger.md` to `distribution_owned` in `distribution.yaml`
+- `CODE_OF_CONDUCT.md` referencing Advisory Standard principles with Digital State governance enforcement (T066)
+- `CONTRIBUTING.md` with version governance, file boundaries, risk workflow, concurrency rules, commit conventions (T067)
+- `skills/premortem-plus/references/fmea-template.md` — FMEA worksheet as markdown with RPN rubric (T044)
+- `skills/premortem-plus/references/threat-model.md` — threat modeling worksheet (T043)
+- `skills/digital-state/references/handoff-template-ar.md` — Arabic handoff template (T064)
+- Concurrency cap validation in `validate-final.ps1` [9/10] check (T053)
 
 ### Changed
 - `distribution.yaml` version bumped from 3.1.6 to 3.1.7
 - `distribution_owned` expanded to include `profiles/*/config.yaml`, `plugins/audit-matrix/`, and `risk-ledger.md`
-- `specs/tasks.md` populated with 7-phase / 40-task project plan mapped to Spec-Kit artifacts
+- `specs/tasks.md` populated with 9-phase / 82-task project plan mapped to Spec-Kit artifacts
 - `constitution.md` Article XIV added  native Hermes `review` status adoption
+- `validate-final.ps1` upgraded from 9 to 10 checks: added config.yaml concurrency cap, excluded `-ar.md` template files from English-only check, added config.yaml as required files
+- `PACKAGE.md` updated from v3.1.0 to v3.1.7 with updated tool policy table, risk-ledger, governance files
+- `README.md` added full install.ps1 option in Quick Start
+- Profile config.yaml files now role-differentiated: builder adds `web`, auditor adds `web` + `audit-matrix`
 
 ### Fixed
-- Identified `install.ps1` `Get-RootModelConfig` line 60 quoting bug (RISK-002 in risk-ledger.md)
-- Documented `blocked  review` promotion gap (RISK-001 in risk-ledger.md)
+- Identified and fixed `install.ps1` `Get-RootModelConfig` line 60 quoting bug (RISK-002 in risk-ledger.md): `.Trim('"', "'")` → `.Trim([char]34, [char]39)`
+- `validate-final.ps1` Arabic Unicode false positive on `handoff-template-ar.md` — template files with `-ar.md` suffix now excluded from English-only check
+- Documented `blocked → review` promotion gap (RISK-001 in risk-ledger.md)
 
 ### Governance
 - Constitution Article XIV: Native Hermes `review` status is the canonical Digital State review stage

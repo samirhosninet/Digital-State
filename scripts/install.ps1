@@ -29,7 +29,7 @@ function Copy-WithBackup($source, $dest) {
     New-Item -ItemType Directory -Force -Path $destDir | Out-Null
 
     if ((Test-Path $dest) -and (-not $NoBackup)) {
-        $relative = $dest.Substring($HermesHome.Length).TrimStart('\\')
+        $relative = $dest.Substring($HermesHome.Length).TrimStart('\'')
         $backupPath = Join-Path $backupRoot $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $backupPath) | Out-Null
         Copy-Item $dest $backupPath -Force
@@ -57,9 +57,9 @@ function Get-RootModelConfig() {
     foreach ($line in Get-Content $configPath -Encoding UTF8) {
         if ($line -match '^model:\s*$') { $inModel = $true; continue }
         if ($inModel -and $line -match '^[^\s].*:') { break }
-        if ($inModel -and $line -match '^\s+provider:\s*(.+?)\s*$') { $modelConfig.provider = $Matches[1].Trim('"', "'") }
-        if ($inModel -and $line -match '^\s+default:\s*(.+?)\s*$') { $modelConfig.default = $Matches[1].Trim('"', "'") }
-        if ($inModel -and $line -match '^\s+base_url:\s*(.+?)\s*$') { $modelConfig.base_url = $Matches[1].Trim('"', "'") }
+        if ($inModel -and $line -match '^\s+provider:\s*(.+?)\s*$') { $modelConfig.provider = $Matches[1].Trim([char]34, [char]39) }
+        if ($inModel -and $line -match '^\s+default:\s*(.+?)\s*$') { $modelConfig.default = $Matches[1].Trim([char]34, [char]39) }
+        if ($inModel -and $line -match '^\s+base_url:\s*(.+?)\s*$') { $modelConfig.base_url = $Matches[1].Trim([char]34, [char]39) }
     }
     return $modelConfig
 }
@@ -550,7 +550,7 @@ function Install-Plugin($name, $pluginSource, $pluginsDestRoot) {
     # backup per plugin, not per file). This mirrors the per-file backup
     # pattern elsewhere but scoped to the plugin boundary.
     if ((Test-Path $dest) -and (-not $NoBackup)) {
-        $relative = $dest.Substring($HermesHome.Length).TrimStart('\\')
+        $relative = $dest.Substring($HermesHome.Length).TrimStart('\'')
         $backupPath = Join-Path $backupRoot $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $backupPath) | Out-Null
         Copy-Item $dest $backupPath -Recurse -Force
@@ -566,9 +566,7 @@ function Install-Plugin($name, $pluginSource, $pluginsDestRoot) {
         Warn "Plugin '$name' source directory is empty: $pluginSource"
     }
     foreach ($item in $srcItems) {
-        $relativePath = $item.FullName.Substring($pluginSource.Length).TrimStart('\\','/')
-        $destPath = Join-Path $dest $relativePath
-        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destPath) | Out-Null
+        $relativePath = $item.FullName.Substring($pluginSource.Length).TrimStart('\\','/')`n        $destPath = Join-Path $dest $relativePath`n        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destPath) | Out-Null
         Copy-Item $item.FullName $destPath -Force
         Pass "Installed plugin file: $name/$relativePath"
     }

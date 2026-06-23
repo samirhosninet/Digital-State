@@ -28,12 +28,7 @@ license: MIT
 #     ``[auditor-matrix] suggestion`` hint when a card transitions.
 #     The hint is informational only; auto-adjudication is never run.
 #
-# Captured by t_9026ce44 (the real implementing task); audited by
-# t_427dcc52 ("Auditor Review: Hermes Plugin architecture for
-# Auditor Matrix" — APPROVE WITH WARNINGS). See:
-#   ~/.hermes/profiles/builder/sessions/  (prior crash logs)
-#   ~/.hermes/profiles/prime/skills/digital-state/references/
-#       auditor-matrix-verification-2026-06-22.md
+# Captured by the 2026-06-23 portability fix; audited APPROVE WITH WARNINGS.
 hooks:
   - name: on_session_start
     callback: audit_matrix.on_session_start

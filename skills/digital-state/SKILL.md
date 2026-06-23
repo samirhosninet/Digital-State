@@ -1,7 +1,7 @@
 ---
 name: digital-state
 description: Digital State governance reference — standalone architecture skill for Digital State Launcher, Prime/Builder/Auditor operating model, evidence gates, Kanban routing, Spec-Kit boundaries, tool permissions, executor integration, model-family capture, handoff contracts, and companion-skill integration.
-version: 3.2.0
+version: 3.3.0
 author: Digital State Architecture
 metadata:
   changelog:

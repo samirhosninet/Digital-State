@@ -1,7 +1,7 @@
 ---
 name: digital-state
 display_name: "Digital State"
-version: 3.1.7
+version: 3.3.0
 description: "Digital State: self-contained 3-profile Hermes governance package with Kanban, Spec-Kit, Advisory Standard, and Premortem Plus"
 hermes_requires: ">=0.14.0"
 author: "Digital State Architecture"
@@ -19,6 +19,8 @@ distribution_owned:
   - scripts/install.ps1
   - scripts/install-simple.ps1
   - scripts/validate-final.ps1
+  - scripts/uninstall.ps1
+  - scripts/promote-to-review.sh
   - profiles/prime/SOUL.md
   - profiles/prime/config.yaml
   - profiles/builder/SOUL.md
@@ -34,3 +36,4 @@ distribution_owned:
   - specs/spec.md
   - specs/plan.md
   - specs/tasks.md
+  - tests/

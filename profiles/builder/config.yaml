@@ -1,9 +1,7 @@
-model:
-  provider: nvidia
-  name: nvidia/nemotron-3-super-120b-a12b
 kanban:
   max_in_progress_per_profile: 1
 toolsets:
   - kanban
   - terminal
   - file
+  - web

@@ -1,11 +1,11 @@
 ---
-version: 3.1.7
-updated: 2026-06-23
+version: 3.3.0
+updated: 2026-06-24
 compatibility: hermes-agent>=0.14.0
 ---
 # Digital State
 
-> **v3.1.7** — Reusable Hermes governance overlay: 3 profiles (prime/builder/auditor) with config.yaml, Kanban execution, Spec-Kit planning, Premortem Plus risk control, and risk-ledger.
+> **v3.3.0** — Reusable Hermes governance overlay: 3 profiles (prime/builder/auditor) with portable config.yaml, Kanban execution, Spec-Kit planning, Premortem Plus risk control, pytest suite, and risk-ledger.
 
 Digital State installs three isolated Hermes profiles that coordinate any software project through evidence-based governance. It does not own the target project's source tree.
 
@@ -32,8 +32,14 @@ Digital State installs three isolated Hermes profiles that coordinate any softwa
 ## Quick Start
 
 ```powershell
-.\scripts\\validate-final.ps1
-.\scripts\\install-simple.ps1
+.\scripts\validate-final.ps1
+.\scripts\install-simple.ps1
+```
+
+For full install (model config + toolsets):
+
+```powershell
+.\scripts\install.ps1
 ```
 
 For full install options, tool policy, verification steps, and non-conflict rules, see [`PACKAGE.md`](PACKAGE.md).

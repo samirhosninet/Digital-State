@@ -2,7 +2,7 @@
 
 **Branch**: `digital-state/hermes-install-self-dev` | **Date**: 2026-06-20 | **Spec**: `specs/spec.md`
 
-**Input**: Feature specification from `/specs/spec.md` (Current Project Mission) and `specs/constitution.md` Current Project Mission.
+**Input**: Feature specification from `specs/spec.md` (Current Project Mission) and `specs/constitution.md` (Articles I–XV).
 
 **Note**: This plan inherits the Spec-Kit template structure. The mission-specific overlay below binds every artifact to the active meta-architecture effort.
 
@@ -67,106 +67,158 @@ subsequent target installations, not only for the originating
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Digital State is a self-developing meta-architecture: it must install onto Hermes Agent (Goal A) while simultaneously upgrading its own governance overlay (Goal B). The technical approach is: PowerShell-based installer for profile creation, SQLite-based Kanban for execution state, three isolated Hermes profiles with mandatory baseline skills, and a native `review` status handoff for the Builder → Auditor lifecycle. The deliverable is a reusable package that passes `validate-final.ps1` clean-room install and supports end-to-end governance cycles.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Python 3.11+ (plugin logic, validation), PowerShell 5.1+ (installer), Bash/MSYS (Hermes CLI interaction on Windows)
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Primary Dependencies**: Hermes Agent ≥0.14.0, `hermes` CLI (kanban, profiles, plugins, skills subcommands), `specify-cli` v0.11.5 (Spec-Kit)
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Storage**: SQLite (`kanban.db`) via Hermes Kanban subsystem; filesystem-based profile/skill/plugin installation; `risk-ledger.md` as Markdown table
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Testing**: `scripts/validate-final.ps1` (structural + config validation), manual end-to-end governance cycle via `hermes kanban create/list/show` commands, `hermes -p <profile> plugins list` for plugin load check, `hermes -p <profile> skills list` for skill availability
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Target Platform**: Windows 10+ with Git Bash / MSYS (Hermes Agent runs on Linux via WSL or native; current deployment is Windows-native with bash shell)
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: Governance overlay / meta-architecture framework (library + installer + configuration package — no runtime server)
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Performance Goals**: Installer completes in <60 seconds on fresh Hermes install. Governance cycle (create parent → Builder evidence → review → Auditor verdict → Done) completes within a single operator session. Plugin multi-lens review spawns three one-shots concurrently and adjudicates in <5 minutes.
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Constraints**: No hardcoded absolute paths in reusable files. No model/provider choices in framework files. Kanban concurrency cap = 1 per profile enforced at installer and config level. All governance changes require version bump + CHANGELOG + Builder → Auditor review (Constitution Article VIII).
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: 3 agent profiles, 3 baseline skills, 1 plugin (audit-matrix), 1 installer, 1 validator, ~30 governance/framework files. Target: any number of downstream projects installing this overlay.
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Article | Topic | Status | Notes |
+|---------|-------|--------|-------|
+| I | Source of Truth | ✅ Pass | Spec-Kit + Kanban are defined as sources; user directives recorded in AGENTS.md |
+| II | Advisory Standard | ✅ Pass | advisory-standard skill exists and is referenced in all SOUL.md files |
+| III | Profile Isolation | ✅ Pass | Three isolated Hermes profiles with independent config/SOUL/skills |
+| IV | Core Operating Rule | ✅ Pass | Builder→Auditor→Prime separation enforced in SOUL.md and AGENTS.md |
+| V | Evidence Gate | ✅ Pass | Raw logs required before Auditor review |
+| VI | Implementation Gate | ✅ Pass | File boundaries and authorization required before Builder implementation |
+| VII | Audit Gate | ✅ Pass | No parent Done without Auditor APPROVE |
+| VIII | Version Governance | ✅ Pass | Version bump + CHANGELOG + review required for governance changes |
+| IX | Mandatory Baseline Skills | ✅ Pass | digital-state, premortem-plus, advisory-standard listed in all SOUL.md |
+| X | Concurrency Policy | ✅ Pass | `max_in_progress_per_profile: 1` in all config.yaml |
+| XI | Kanban as Execution Ledger | ✅ Pass | All work state recorded in kanban.db |
+| XII | Spec-Kit as Requirements Layer | ✅ Pass | Requirements in specs/ files, not in framework files |
+| XIII | Binding Installation Guarantee | ✅ Pass | Installer sets concurrency cap; validator checks it; SOUL.md Protocol validates it |
+| XIV | Native Review Status | ✅ Pass | `review-required` block → Prime promotion → `status='review'` documented |
+| XV | Risk Gate | ✅ Pass | Premortem Plus integration documented; risk-ledger.md template exists |
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (__SPECKIT_COMMAND_PLAN__ command output)
-├── research.md          # Phase 0 output (__SPECKIT_COMMAND_PLAN__ command)
-├── data-model.md        # Phase 1 output (__SPECKIT_COMMAND_PLAN__ command)
-├── quickstart.md        # Phase 1 output (__SPECKIT_COMMAND_PLAN__ command)
-├── contracts/           # Phase 1 output (__SPECKIT_COMMAND_PLAN__ command)
-└── tasks.md             # Phase 2 output (__SPECKIT_COMMAND_TASKS__ command - NOT created by __SPECKIT_COMMAND_PLAN__)
+specs/
+├── constitution.md     # Governance articles I–XV
+├── spec.md             # Feature specification (this file)
+├── plan.md             # Implementation plan (this file)
+└── tasks.md            # Task list with phases and checkboxes
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+digital-state/
+├── AGENTS.md                          # Project context for all agents
+├── CHANGELOG.md                       # Version history
+├── PACKAGE.md                         # Install options and verification
+├── README.md                          # Quick start
+├── risk-ledger.md                     # Risk register
+├── distribution.yaml                  # Package manifest
+│
+├── specs/                             # Spec-Kit artifacts
+│   ├── constitution.md
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
+│
+├── profiles/                          # Hermes Agent profiles
+│   ├── prime/
+│   │   ├── config.yaml                # Model, kanban cap, toolsets
+│   │   └── SOUL.md                    # Prime identity and protocol
+│   ├── builder/
+│   │   ├── config.yaml
+│   │   └── SOUL.md
+│   └── auditor/
+│       ├── config.yaml
+│       └── SOUL.md
+│
+├── plugins/
+│   └── audit-matrix/                  # Multi-lens auditor plugin
+│       ├── __init__.py                # Plugin entry + hooks
+│       ├── matrix.py                  # Adjudication logic
+│       ├── policy.py                  # Policy discovery + loading
+│       ├── plugin.yaml                # Plugin manifest
+│       └── README.md
+│
+├── skills/                            # Mandatory baseline skills
+│   ├── advisory-standard/
+│   │   └── SKILL.md
+│   ├── digital-state/
+│   │   └── SKILL.md
+│   └── premortem-plus/
+│       └── SKILL.md
+│
+├── governance/
+│   └── audit-matrix-policy.yaml       # Multi-lens adjudication policy
+│
+└── scripts/
+    ├── install.ps1                    # Full installer with error handling
+    ├── install-simple.ps1             # Streamlined fallback installer
+    └── validate-final.ps1             # Post-install validation
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Single-project governance overlay. No src/ or tests/ directories — validation is performed by `validate-final.ps1` and end-to-end governance cycle testing. The plugin is the only Python code and is installed as a Hermes plugin (not a standalone package).
+
+## Execution Phases
+
+### Phase 1: Infrastructure (T001–T005) ✅ DONE
+Project initialized, version control, clean workspace.
+
+### Phase 2: Plugin Fix (T008–T011)
+Fix hook references, portability, phantom task, and test plugin load.
+
+### Phase 3: Profile Configuration (T015–T017)
+Add toolsets, verify concurrency cap, test profile spawn.
+
+### Phase 4: Skills Integration (T018–T027)
+Verify skill content, add skill loading to SOUL.md, create handoff templates, validate integration via Builder → Auditor.
+
+### Phase 5: Kanban Wiring (T028–T037)
+Spec-Kit artifacts already exist (T028–T031 done); verify Kanban toolset, test board creation, test review handoff, update AGENTS.md.
+
+### Phase 6: Risk Governance (T039–T048)
+Create risk-ledger.md entries, add Premortem Plus triggers, implement Risk Status line, create threat model and FMEA templates, define kill criteria.
+
+### Phase 7: Installation & Validation (T049–T058)
+Rewrite installer with robust error handling, validate concurrency cap, test clean install, test backup feature, add version bump validation.
+
+### Phase 8: Governance & Versioning (T059–T068)
+Implement Article VIII enforcement, create documentation, review AGENTS.md/constitution consistency, add Arabic handoff template, create community files.
+
+### Phase 9: Quality Assurance (T069–T078)
+Full governance cycle test, individual gate tests, concurrency cap test, profile isolation test, final validation.
+
+### Phase 10: Hardening & Release (T079–T087)
+
+**Goal**: Close open risks, add automated regression protection, remove portable-overlay violations, and establish a clean release path.
+
+**Rationale**: Phases 1–9 delivered a working governance overlay (v3.2.0). The risk ledger carries two High-severity open items (RISK-001: no CLI for blocked→review promotion; RISK-002: installer quoting bug — now fixed). The package hardcodes model/provider choices in config.yaml (overlay portability violation), lacks an uninstaller, has no automated test suite, and the audit-matrix plugin has no functional smoke test. Phase 10 addresses all of these before the project can be considered production-ready.
+
+**Constraints**:
+- No new governance articles — Phase 10 operates within the existing Articles I–XV.
+- All changes follow Article VIII (version bump + CHANGELOG + Builder→Auditor review).
+- File boundaries: new files under `tests/`, `scripts/`, and edits to `risk-ledger.md`, `specs/`, `profiles/*/config.yaml`, `CHANGELOG.md`.
+- No breaking changes: existing installer and validator must continue to pass.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+No constitution violations requiring justification. All decisions follow the existing article framework.
