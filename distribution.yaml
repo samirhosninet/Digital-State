@@ -43,3 +43,4 @@ distribution_owned:
   - specs/plan.md
   - specs/tasks.md
   - tests/
+    - test_smoke_hermes_cli.py

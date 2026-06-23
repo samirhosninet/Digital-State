@@ -184,7 +184,8 @@ digital-state/
 │   ├── test_gates.py
 │   ├── test_kanban_block_to_review.py
 │   ├── test_risk_ledger.py
-│   └── test_validate_final.py
+│   ├── test_validate_final.py
+│   └── test_smoke_hermes_cli.py
 │
 ├── Makefile                           # Unified command targets
 ├── .gitignore
