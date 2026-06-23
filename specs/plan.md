@@ -170,13 +170,43 @@ digital-state/
 ├── governance/
 │   └── audit-matrix-policy.yaml       # Multi-lens adjudication policy
 │
+├── scripts/
+│   ├── install.ps1                    # Full installer with error handling
+│   ├── install-simple.ps1             # Streamlined fallback installer
+│   ├── validate-final.ps1             # Post-install validation
+│   ├── uninstall.ps1                  # Uninstaller with backup discovery
+│   └── promote-to-review.sh           # CLI for blocked→review promotion
+│
+├── tests/                             # Automated test suite (pytest)
+│   ├── conftest.py
+│   ├── test_version_sync.py
+│   ├── test_concurrency_cap.py
+│   ├── test_gates.py
+│   ├── test_kanban_block_to_review.py
+│   ├── test_risk_ledger.py
+│   └── test_validate_final.py
+│
+├── Makefile                           # Unified command targets
+├── .gitignore
+├── .github/                           # Community templates
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
+│   └── workflows/
+│       └── ci.yml
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── docs/                              # Additional documentation
+│   └── samples/                       # Example install and governance cycle
+│       └── clean-room-install.md
+│
 └── scripts/
     ├── install.ps1                    # Full installer with error handling
     ├── install-simple.ps1             # Streamlined fallback installer
     └── validate-final.ps1             # Post-install validation
 ```
 
-**Structure Decision**: Single-project governance overlay. No src/ or tests/ directories — validation is performed by `validate-final.ps1` and end-to-end governance cycle testing. The plugin is the only Python code and is installed as a Hermes plugin (not a standalone package).
+**Structure Decision**: Governance overlay with automated regression via `tests/` pytest suite and CLI-driven smoke tests. Validation is performed by both `validate-final.ps1` (structural) and `pytest tests/ -v` (behavioral). The plugin is the only Python code and is installed as a Hermes plugin (not a standalone package).
 
 ## Execution Phases
 

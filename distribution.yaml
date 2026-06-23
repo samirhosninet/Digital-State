@@ -16,6 +16,12 @@ distribution_owned:
   - README.md
   - risk-ledger.md
   - distribution.yaml
+  - Makefile
+  - .gitignore
+  - .github/
+  - CODE_OF_CONDUCT.md
+  - CONTRIBUTING.md
+  - docs/
   - scripts/install.ps1
   - scripts/install-simple.ps1
   - scripts/validate-final.ps1
