@@ -42,5 +42,11 @@ distribution_owned:
   - specs/spec.md
   - specs/plan.md
   - specs/tasks.md
-  - tests/
-    - test_smoke_hermes_cli.py
+  - tests/conftest.py
+  - tests/test_version_sync.py
+  - tests/test_concurrency_cap.py
+  - tests/test_gates.py
+  - tests/test_kanban_block_to_review.py
+  - tests/test_risk_ledger.py
+  - tests/test_validate_final.py
+  - tests/test_smoke_hermes_cli.py
