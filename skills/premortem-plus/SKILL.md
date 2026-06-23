@@ -1,6 +1,6 @@
 ---
 name: premortem-plus
-description: Premortem Plus risk governance for Digital State — risk scoring, FMEA, threat modeling, deterministic triggers, authoritative mode decision matrix, kill criteria, rescue actions, recurrence escalation, cross-model audit state, and audit evidence for Hermes Desktop Digital State workflows.
+description: Premortem Plus risk governance for Digital State — risk scoring, FMEA, threat modeling, deterministic triggers, authoritative mode decision matrix, kill criteria, rescue actions, recurrence escalation, cross-model audit state, and audit evidence for Digital State workflows.
 version: 4.3.1
 author: Digital State Architecture
 metadata:
@@ -253,7 +253,7 @@ Use STRIDE prompts:
 
 ### Canonical Store
 
-For Hermes Desktop Digital State, the canonical risk record is the Hermes Kanban execution ledger:
+For Digital State, the canonical risk record is the Hermes Kanban execution ledger:
 
 1. Kanban card comments and handoffs;
 2. parent-child links;

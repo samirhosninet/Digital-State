@@ -7,9 +7,9 @@ metadata:
   changelog:
     - "4.3.1: Closure patch — explicitly records that the 4.3.x advisory version synchronization is intentional and carries no behavioral change."
     - "4.3.0: Synchronized version with the final Digital State/Premortem Plus hardening patch. No behavioral change."
-    - "4.2.0: Finalized for Hermes Desktop Digital State Launcher. No behavioral change beyond alignment with Digital State/Premortem Plus v4.2 final metadata and evidence-boundary wording."
+    - "4.2.0: Finalized for Digital State Launcher. No behavioral change beyond alignment with Digital State/Premortem Plus v4.2 final metadata and evidence-boundary wording."
     - "4.1.0: Synchronized with Digital State/Premortem Plus v4.1. Clarified that model/executor metadata may be recorded as governance metadata while secrets and private user data remain protected by least-disclosure rules."
-    - "4.0.0: Reframed confidentiality as an enforceable workflow-boundary rule instead of an impossible absolute promise. Added evidence hygiene, secret-handling, uncertainty, and agent conduct rules for Hermes Desktop Digital State workflows."
+    - "4.0.0: Reframed confidentiality as an enforceable workflow-boundary rule instead of an impossible absolute promise. Added evidence hygiene, secret-handling, uncertainty, and agent conduct rules for Digital State Digital State workflows."
     - "3.1.0: Existing strict advisor contract."
   hermes:
     tags: [governance, advisory, ethics, behavior, privacy, evidence]

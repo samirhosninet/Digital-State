@@ -1,6 +1,6 @@
 ---
 name: digital-state
-description: Digital State governance reference — standalone architecture skill for Hermes Desktop Digital State Launcher, Prime/Builder/Auditor operating model, evidence gates, Kanban routing, Spec-Kit boundaries, tool permissions, executor integration, model-family capture, handoff contracts, and companion-skill integration.
+description: Digital State governance reference — standalone architecture skill for Digital State Launcher, Prime/Builder/Auditor operating model, evidence gates, Kanban routing, Spec-Kit boundaries, tool permissions, executor integration, model-family capture, handoff contracts, and companion-skill integration.
 version: 3.2.0
 author: Digital State Architecture
 metadata:
@@ -9,7 +9,7 @@ metadata:
     - "4.3.0: Final hardening patch — added explicit fallback completion sequence for Auditor-child review fallback; added precedence rules for governance conflicts; retained liveness-only heartbeat semantics."
     - "4.2.0: Finalized Hermes status mapping against current source: triage/todo/scheduled/ready/running/blocked/review/done/archived. Added review-state fallback because first-class request-review is not yet exposed in normal CLI/tool flows. Clarified that CAS/WAL/claim/heartbeat are native Hermes kernel responsibilities and must not be reimplemented by Digital State."
     - "4.1.0: Added launcher-captured model-family metadata and derived cross-model audit state; made Human Decision Gate enforceable through blocked status; marked multi-builder concurrency policy inactive until ADR enables it; replaced auditor-readonly ambiguity with auditor-verification-safe allowlist; aligned with Premortem Plus v4.1."
-    - "4.0.0: Redesigned for Hermes Desktop Digital State Launcher: Project -> Agent -> Model -> Toolset -> Workflow -> Executor -> Start. Added external executor boundaries for Codex/Claude/GitHub/MCP, clarified kanban_complete child-only semantics, risk ledger policy, and SQLite concurrency baseline."
+    - "4.0.0: Redesigned for Digital State Launcher: Project -> Agent -> Model -> Toolset -> Workflow -> Executor -> Start. Added external executor boundaries for Codex/Claude/GitHub/MCP, clarified kanban_complete child-only semantics, risk ledger policy, and SQLite concurrency baseline."
     - "3.2.0: Standalone Digital State skill; companion-skill boundaries; architecture invariants; Premortem Plus integration."
     - "3.1.0: Existing 3-agent governance reference."
   hermes:
@@ -21,7 +21,7 @@ metadata:
 
 Load this skill when you need the full governance context beyond project `AGENTS.md`.
 
-Digital State is a reusable governance overlay for any target project. Hermes Desktop is the intended control surface. Spec-Kit provides requirements and planning artifacts. Hermes Kanban provides task state, evidence, approvals, and audit trail. Premortem Plus is an independent companion skill for risk logic. Advisory Standard is an independent companion skill for conduct and evidence hygiene.
+Digital State is a reusable governance overlay for any target project. Digital State is the intended control surface. Spec-Kit provides requirements and planning artifacts. Hermes Kanban provides task state, evidence, approvals, and audit trail. Premortem Plus is an independent companion skill for risk logic. Advisory Standard is an independent companion skill for conduct and evidence hygiene.
 
 ## Core Rule
 
@@ -33,7 +33,7 @@ Prime routes decisions.
 
 No agent should ask another agent to repeat the same responsibility. Builder produces raw evidence or implementation, Auditor judges it, and Prime routes the decision.
 
-## Hermes Desktop Digital State Launcher
+## Digital State Launcher
 
 The Launcher is a selection layer, not a new agent runtime.
 
