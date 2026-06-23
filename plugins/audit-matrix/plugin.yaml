@@ -1,0 +1,76 @@
+name: audit-matrix
+version: 1.0.0
+description: >-
+  Auditor Matrix — multi-lens audit orchestrator. Provides the
+  ``/auditor-matrix <card_id>`` slash command for Prime / Hermes chat.
+  Spawns three independent auditor one-shots (criteria, risk,
+  constitutional) with per-run provider/model overrides, then
+  adjudicates the verdicts into a single matrix verdict according
+  to a governance policy file. All overrides are per-run; the
+  plugin never mutates global profile config or SOUL.md files.
+author: Digital State operators
+license: MIT
+# Hooks (canonical, post-2026.06.23 fix)
+# -------------------------------------
+# Older revisions of this manifest referenced non-existent hook
+# names (``pre_chat``, ``post_chat``, ``profile_spawn``) that
+# Hermes v0.17.0 never shipped. They were the result of an
+# earlier drift reference.
+# This revision replaces them with the hooks Hermes v0.17.0 actually
+# exposes (its VALID_HOOKS catalog contains 22 hooks, not 23).
+#
+# Hook purposes:
+#   * on_session_start / on_session_end - lifecycle trail only; the
+#     plugin never mutates session state.
+#   * subagent_start / subagent_stop   - record the per-lens hermes
+#     chat subprocesses spawned from matrix.py (subprocess argv lane).
+#   * kanban_task_completed / kanban_task_blocked - emit a one-line
+#     ``[auditor-matrix] suggestion`` hint when a card transitions.
+#     The hint is informational only; auto-adjudication is never run.
+#
+# Captured by t_9026ce44 (the real implementing task); audited by
+# t_427dcc52 ("Auditor Review: Hermes Plugin architecture for
+# Auditor Matrix" — APPROVE WITH WARNINGS). See:
+#   ~/.hermes/profiles/builder/sessions/  (prior crash logs)
+#   ~/.hermes/profiles/prime/skills/digital-state/references/
+#       auditor-matrix-verification-2026-06-22.md
+hooks:
+  - name: on_session_start
+    callback: audit_matrix.on_session_start
+    description: >-
+      Mark session start for the audit matrix smoke-test trail
+      (no model call fires here; only an in-memory counter so a
+      later ``/auditor-matrix`` run can tell hooks actually loaded).
+  - name: on_session_end
+    callback: audit_matrix.on_session_end
+    description: >-
+      Log session-end timestamp for the audit matrix trail.
+  - name: subagent_start
+    callback: audit_matrix.subagent_start
+    description: >-
+      Record when this plugin spawns a per-lens hermes chat
+      subprocess (one of the auditor-matrix one-shots).
+  - name: subagent_stop
+    callback: audit_matrix.subagent_stop
+    description: >-
+      Record the per-lens subprocess exit code + elapsed time so
+      ``adjudicate()`` can attribute failures to a specific lens.
+  - name: kanban_task_completed
+    callback: audit_matrix.on_kanban_task_completed
+    description: >-
+      Surface a one-line ``[auditor-matrix] suggestion: re-run
+      /auditor-matrix <id> --quiet`` hint when a card is marked
+      done. Informational only; never auto-adjudicates.
+  - name: kanban_task_blocked
+    callback: audit_matrix.on_kanban_task_blocked
+    description: >-
+      Same hint for blocked tasks; picks up a ``review-required:``
+      marker if present in the block reason.
+commands:
+  - name: auditor-matrix
+    description: >-
+      Run the multi-lens auditor matrix on a kanban card and produce
+      an adjudicated verdict (APPROVE / APPROVE WITH WARNINGS /
+      REJECT / ESCALATE).
+    args_hint: "<card_id> [--policy PATH] [--lens criteria|risk|constitutional,reserve] [--quiet]"
+    handler: matrix.handle_slash_command

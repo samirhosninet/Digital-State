@@ -1,0 +1,685 @@
+{
+  "base": "https://hermes-agent.nousresearch.com/docs/",
+  "generated_at": "2026-05-13T02:40:25Z",
+  "pages": [
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/",
+      "markdown": "docs/index.md",
+      "raw_html": "_raw_html/docs/index.html",
+      "title": "Hermes Agent Documentation | Hermes Agent",
+      "index": 1
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/getting-started/installation",
+      "markdown": "docs/getting-started/installation/index.md",
+      "raw_html": "_raw_html/docs/getting-started/installation/index.html",
+      "title": "Installation | Hermes Agent",
+      "index": 2
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/getting-started/quickstart",
+      "markdown": "docs/getting-started/quickstart/index.md",
+      "raw_html": "_raw_html/docs/getting-started/quickstart/index.html",
+      "title": "Quickstart | Hermes Agent",
+      "index": 3
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/getting-started/learning-path",
+      "markdown": "docs/getting-started/learning-path/index.md",
+      "raw_html": "_raw_html/docs/getting-started/learning-path/index.html",
+      "title": "Learning Path | Hermes Agent",
+      "index": 4
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/getting-started/updating",
+      "markdown": "docs/getting-started/updating/index.md",
+      "raw_html": "_raw_html/docs/getting-started/updating/index.html",
+      "title": "Updating & Uninstalling | Hermes Agent",
+      "index": 5
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/getting-started/termux",
+      "markdown": "docs/getting-started/termux/index.md",
+      "raw_html": "_raw_html/docs/getting-started/termux/index.html",
+      "title": "Android / Termux | Hermes Agent",
+      "index": 6
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/getting-started/nix-setup",
+      "markdown": "docs/getting-started/nix-setup/index.md",
+      "raw_html": "_raw_html/docs/getting-started/nix-setup/index.html",
+      "title": "Nix & NixOS Setup | Hermes Agent",
+      "index": 7
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/cli",
+      "markdown": "docs/user-guide/cli/index.md",
+      "raw_html": "_raw_html/docs/user-guide/cli/index.html",
+      "title": "CLI Interface | Hermes Agent",
+      "index": 8
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/tui",
+      "markdown": "docs/user-guide/tui/index.md",
+      "raw_html": "_raw_html/docs/user-guide/tui/index.html",
+      "title": "TUI | Hermes Agent",
+      "index": 9
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/configuration",
+      "markdown": "docs/user-guide/configuration/index.md",
+      "raw_html": "_raw_html/docs/user-guide/configuration/index.html",
+      "title": "Configuration | Hermes Agent",
+      "index": 10
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/configuring-models",
+      "markdown": "docs/user-guide/configuring-models/index.md",
+      "raw_html": "_raw_html/docs/user-guide/configuring-models/index.html",
+      "title": "Configuring Models | Hermes Agent",
+      "index": 11
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/sessions",
+      "markdown": "docs/user-guide/sessions/index.md",
+      "raw_html": "_raw_html/docs/user-guide/sessions/index.html",
+      "title": "Sessions | Hermes Agent",
+      "index": 12
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/profiles",
+      "markdown": "docs/user-guide/profiles/index.md",
+      "raw_html": "_raw_html/docs/user-guide/profiles/index.html",
+      "title": "Profiles: Running Multiple Agents | Hermes Agent",
+      "index": 13
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/git-worktrees",
+      "markdown": "docs/user-guide/git-worktrees/index.md",
+      "raw_html": "_raw_html/docs/user-guide/git-worktrees/index.html",
+      "title": "Git Worktrees | Hermes Agent",
+      "index": 14
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/docker",
+      "markdown": "docs/user-guide/docker/index.md",
+      "raw_html": "_raw_html/docs/user-guide/docker/index.html",
+      "title": "Docker | Hermes Agent",
+      "index": 15
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/security",
+      "markdown": "docs/user-guide/security/index.md",
+      "raw_html": "_raw_html/docs/user-guide/security/index.html",
+      "title": "Security | Hermes Agent",
+      "index": 16
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/checkpoints-and-rollback",
+      "markdown": "docs/user-guide/checkpoints-and-rollback/index.md",
+      "raw_html": "_raw_html/docs/user-guide/checkpoints-and-rollback/index.html",
+      "title": "Checkpoints and /rollback | Hermes Agent",
+      "index": 17
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/overview",
+      "markdown": "docs/user-guide/features/overview/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/overview/index.html",
+      "title": "Features Overview | Hermes Agent",
+      "index": 18
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/tools",
+      "markdown": "docs/user-guide/features/tools/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/tools/index.html",
+      "title": "Tools & Toolsets | Hermes Agent",
+      "index": 19
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/skills",
+      "markdown": "docs/user-guide/features/skills/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/skills/index.html",
+      "title": "Skills System | Hermes Agent",
+      "index": 20
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/curator",
+      "markdown": "docs/user-guide/features/curator/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/curator/index.html",
+      "title": "Curator | Hermes Agent",
+      "index": 21
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "markdown": "docs/user-guide/features/memory/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/memory/index.html",
+      "title": "Persistent Memory | Hermes Agent",
+      "index": 22
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers",
+      "markdown": "docs/user-guide/features/memory-providers/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/memory-providers/index.html",
+      "title": "Memory Providers | Hermes Agent",
+      "index": 23
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/context-files",
+      "markdown": "docs/user-guide/features/context-files/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/context-files/index.html",
+      "title": "Context Files | Hermes Agent",
+      "index": 24
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/context-references",
+      "markdown": "docs/user-guide/features/context-references/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/context-references/index.html",
+      "title": "Context References | Hermes Agent",
+      "index": 25
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/personality",
+      "markdown": "docs/user-guide/features/personality/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/personality/index.html",
+      "title": "Personality & SOUL.md | Hermes Agent",
+      "index": 26
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/plugins",
+      "markdown": "docs/user-guide/features/plugins/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/plugins/index.html",
+      "title": "Plugins | Hermes Agent",
+      "index": 27
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/built-in-plugins",
+      "markdown": "docs/user-guide/features/built-in-plugins/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/built-in-plugins/index.html",
+      "title": "Built-in Plugins | Hermes Agent",
+      "index": 28
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/cron",
+      "markdown": "docs/user-guide/features/cron/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/cron/index.html",
+      "title": "Scheduled Tasks (Cron) | Hermes Agent",
+      "index": 29
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation",
+      "markdown": "docs/user-guide/features/delegation/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/delegation/index.html",
+      "title": "Subagent Delegation | Hermes Agent",
+      "index": 30
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban",
+      "markdown": "docs/user-guide/features/kanban/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/kanban/index.html",
+      "title": "Kanban (Multi-Agent Board) | Hermes Agent",
+      "index": 31
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban-tutorial",
+      "markdown": "docs/user-guide/features/kanban-tutorial/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/kanban-tutorial/index.html",
+      "title": "Kanban tutorial | Hermes Agent",
+      "index": 32
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/goals",
+      "markdown": "docs/user-guide/features/goals/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/goals/index.html",
+      "title": "Persistent Goals | Hermes Agent",
+      "index": 33
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/code-execution",
+      "markdown": "docs/user-guide/features/code-execution/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/code-execution/index.html",
+      "title": "Code Execution | Hermes Agent",
+      "index": 34
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/hooks",
+      "markdown": "docs/user-guide/features/hooks/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/hooks/index.html",
+      "title": "Event Hooks | Hermes Agent",
+      "index": 35
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/batch-processing",
+      "markdown": "docs/user-guide/features/batch-processing/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/batch-processing/index.html",
+      "title": "Batch Processing | Hermes Agent",
+      "index": 36
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/voice-mode",
+      "markdown": "docs/user-guide/features/voice-mode/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/voice-mode/index.html",
+      "title": "Voice Mode | Hermes Agent",
+      "index": 37
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/browser",
+      "markdown": "docs/user-guide/features/browser/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/browser/index.html",
+      "title": "Browser Automation | Hermes Agent",
+      "index": 38
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/vision",
+      "markdown": "docs/user-guide/features/vision/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/vision/index.html",
+      "title": "Vision & Image Paste | Hermes Agent",
+      "index": 39
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/image-generation",
+      "markdown": "docs/user-guide/features/image-generation/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/image-generation/index.html",
+      "title": "Image Generation | Hermes Agent",
+      "index": 40
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/tts",
+      "markdown": "docs/user-guide/features/tts/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/tts/index.html",
+      "title": "Voice & TTS | Hermes Agent",
+      "index": 41
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/telegram",
+      "markdown": "docs/user-guide/messaging/telegram/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/telegram/index.html",
+      "title": "Telegram | Hermes Agent",
+      "index": 43
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/discord",
+      "markdown": "docs/user-guide/messaging/discord/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/discord/index.html",
+      "title": "Discord | Hermes Agent",
+      "index": 44
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/slack",
+      "markdown": "docs/user-guide/messaging/slack/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/slack/index.html",
+      "title": "Slack | Hermes Agent",
+      "index": 45
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/whatsapp",
+      "markdown": "docs/user-guide/messaging/whatsapp/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/whatsapp/index.html",
+      "title": "WhatsApp | Hermes Agent",
+      "index": 46
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/signal",
+      "markdown": "docs/user-guide/messaging/signal/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/signal/index.html",
+      "title": "Signal | Hermes Agent",
+      "index": 47
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/email",
+      "markdown": "docs/user-guide/messaging/email/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/email/index.html",
+      "title": "Email | Hermes Agent",
+      "index": 48
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/sms",
+      "markdown": "docs/user-guide/messaging/sms/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/sms/index.html",
+      "title": "SMS (Twilio) | Hermes Agent",
+      "index": 49
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/matrix",
+      "markdown": "docs/user-guide/messaging/matrix/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/matrix/index.html",
+      "title": "Matrix | Hermes Agent",
+      "index": 50
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/mattermost",
+      "markdown": "docs/user-guide/messaging/mattermost/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/mattermost/index.html",
+      "title": "Mattermost | Hermes Agent",
+      "index": 51
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/homeassistant",
+      "markdown": "docs/user-guide/messaging/homeassistant/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/homeassistant/index.html",
+      "title": "Home Assistant | Hermes Agent",
+      "index": 52
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/messaging/webhooks",
+      "markdown": "docs/user-guide/messaging/webhooks/index.md",
+      "raw_html": "_raw_html/docs/user-guide/messaging/webhooks/index.html",
+      "title": "Webhooks | Hermes Agent",
+      "index": 53
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/integrations/providers",
+      "markdown": "docs/integrations/providers/index.md",
+      "raw_html": "_raw_html/docs/integrations/providers/index.html",
+      "title": "AI Providers | Hermes Agent",
+      "index": 55
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp",
+      "markdown": "docs/user-guide/features/mcp/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/mcp/index.html",
+      "title": "MCP (Model Context Protocol) | Hermes Agent",
+      "index": 56
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/acp",
+      "markdown": "docs/user-guide/features/acp/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/acp/index.html",
+      "title": "ACP Editor Integration | Hermes Agent",
+      "index": 57
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/api-server",
+      "markdown": "docs/user-guide/features/api-server/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/api-server/index.html",
+      "title": "API Server | Hermes Agent",
+      "index": 58
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/honcho",
+      "markdown": "docs/user-guide/features/honcho/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/honcho/index.html",
+      "title": "Honcho Memory | Hermes Agent",
+      "index": 59
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/provider-routing",
+      "markdown": "docs/user-guide/features/provider-routing/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/provider-routing/index.html",
+      "title": "Provider Routing | Hermes Agent",
+      "index": 60
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/fallback-providers",
+      "markdown": "docs/user-guide/features/fallback-providers/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/fallback-providers/index.html",
+      "title": "Fallback Providers | Hermes Agent",
+      "index": 61
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/credential-pools",
+      "markdown": "docs/user-guide/features/credential-pools/index.md",
+      "raw_html": "_raw_html/docs/user-guide/features/credential-pools/index.html",
+      "title": "Credential Pools | Hermes Agent",
+      "index": 62
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/tips",
+      "markdown": "docs/guides/tips/index.md",
+      "raw_html": "_raw_html/docs/guides/tips/index.html",
+      "title": "Tips & Best Practices | Hermes Agent",
+      "index": 63
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/local-llm-on-mac",
+      "markdown": "docs/guides/local-llm-on-mac/index.md",
+      "raw_html": "_raw_html/docs/guides/local-llm-on-mac/index.html",
+      "title": "Run Local LLMs on Mac | Hermes Agent",
+      "index": 64
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/daily-briefing-bot",
+      "markdown": "docs/guides/daily-briefing-bot/index.md",
+      "raw_html": "_raw_html/docs/guides/daily-briefing-bot/index.html",
+      "title": "Tutorial: Daily Briefing Bot | Hermes Agent",
+      "index": 65
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/team-telegram-assistant",
+      "markdown": "docs/guides/team-telegram-assistant/index.md",
+      "raw_html": "_raw_html/docs/guides/team-telegram-assistant/index.html",
+      "title": "Tutorial: Team Telegram Assistant | Hermes Agent",
+      "index": 66
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/python-library",
+      "markdown": "docs/guides/python-library/index.md",
+      "raw_html": "_raw_html/docs/guides/python-library/index.html",
+      "title": "Using Hermes as a Python Library | Hermes Agent",
+      "index": 67
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/use-mcp-with-hermes",
+      "markdown": "docs/guides/use-mcp-with-hermes/index.md",
+      "raw_html": "_raw_html/docs/guides/use-mcp-with-hermes/index.html",
+      "title": "Use MCP with Hermes | Hermes Agent",
+      "index": 68
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/use-voice-mode-with-hermes",
+      "markdown": "docs/guides/use-voice-mode-with-hermes/index.md",
+      "raw_html": "_raw_html/docs/guides/use-voice-mode-with-hermes/index.html",
+      "title": "Use Voice Mode with Hermes | Hermes Agent",
+      "index": 69
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/use-soul-with-hermes",
+      "markdown": "docs/guides/use-soul-with-hermes/index.md",
+      "raw_html": "_raw_html/docs/guides/use-soul-with-hermes/index.html",
+      "title": "Use SOUL.md with Hermes | Hermes Agent",
+      "index": 70
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/build-a-hermes-plugin",
+      "markdown": "docs/guides/build-a-hermes-plugin/index.md",
+      "raw_html": "_raw_html/docs/guides/build-a-hermes-plugin/index.html",
+      "title": "Build a Hermes Plugin | Hermes Agent",
+      "index": 71
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/automate-with-cron",
+      "markdown": "docs/guides/automate-with-cron/index.md",
+      "raw_html": "_raw_html/docs/guides/automate-with-cron/index.html",
+      "title": "Automate Anything with Cron | Hermes Agent",
+      "index": 72
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/work-with-skills",
+      "markdown": "docs/guides/work-with-skills/index.md",
+      "raw_html": "_raw_html/docs/guides/work-with-skills/index.html",
+      "title": "Working with Skills | Hermes Agent",
+      "index": 73
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/delegation-patterns",
+      "markdown": "docs/guides/delegation-patterns/index.md",
+      "raw_html": "_raw_html/docs/guides/delegation-patterns/index.html",
+      "title": "Delegation & Parallel Work | Hermes Agent",
+      "index": 74
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/guides/github-pr-review-agent",
+      "markdown": "docs/guides/github-pr-review-agent/index.md",
+      "raw_html": "_raw_html/docs/guides/github-pr-review-agent/index.html",
+      "title": "Tutorial: GitHub PR Review Agent | Hermes Agent",
+      "index": 75
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/contributing",
+      "markdown": "docs/developer-guide/contributing/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/contributing/index.html",
+      "title": "Contributing | Hermes Agent",
+      "index": 76
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/architecture",
+      "markdown": "docs/developer-guide/architecture/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/architecture/index.html",
+      "title": "Architecture | Hermes Agent",
+      "index": 77
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/agent-loop",
+      "markdown": "docs/developer-guide/agent-loop/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/agent-loop/index.html",
+      "title": "Agent Loop Internals | Hermes Agent",
+      "index": 78
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/prompt-assembly",
+      "markdown": "docs/developer-guide/prompt-assembly/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/prompt-assembly/index.html",
+      "title": "Prompt Assembly | Hermes Agent",
+      "index": 79
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/context-compression-and-caching",
+      "markdown": "docs/developer-guide/context-compression-and-caching/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/context-compression-and-caching/index.html",
+      "title": "Context Compression and Caching | Hermes Agent",
+      "index": 80
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/gateway-internals",
+      "markdown": "docs/developer-guide/gateway-internals/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/gateway-internals/index.html",
+      "title": "Gateway Internals | Hermes Agent",
+      "index": 81
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/session-storage",
+      "markdown": "docs/developer-guide/session-storage/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/session-storage/index.html",
+      "title": "Session Storage | Hermes Agent",
+      "index": 82
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/provider-runtime",
+      "markdown": "docs/developer-guide/provider-runtime/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/provider-runtime/index.html",
+      "title": "Provider Runtime Resolution | Hermes Agent",
+      "index": 83
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/adding-tools",
+      "markdown": "docs/developer-guide/adding-tools/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/adding-tools/index.html",
+      "title": "Adding Tools | Hermes Agent",
+      "index": 84
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/adding-providers",
+      "markdown": "docs/developer-guide/adding-providers/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/adding-providers/index.html",
+      "title": "Adding Providers | Hermes Agent",
+      "index": 85
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/adding-platform-adapters",
+      "markdown": "docs/developer-guide/adding-platform-adapters/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/adding-platform-adapters/index.html",
+      "title": "Adding a Platform Adapter | Hermes Agent",
+      "index": 86
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/creating-skills",
+      "markdown": "docs/developer-guide/creating-skills/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/creating-skills/index.html",
+      "title": "Creating Skills | Hermes Agent",
+      "index": 87
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/developer-guide/extending-the-cli",
+      "markdown": "docs/developer-guide/extending-the-cli/index.md",
+      "raw_html": "_raw_html/docs/developer-guide/extending-the-cli/index.html",
+      "title": "Extending the CLI | Hermes Agent",
+      "index": 88
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/cli-commands",
+      "markdown": "docs/reference/cli-commands/index.md",
+      "raw_html": "_raw_html/docs/reference/cli-commands/index.html",
+      "title": "CLI Commands Reference | Hermes Agent",
+      "index": 89
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/slash-commands",
+      "markdown": "docs/reference/slash-commands/index.md",
+      "raw_html": "_raw_html/docs/reference/slash-commands/index.html",
+      "title": "Slash Commands Reference | Hermes Agent",
+      "index": 90
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/profile-commands",
+      "markdown": "docs/reference/profile-commands/index.md",
+      "raw_html": "_raw_html/docs/reference/profile-commands/index.html",
+      "title": "Profile Commands Reference | Hermes Agent",
+      "index": 91
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/environment-variables",
+      "markdown": "docs/reference/environment-variables/index.md",
+      "raw_html": "_raw_html/docs/reference/environment-variables/index.html",
+      "title": "Environment Variables | Hermes Agent",
+      "index": 92
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/tools-reference",
+      "markdown": "docs/reference/tools-reference/index.md",
+      "raw_html": "_raw_html/docs/reference/tools-reference/index.html",
+      "title": "Built-in Tools Reference | Hermes Agent",
+      "index": 93
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/toolsets-reference",
+      "markdown": "docs/reference/toolsets-reference/index.md",
+      "raw_html": "_raw_html/docs/reference/toolsets-reference/index.html",
+      "title": "Toolsets Reference | Hermes Agent",
+      "index": 94
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/mcp-config-reference",
+      "markdown": "docs/reference/mcp-config-reference/index.md",
+      "raw_html": "_raw_html/docs/reference/mcp-config-reference/index.html",
+      "title": "MCP Config Reference | Hermes Agent",
+      "index": 95
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/model-catalog",
+      "markdown": "docs/reference/model-catalog/index.md",
+      "raw_html": "_raw_html/docs/reference/model-catalog/index.html",
+      "title": "Model Catalog | Hermes Agent",
+      "index": 96
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/skills-catalog",
+      "markdown": "docs/reference/skills-catalog/index.md",
+      "raw_html": "_raw_html/docs/reference/skills-catalog/index.html",
+      "title": "Bundled Skills Catalog | Hermes Agent",
+      "index": 97
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/optional-skills-catalog",
+      "markdown": "docs/reference/optional-skills-catalog/index.md",
+      "raw_html": "_raw_html/docs/reference/optional-skills-catalog/index.html",
+      "title": "Optional Skills Catalog | Hermes Agent",
+      "index": 98
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/faq",
+      "markdown": "docs/reference/faq/index.md",
+      "raw_html": "_raw_html/docs/reference/faq/index.html",
+      "title": "FAQ & Troubleshooting | Hermes Agent",
+      "index": 99
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+# Auditor Matrix adjudication policy
+# ------------------------------
+# Lives under the Digital State governance tree at a path discoverable
+# via the env-var chain (first hit wins):
+#
+#     $DIGITAL_STATE_HOME/governance/audit-matrix-policy.yaml
+#     $HERMES_DIGITAL_STATE_HOME/governance/audit-matrix-policy.yaml
+#     $HERMES_HOME/governance/audit-matrix-policy.yaml
+#     ./governance/audit-matrix-policy.yaml
+#
+# Operators may edit a copy of this file and pass it via
+#   /auditor-matrix <card_id> --policy <path>
+# to override per run. The defaults below mirror the hard-coded fallback
+# in audit-matrix/policy.py — they exist here for operator reference
+# and to prove the policy is intentionally separate from any profile.
+#
+# Schema:
+#   lenses: list of {name, provider, model, optional, description}
+#   rules:  list of {name, when, verdict}
+#           when: {}                  catch-all
+#           when: {any: "REJECT"}     any lens returned REJECT
+#           when: {all: "APPROVE"}    every lens returned APPROVE
+#           when: {count: {WARN:2}}   at least 2 verbs of a kind
+#
+# All provider/model overrides are PER-RUN ONLY via
+#   hermes chat --profile auditor -m MODEL --provider PROVIDER -q "..."
+# This file does NOT cause any global config mutation.
+
+lenses:
+  - name: criteria_auditor
+    provider: nvidia
+    model: moonshotai/kimi-k2.6
+    description: Acceptance-criteria validation against the kanban card body.
+  - name: risk_auditor
+    provider: nvidia
+    model: deepseek-ai/deepseek-v4-pro
+    description: Risk and security review using FMEA + threat prompts.
+  - name: constitutional_auditor
+    provider: nvidia
+    model: z-ai/glm-5.1
+    description: Constitutional / Digital State governance compliance review.
+  - name: reserve_auditor
+    provider: openai-codex
+    model: gpt-5.5
+    description: Optional tie-breaker / future-use auditor.
+    optional: true
+
+rules:
+  - name: any-ESCALATE
+    when: {any: "ESCALATE"}
+    verdict: ESCALATE
+  - name: any-REJECT
+    when: {any: "REJECT"}
+    verdict: REJECT
+  - name: two-or-more-approve-warnings
+    when: {count: {"APPROVE WITH WARNINGS": 2}}
+    verdict: APPROVE WITH WARNINGS
+  - name: mixed-approve-and-warnings
+    when: {count: {APPROVE: 1, "APPROVE WITH WARNINGS": 1}}
+    verdict: APPROVE WITH WARNINGS
+  - name: one-warning-rest-approve
+    when: {count: {"APPROVE WITH WARNINGS": 1, APPROVE: "rest"}}
+    verdict: APPROVE WITH WARNINGS
+  - name: unanimous-approve
+    when: {all: "APPROVE"}
+    verdict: APPROVE
+  # Safety net — never emit an empty verdict.
+  - name: fallback
+    when: {}
+    verdict: APPROVE WITH WARNINGS

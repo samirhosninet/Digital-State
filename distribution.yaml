@@ -1,0 +1,36 @@
+---
+name: digital-state
+display_name: "Digital State"
+version: 3.1.7
+description: "Digital State: self-contained 3-profile Hermes governance package with Kanban, Spec-Kit, Advisory Standard, and Premortem Plus"
+hermes_requires: ">=0.14.0"
+author: "Digital State Architecture"
+license: "MIT"
+
+env_requires: []
+
+distribution_owned:
+  - AGENTS.md
+  - CHANGELOG.md
+  - PACKAGE.md
+  - README.md
+  - risk-ledger.md
+  - distribution.yaml
+  - scripts/install.ps1
+  - scripts/install-simple.ps1
+  - scripts/validate-final.ps1
+  - profiles/prime/SOUL.md
+  - profiles/prime/config.yaml
+  - profiles/builder/SOUL.md
+  - profiles/builder/config.yaml
+  - profiles/auditor/SOUL.md
+  - profiles/auditor/config.yaml
+  - plugins/audit-matrix/
+  - skills/advisory-standard/
+  - skills/digital-state/
+  - skills/premortem-plus/
+  - governance/audit-matrix-policy.yaml
+  - specs/constitution.md
+  - specs/spec.md
+  - specs/plan.md
+  - specs/tasks.md

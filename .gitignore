@@ -1,0 +1,56 @@
+# Digital State — .gitignore
+
+# Local config (contains secrets)
+.digital-state.local.yaml
+
+# Kanban database (runtime state)
+*.db
+kanban.db
+
+# Hermes runtime files
+.hermes/
+sessions/
+request_dump_*
+
+# Backup directories
+backups/
+
+# Temp / scratch files from sessions
+_*.py
+_*.txt
+_pre_edit_*/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Installer script backups (keep only the current install.ps1 + validate-final.ps1)
+scripts/*.before
+scripts/*.bak
+scripts/*.backup
+scripts/_*
+
+# Reports / evidence / scratch text files generated during dev
+*_report.txt
+evidence_*.txt
+next_step_*.txt
+builder_complete_*.txt
+prime_report.txt
+nav_report.txt
+
+# Fix / verify scripts are disposable dev tools
+fix_*.py
+verify_*.py
+
+# Test/scratch scripts
+test*.ps1
+
+# Installer backups directory (kept for reference, ignored from git)
+installer_backup/

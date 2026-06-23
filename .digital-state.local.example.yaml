@@ -1,0 +1,51 @@
+# Sample local Digital State overrides for the audit-matrix plugin.
+#
+# Copy this file to ``.digital-state.local.yaml`` and edit as needed.
+# ``.digital-state.local.yaml`` MUST stay out of version control
+# (.gitignore handles this).
+#
+# This file lets operators tune the matrix without touching
+# ~/.hermes/plugins/audit-matrix/policy.py or any profile's config.yaml
+# or SOUL.md. The plugin auto-discovers this file via the
+# AUDIT_MATRIX_LOCAL_CONFIG env var, or operators can pass it explicitly:
+#
+#   /auditor-matrix <card_id> --policy /path/to/policy.yaml
+#
+# All values default to the hard-coded plugin defaults when omitted.
+
+# --- per-run provider/model overrides (per-run, NOT persisted) ------
+# These are the exact bindings the operator chose during the
+# t_4a8cb0fe / t_be52701b evidence cycle. Edit only if you want all
+# future runs of *this repo's matrix* to use a different binding; the
+# plugin still passes them only via per-run ``-m`` and ``--provider``.
+lenses:
+  criteria_auditor:
+    provider: nvidia
+    model: moonshotai/kimi-k2.6
+  risk_auditor:
+    provider: nvidia
+    model: deepseek-ai/deepseek-v4-pro
+  constitutional_auditor:
+    provider: nvidia
+    model: z-ai/glm-5.1
+  reserve_auditor:        # optional
+    provider: openai-codex
+    model: gpt-5.5
+
+# --- adjudication rules (matches governance/audit-matrix-policy.yaml)
+# rules:
+#   - {name: any-ESCALATE, when: {any: "ESCALATE"}, verdict: ESCALATE}
+#   - {name: any-REJECT,   when: {any: "REJECT"},   verdict: REJECT}
+#   - {name: ...
+# (full schema in governance/audit-matrix-policy.yaml)
+
+# --- operational knobs --------------------------------------------------
+matrix:
+  per_lens_timeout_seconds: 600   # per-LLM subprocess wall clock cap
+  reserve_lens: false             # set true to also run reserve_auditor
+  quiet_by_default: false         # show per-lens reasoning by default
+
+# --- secrets governance --------------------------------------------------
+# NEVER paste API keys here. The plugin reads credentials from the host's
+# already-configured provider auth (e.g. ~/AppData/Local/hermes/auth.json).
+# This file is for non-secret operational tuning ONLY.
