@@ -1,7 +1,8 @@
 # Validation Report: Hermes Hard Enforcement (Spec 005)
 
-**Milestone Reference**: `v1.3-installation-journey`  
+**Milestone Reference**: `v1.3-release`  
 **Evaluation Date**: 2026-07-14  
+**Validation Commit**: `c81d1d1`  
 **Validation Outcome**: `HOOK_ENFORCEMENT_NOT_VERIFIED`
 
 ---
