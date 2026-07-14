@@ -1,12 +1,12 @@
 # Digital State Architecture Specification
 
-This document defines the architectural design, layers, and execution flows of the **Digital State Governance Framework**.
+This document defines the architectural design, layers, and execution boundaries of the **Digital State Governance Framework**.
 
 ---
 
-## 1. Architectural Layers
+## 1. Architectural Layers & Namespace Layout
 
-The repository is decoupled into distinct boundaries to separate declarative interfaces, concrete execution code, and integration adapters:
+The codebase is structured under the `digital_state` namespace to maintain clean execution boundaries:
 
 ```text
 +--------------------------------------------------------------+
@@ -22,22 +22,20 @@ The repository is decoupled into distinct boundaries to separate declarative int
                                |
                                v
 +--------------------------------------------------------------+
-|                         Kernel Layer                         |
-|         /src/kernel/ execution logic & CLI controls          |
-+--------------------------------------------------------------+
-                               |
-                               v
-+--------------------------------------------------------------+
-|                      Integration Layer                       |
-|             /integrations/hermes/ client adapter             |
+|                 digital_state Namespace Package              |
+|                                                              |
+|  ├── core/   (Core validation, registry, & lifecycle)        |
+|  ├── sdk/    (Stable programmatic API interfaces)            |
+|  ├── cli/    (Standalone CLI wrapper commands)               |
+|  └── hermes/ (Stateless Hermes adapter & thin bridge plugin) |
 +--------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Core Subsystems (Kernel Layer)
+## 2. Core Subsystems (`digital_state.core`)
 
-The concrete Governance Kernel coordinates six decoupled engines:
+The Core subsystem coordinates six decoupled engines:
 
 1. **Agent Registry**: Houses identity keys and permission capabilities for registered agent profiles (`Prime`, `Builder`, `Auditor`).
 2. **Policy Engine**: Evaluates permission contexts and checks authorization rules loaded from `policies.json`.
@@ -49,18 +47,43 @@ The concrete Governance Kernel coordinates six decoupled engines:
 
 ---
 
-## 3. Integration Interface Boundaries
+## 3. Division of Responsibilities: Digital State vs. Hermes
 
-External agent runtimes (such as Hermes) do not run inside the kernel. Instead, they interact with the kernel through the standalone CLI or integration adapters that implement the `RuntimeCapability` declarative base interface.
-This guarantees:
-- Complete technology-agnostic runtime compatibility.
-- Decoupled code execution context (kernel logic remains pure).
-- Secure, signed evidence submissions.
+Digital State is **not** an orchestrator. It does not manage agent tasks, scheduling, or runtime loops.
 
-> **Note**: The current Hermes adapter (`integrations/hermes/client.py`) is a **mock implementation**. It does not connect to a real Hermes instance. See `integrations/hermes/README.md` for the contract a real adapter must fulfill.
+```text
+User Request
+     │
+     ▼
+Prime Agent (Hermes Runtime) ──(Kanban Orchestrator)──> Creates/Links Tasks
+                                                               │
+                                                               ▼
+                                                       Builder / Auditor
+                                                               │
+                                                               ▼
+                                                      Digital State SDK
+                                                               │
+                                                               ▼
+                                                      Governance Decision
+                                                       (ALLOW / DENY)
+```
+
+### A. Hermes Runtime Layer (Execution & Orchestration)
+Hermes owns the operational workspace and scheduling:
+* **Kanban Board & Tasks:** Tracking task creation, updates, and links via `kanban_create`, `kanban_link`, `kanban_comment`, and `kanban_complete`.
+* **Agent Loops:** Invoking tools, managing active agent sessions, and executing handoffs between agents (e.g. Prime assigning work to Builder).
+* **Profiles:** Managing runtime local keys and configurations.
+
+### B. Digital State Layer (Governance Authority)
+Digital State evaluates compliance and security boundaries:
+* **Identity Verification:** Validating that request signatures match registered public keys.
+* **Authority Verification:** Ensuring the requesting agent has permissions for the current gate.
+* **Policy Evaluation:** Enforcing constitutional rules and constraints.
+* **Audit Ledger:** Recording every allowance and denial in the immutable ledger.
+* **Bridge Plugin:** The `digital_state.hermes.plugin` is a **stateless runtime bridge**. It intercepts actions via `pre_tool_call` hooks and queries the SDK for `ALLOW` / `DENY` decisions, but does not participate in Kanban orchestration.
 
 ---
 
 ## 4. Continuous Integration
 
-The repository includes a GitHub Actions CI pipeline (`.github/workflows/governance-ci.yml`) that runs the full test suite on every push to `main` and on all pull requests. This ensures no change merges without passing all governance verification tests.
+The repository includes a GitHub Actions CI pipeline (`.github/workflows/governance-ci.yml`) that runs the full test suite on push to `main` and all pull requests, validating that every change meets the established governance rules.
