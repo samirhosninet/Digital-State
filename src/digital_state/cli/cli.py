@@ -43,6 +43,12 @@ def create_parser() -> argparse.ArgumentParser:
     rej_parser.add_argument("--reason", required=True, help="Explanation of veto decision.")
     rej_parser.add_argument("--agent", required=True, help="Vetoing agent ID.")
 
+    # 6. init command
+    subparsers.add_parser("init", help="Initialize the governance workspace.")
+
+    # 7. doctor command
+    subparsers.add_parser("doctor", help="Verify the installation and integration state.")
+
     return parser
 
 
@@ -55,11 +61,152 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
         return e.code
 
     try:
-        # Initialize the kernel pointing to current workspace
-        # Turn off bootstrap verification during standalone command parse checks if requested
-        kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
+        # Only instantiate the kernel if the command requires it
+        kernel = None
+        if args.command not in ("init", "doctor"):
+            kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
 
-        if args.command == "register":
+        if args.command == "init":
+            specify_dir = os.path.join(workspace_root, ".specify")
+            os.makedirs(specify_dir, exist_ok=True)
+            os.makedirs(os.path.join(specify_dir, "memory"), exist_ok=True)
+            
+            # Idempotent & non-destructive file initialization
+            integration_path = os.path.join(specify_dir, "integration.json")
+            if not os.path.exists(integration_path):
+                with open(integration_path, "w", encoding="utf-8") as f:
+                    json.dump({
+                        "integration": "hermes",
+                        "version": "0.1.0",
+                        "installed_at": "2026-07-14T23:00:00.000000+00:00",
+                        "files": {}
+                    }, f, indent=2)
+                    
+            options_path = os.path.join(specify_dir, "init-options.json")
+            if not os.path.exists(options_path):
+                with open(options_path, "w", encoding="utf-8") as f:
+                    json.dump({
+                        "ai": "hermes",
+                        "ai_skills": True,
+                        "feature_numbering": "sequential",
+                        "here": True,
+                        "integration": "hermes",
+                        "script": "ps",
+                        "speckit_version": "0.12.15.dev0"
+                    }, f, indent=2)
+                    
+            agents_path = os.path.join(specify_dir, "agents.json")
+            if not os.path.exists(agents_path):
+                with open(agents_path, "w", encoding="utf-8") as f:
+                    json.dump({}, f, indent=2)  # Empty agent registry for users to initialize
+                    
+            state_path = os.path.join(specify_dir, "state.json")
+            if not os.path.exists(state_path):
+                with open(state_path, "w", encoding="utf-8") as f:
+                    json.dump({}, f, indent=2)
+                    
+            audit_log_path = os.path.join(specify_dir, "memory", "audit_log.jsonl")
+            if not os.path.exists(audit_log_path):
+                with open(audit_log_path, "w", encoding="utf-8") as f:
+                    pass  # Create empty file
+                    
+            # Setup constitution.md file from standard baseline if it does not exist
+            constitution_path = os.path.join(specify_dir, "memory", "constitution.md")
+            if not os.path.exists(constitution_path):
+                # Copy from template or source if exists, otherwise write minimal
+                src_const = os.path.join(workspace_root, "governance", "CONSTITUTION_v1.md")
+                if os.path.exists(src_const):
+                    try:
+                        import shutil
+                        shutil.copy(src_const, constitution_path)
+                    except Exception:
+                        pass
+                if not os.path.exists(constitution_path):
+                    with open(constitution_path, "w", encoding="utf-8") as f:
+                        f.write("# Digital State Constitution\n\n## Core Principles\n\n- Separation of Governance and Execution\n- Role Segregation\n- Immutable Accountability\n")
+
+            print(json.dumps({"status": "Success", "message": "Digital State workspace initialized successfully."}))
+
+        elif args.command == "doctor":
+            # 1. Installation status
+            python_version = sys.version
+            import_ok = False
+            crypto_version = "Unknown"
+            try:
+                import cryptography
+                import_ok = True
+                crypto_version = cryptography.__version__
+            except ImportError:
+                pass
+                
+            installation_status = {
+                "python_version": python_version,
+                "cryptography_imported": import_ok,
+                "cryptography_version": crypto_version,
+                "status": "PASS" if import_ok else "FAIL"
+            }
+            
+            # 2. Configuration status
+            specify_dir = os.path.join(workspace_root, ".specify")
+            specify_exists = os.path.exists(specify_dir)
+            files_check = {}
+            for f_name in ["integration.json", "init-options.json", "agents.json", "state.json", "memory/audit_log.jsonl"]:
+                files_check[f_name] = os.path.exists(os.path.join(specify_dir, f_name))
+                
+            config_ok = specify_exists and all(files_check.values())
+            config_status = {
+                "specify_dir_exists": specify_exists,
+                "files_present": files_check,
+                "status": "PASS" if config_ok else "FAIL"
+            }
+            
+            # 3. Governance state status
+            state_data = {}
+            state_ok = False
+            state_path = os.path.join(specify_dir, "state.json")
+            if os.path.exists(state_path):
+                try:
+                    with open(state_path, "r", encoding="utf-8") as f:
+                        state_data = json.load(f)
+                    state_ok = True
+                except Exception:
+                    pass
+            governance_status = {
+                "state_readable": state_ok,
+                "features_tracked": list(state_data.keys()),
+                "status": "PASS" if state_ok else "FAIL"
+            }
+            
+            # 4. Hermes integration status
+            from integrations.hermes.client import HermesClient
+            client = HermesClient()
+            is_mock_adapter = client.is_mock()
+            self_test_pass = client.self_test()
+            try:
+                meta = client.metadata()
+                adapter_ready = meta.get("status") == "Ready"
+            except Exception:
+                meta = {}
+                adapter_ready = False
+                
+            hermes_status = {
+                "is_mock_adapter": is_mock_adapter,
+                "connection_type": "MOCK" if is_mock_adapter else "LIVE",
+                "self_test": "PASS" if self_test_pass else "FAIL",
+                "adapter_ready": adapter_ready,
+                "status": "WARNING" if is_mock_adapter else ("PASS" if self_test_pass and adapter_ready else "FAIL")
+            }
+            
+            doctor_report = {
+                "installation": installation_status,
+                "configuration": config_status,
+                "governance": governance_status,
+                "hermes": hermes_status,
+                "overall_status": "PASS" if (installation_status["status"] == "PASS" and config_status["status"] == "PASS" and governance_status["status"] == "PASS") else "FAIL"
+            }
+            print(json.dumps(doctor_report, indent=2))
+
+        elif args.command == "register":
             kernel.registry.register_agent(
                 agent_id=args.id,
                 role=args.role,
@@ -133,5 +280,11 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
         return 1
 
 
-if __name__ == "__main__":
+def main():
+    """Main entrypoint for console scripts packaging."""
     sys.exit(run_cli(sys.argv[1:]))
+
+
+if __name__ == "__main__":
+    main()
+

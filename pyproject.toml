@@ -7,6 +7,10 @@ dependencies = [
     "cryptography>=41.0.0"
 ]
 
+[project.scripts]
+digitalstate = "digital_state.cli.cli:main"
+
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

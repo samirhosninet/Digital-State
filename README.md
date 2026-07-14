@@ -38,12 +38,57 @@ The Governance Kernel has been hardened with enterprise-ready parameters:
 
 ---
 
-## Installation & Setup
+## User Installation Journey
 
-Ensure `uv` is installed, then run to install dependencies:
-```powershell
-uv sync
+Transform the repository into an operational workspace with a single execution path:
+
+```text
+Clone Repository
+      │
+      ▼
+Run Installer (install.ps1 / install.sh)
+      │
+      ▼
+Digital State Bootstrap (digitalstate init)
+      │
+      ▼
+Verify Installation (digitalstate doctor)
+      │
+      ▼
+Ready State (Governance Active)
 ```
+
+### Setup Steps:
+
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/samirhosninet/Digital-State.git
+   cd Digital-State
+   ```
+
+2. **Run the Installer:**
+   - **Windows (PowerShell):**
+     ```powershell
+     powershell -ExecutionPolicy Bypass -File install.ps1
+     ```
+   - **Linux/macOS (Bash):**
+     ```bash
+     chmod +x install.sh
+     ./install.sh
+     ```
+
+   *The installer validates Python >= 3.11, installs package dependencies, and automatically initializes the workspace.*
+
+3. **Verify Installation:**
+   Run the verification diagnostics tool:
+   - **Windows:**
+     ```powershell
+     .venv\Scripts\digitalstate doctor
+     ```
+   - **Linux/macOS:**
+     ```bash
+     ./.venv/bin/digitalstate doctor
+     ```
 
 ---
 
@@ -95,9 +140,13 @@ See [SECURITY.md](SECURITY.md) for the security policy, known security boundarie
 
 ---
 
-## Integration Layer
+## Integration Layer (Mock Hermes Boundary)
 
-The Hermes integration adapter at `integrations/hermes/` supports stateless plugin loading, lifecycle hook orchestration (`on_session_start`, `pre_llm_call`, `post_llm_call`, `pre_tool_call`, `post_tool_call`, `on_session_end`), and session simulation loops for integration verification.
+> [!WARNING]
+> **Hermes Integration Boundary:** The Hermes client runtime integration layer at `integrations/hermes/` is currently a **mock/simulation implementation**. It does not establish connectivity to a live, production-deployed remote Hermes execution cluster. 
 
-For local development contract mock details, see [integrations/hermes/README.md](integrations/hermes/README.md).
+The integration supports:
+- Stateless plugin loading and lifecycle hook orchestration (`on_session_start`, `pre_llm_call`, `post_llm_call`, `pre_tool_call`, `post_tool_call`, `on_session_end`).
+- Simulated in-memory session run loops for local test and policy validation.
 
+For developer details on the mock contracts, see the [Hermes integration contract specification](file:///d:/Digital-State/integrations/hermes/README.md).
