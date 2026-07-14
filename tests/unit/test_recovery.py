@@ -3,9 +3,9 @@ import tempfile
 import json
 import pytest
 
-from kernel.engine import GovernanceKernel
-from kernel.exceptions import EvidenceError, GovernanceError
-from kernel.locking import FileLock
+from digital_state.core.engine import GovernanceKernel
+from digital_state.core.exceptions import EvidenceError, GovernanceError
+from digital_state.core.locking import FileLock
 
 
 def test_boot_alignment_validation():

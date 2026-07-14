@@ -2,9 +2,9 @@ import os
 import shutil
 import subprocess
 
-from kernel.exceptions import GovernanceError
+from digital_state.core.exceptions import GovernanceError
 from integrations.hermes.client import HermesClient
-from kernel.config import ConfigManager
+from digital_state.core.config import ConfigManager
 
 
 class BootstrapValidator:

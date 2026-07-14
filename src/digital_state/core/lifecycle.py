@@ -2,12 +2,12 @@ import json
 import os
 from typing import Dict, Any, List
 
-from kernel.exceptions import LifecycleError, RegistryError, GovernanceError
-from kernel.registry import AgentRegistry
-from kernel.policy import PolicyEngine
-from kernel.audit import AuditLogger
-from kernel.evidence import Evidence
-from kernel.contracts import ContractEngine
+from digital_state.core.exceptions import LifecycleError, RegistryError, GovernanceError
+from digital_state.core.registry import AgentRegistry
+from digital_state.core.policy import PolicyEngine
+from digital_state.core.audit import AuditLogger
+from digital_state.core.evidence import Evidence
+from digital_state.core.contracts import ContractEngine
 
 
 class LifecycleEngine:

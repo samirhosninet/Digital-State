@@ -4,7 +4,7 @@ import hashlib
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
-from kernel.exceptions import EvidenceError
+from digital_state.core.exceptions import EvidenceError
 
 
 class AuditLogger:

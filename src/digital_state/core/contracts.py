@@ -2,8 +2,8 @@ import json
 import os
 from typing import Dict, Any, List
 
-from kernel.exceptions import EvidenceError, GovernanceError
-from kernel.evidence import Evidence
+from digital_state.core.exceptions import EvidenceError, GovernanceError
+from digital_state.core.evidence import Evidence
 
 
 class ContractEngine:

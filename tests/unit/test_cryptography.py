@@ -5,8 +5,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 
-from kernel.verifier import CryptoVerifier
-from kernel.exceptions import EvidenceError, IdentityError
+from digital_state.core.verifier import CryptoVerifier
+from digital_state.core.exceptions import EvidenceError, IdentityError
 
 
 @pytest.fixture

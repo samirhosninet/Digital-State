@@ -4,9 +4,9 @@ import json
 import pytest
 from unittest.mock import patch
 
-from kernel.audit import AuditLogger
-from kernel.config import ConfigManager
-from kernel.exceptions import EvidenceError, GovernanceError
+from digital_state.core.audit import AuditLogger
+from digital_state.core.config import ConfigManager
+from digital_state.core.exceptions import EvidenceError, GovernanceError
 
 
 def test_audit_logger_chaining():

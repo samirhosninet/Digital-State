@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict, Any
 
-from kernel.exceptions import GovernanceError
+from digital_state.core.exceptions import GovernanceError
 
 
 class ConfigManager:

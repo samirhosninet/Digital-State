@@ -3,8 +3,8 @@ import tempfile
 import pytest
 from unittest.mock import patch, MagicMock
 
-from kernel.bootstrap import BootstrapValidator
-from kernel.exceptions import GovernanceError
+from digital_state.core.bootstrap import BootstrapValidator
+from digital_state.core.exceptions import GovernanceError
 
 
 def test_bootstrap_validator_success():

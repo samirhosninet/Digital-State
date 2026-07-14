@@ -3,8 +3,8 @@ import tempfile
 import json
 import pytest
 
-from kernel.engine import GovernanceKernel
-from kernel.exceptions import LifecycleError, RegistryError, EvidenceError
+from digital_state.core.engine import GovernanceKernel
+from digital_state.core.exceptions import LifecycleError, RegistryError, EvidenceError
 
 
 def test_planning_gate_unit_rules():

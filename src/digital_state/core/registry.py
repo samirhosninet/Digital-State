@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict, Any, Optional, List
 
-from kernel.exceptions import RegistryError
+from digital_state.core.exceptions import RegistryError
 
 
 class Agent:

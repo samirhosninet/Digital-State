@@ -5,8 +5,8 @@ import pytest
 import multiprocessing
 import json
 
-from kernel.locking import FileLock, LockTimeoutError
-from kernel.exceptions import GovernanceError
+from digital_state.core.locking import FileLock, LockTimeoutError
+from digital_state.core.exceptions import GovernanceError
 
 
 def acquire_and_hold(lock_dir, duration, success_flag):

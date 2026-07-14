@@ -4,8 +4,8 @@ import sys
 import os
 from typing import List
 
-from kernel.engine import GovernanceKernel
-from kernel.exceptions import GovernanceError
+from digital_state.core.engine import GovernanceKernel
+from digital_state.core.exceptions import GovernanceError
 
 
 def create_parser() -> argparse.ArgumentParser:

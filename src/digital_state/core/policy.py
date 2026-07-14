@@ -2,8 +2,8 @@ import json
 import os
 from typing import Dict, Any, List
 
-from kernel.registry import Agent
-from kernel.exceptions import GovernanceError
+from digital_state.core.registry import Agent
+from digital_state.core.exceptions import GovernanceError
 
 
 class PolicyEngine:

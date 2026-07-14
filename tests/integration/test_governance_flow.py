@@ -3,14 +3,14 @@ import tempfile
 import json
 import pytest
 
-from kernel.registry import AgentRegistry
-from kernel.evidence import Evidence
-from kernel.policy import PolicyEngine
-from kernel.contracts import ContractEngine
-from kernel.lifecycle import LifecycleEngine
-from kernel.audit import AuditLogger
-from kernel.bootstrap import BootstrapValidator
-from kernel.exceptions import LifecycleError, EvidenceError
+from digital_state.core.registry import AgentRegistry
+from digital_state.core.evidence import Evidence
+from digital_state.core.policy import PolicyEngine
+from digital_state.core.contracts import ContractEngine
+from digital_state.core.lifecycle import LifecycleEngine
+from digital_state.core.audit import AuditLogger
+from digital_state.core.bootstrap import BootstrapValidator
+from digital_state.core.exceptions import LifecycleError, EvidenceError
 
 
 def test_end_to_end_governance_flow(shared_contracts_dir):

@@ -3,8 +3,8 @@ import tempfile
 import json
 import pytest
 
-from kernel.engine import GovernanceKernel
-from kernel.exceptions import LifecycleError, EvidenceError
+from digital_state.core.engine import GovernanceKernel
+from digital_state.core.exceptions import LifecycleError, EvidenceError
 
 
 def test_verification_gates_unit_rules():

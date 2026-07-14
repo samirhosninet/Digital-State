@@ -2,7 +2,7 @@ import os
 import time
 import json
 
-from kernel.exceptions import GovernanceError
+from digital_state.core.exceptions import GovernanceError
 
 
 class LockTimeoutError(GovernanceError):

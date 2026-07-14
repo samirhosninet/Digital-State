@@ -1,5 +1,5 @@
 import sys
-from kernel.cli import run_cli
+from digital_state.cli.cli import run_cli
 
 
 def main():

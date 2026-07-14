@@ -2,9 +2,9 @@ import os
 import tempfile
 import pytest
 
-from kernel.registry import AgentRegistry
-from kernel.lifecycle import LifecycleEngine
-from kernel.exceptions import RegistryError
+from digital_state.core.registry import AgentRegistry
+from digital_state.core.lifecycle import LifecycleEngine
+from digital_state.core.exceptions import RegistryError
 
 
 def test_agent_registry_initialization():

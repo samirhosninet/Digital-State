@@ -4,8 +4,8 @@ import json
 import pytest
 from unittest.mock import patch
 
-from kernel.cli import run_cli
-from kernel.engine import GovernanceKernel
+from digital_state.cli.cli import run_cli
+from digital_state.core.engine import GovernanceKernel
 
 
 def test_cli_end_to_end_flow(capsys):

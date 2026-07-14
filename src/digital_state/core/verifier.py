@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
-from kernel.exceptions import EvidenceError, IdentityError
+from digital_state.core.exceptions import EvidenceError, IdentityError
 
 
 class CryptoVerifier:

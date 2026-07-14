@@ -4,15 +4,15 @@ import json
 import pytest
 from unittest.mock import patch
 
-from kernel.registry import AgentRegistry, Agent
-from kernel.evidence import Evidence
-from kernel.policy import PolicyEngine
-from kernel.contracts import ContractEngine
-from kernel.lifecycle import LifecycleEngine
+from digital_state.core.registry import AgentRegistry, Agent
+from digital_state.core.evidence import Evidence
+from digital_state.core.policy import PolicyEngine
+from digital_state.core.contracts import ContractEngine
+from digital_state.core.lifecycle import LifecycleEngine
 from integrations.hermes.client import HermesClient
-from kernel.bootstrap import BootstrapValidator
-from kernel.audit import AuditLogger
-from kernel.exceptions import (
+from digital_state.core.bootstrap import BootstrapValidator
+from digital_state.core.audit import AuditLogger
+from digital_state.core.exceptions import (
     RegistryError,
     EvidenceError,
     LifecycleError,

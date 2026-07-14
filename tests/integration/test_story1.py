@@ -3,8 +3,8 @@ import tempfile
 import json
 import pytest
 
-from kernel.engine import GovernanceKernel
-from kernel.exceptions import RegistryError, EvidenceError, LifecycleError
+from digital_state.core.engine import GovernanceKernel
+from digital_state.core.exceptions import RegistryError, EvidenceError, LifecycleError
 
 
 def test_story1_specification_gate_success():

@@ -5,7 +5,7 @@ import warnings
 from datetime import datetime, timezone
 from typing import Dict, Any
 
-from kernel.exceptions import EvidenceError
+from digital_state.core.exceptions import EvidenceError
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class Evidence:
         future governance event. Migrate to dict-based key metadata.
         """
         if isinstance(public_key, dict):
-            from kernel.verifier import CryptoVerifier
+            from digital_state.core.verifier import CryptoVerifier
             return CryptoVerifier.verify(public_key, self.content, self.signature)
         else:
             # DEPRECATED: Legacy string-key mock verification bypass.
