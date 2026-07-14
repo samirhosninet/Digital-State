@@ -1,9 +1,13 @@
 import hashlib
 import json
+import logging
+import warnings
 from datetime import datetime, timezone
 from typing import Dict, Any
 
 from kernel.exceptions import EvidenceError
+
+logger = logging.getLogger(__name__)
 
 
 class Evidence:
@@ -34,11 +38,34 @@ class Evidence:
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
     def verify_signature(self, public_key: Any) -> bool:
-        """Verifies the owner's signature against the calculated content hash using public key."""
+        """Verifies the owner's signature against the calculated content hash using public key.
+
+        When public_key is a dict containing cryptographic key metadata, delegates to
+        CryptoVerifier for ECDSA P-256 verification.
+
+        DEPRECATED: When public_key is a plain string, falls back to legacy mock
+        string-match verification. This path is deprecated and will be removed in a
+        future governance event. Migrate to dict-based key metadata.
+        """
         if isinstance(public_key, dict):
             from kernel.verifier import CryptoVerifier
             return CryptoVerifier.verify(public_key, self.content, self.signature)
         else:
+            # DEPRECATED: Legacy string-key mock verification bypass.
+            # This path does NOT provide cryptographic security.
+            # Scheduled for removal — see SECURITY.md for migration guidance.
+            warnings.warn(
+                "Legacy string-key signature verification is deprecated and will be "
+                "removed. Migrate to dict-based key metadata for ECDSA P-256 verification.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            logger.warning(
+                "LEGACY_VERIFICATION_USED: evidence_id=%s owner=%s — "
+                "string-key fallback is deprecated",
+                self.evidence_id,
+                self.owner,
+            )
             expected_sig = f"{public_key}-signed-{self.hash}"
             if self.signature != expected_sig:
                 raise EvidenceError("Invalid signature on evidence: verification failed.")
