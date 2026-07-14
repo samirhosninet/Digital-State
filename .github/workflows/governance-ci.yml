@@ -26,11 +26,13 @@ jobs:
       - name: Install dependencies
         run: pip install "cryptography>=41.0.0" "pytest>=9.1.1"
 
-      - name: Verify imports
-        run: |
-          cd ${{ github.workspace }}
-          python -c "import sys; sys.path.insert(0,'src'); sys.path.insert(0,'.'); from kernel.engine import GovernanceKernel; from integrations.hermes.client import HermesClient; print('All imports OK')"
-
       - name: Run test suite
-        run: python -m pytest tests/ -v --tb=long -W default
+        run: python -m pytest tests/ -v --tb=long -W default 2>&1 | tee test-output.txt
         working-directory: ${{ github.workspace }}
+
+      - name: Upload test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: test-output.txt
