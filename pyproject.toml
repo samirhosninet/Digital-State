@@ -23,3 +23,8 @@ include = '\.pyi?$'
 max-line-length = 88
 extend-ignore = "E203"
 exclude = ".git,__pycache__,docs,build,dist,.specify,.agents,.hermes"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

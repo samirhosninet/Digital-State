@@ -86,3 +86,15 @@ Run all unit and integration test suites:
 $env:PYTHONPATH="src"; uv run --with pytest pytest
 ```
 * **Success Rate**: **100% Pass** (36 tests verifying baseline, concurrency locks, ECDSA validation, and recovery).
+
+---
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for the security policy, known security boundaries, and migration guidance.
+
+---
+
+## Integration Layer
+
+The Hermes integration adapter at `integrations/hermes/` is currently a **mock implementation**. It does not connect to a real Hermes instance. See [integrations/hermes/README.md](integrations/hermes/README.md) for details and the contract a real adapter must fulfill.

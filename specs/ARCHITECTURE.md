@@ -56,3 +56,11 @@ This guarantees:
 - Complete technology-agnostic runtime compatibility.
 - Decoupled code execution context (kernel logic remains pure).
 - Secure, signed evidence submissions.
+
+> **Note**: The current Hermes adapter (`integrations/hermes/client.py`) is a **mock implementation**. It does not connect to a real Hermes instance. See `integrations/hermes/README.md` for the contract a real adapter must fulfill.
+
+---
+
+## 4. Continuous Integration
+
+The repository includes a GitHub Actions CI pipeline (`.github/workflows/governance-ci.yml`) that runs the full test suite on every push to `main` and on all pull requests. This ensures no change merges without passing all governance verification tests.
