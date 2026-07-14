@@ -125,6 +125,136 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                     with open(constitution_path, "w", encoding="utf-8") as f:
                         f.write("# Digital State Constitution\n\n## Core Principles\n\n- Separation of Governance and Execution\n- Role Segregation\n- Immutable Accountability\n")
 
+            # Native Hermes Integration & Profile Provisioning
+            # Determine platform-native hermes home
+            if sys.platform == "win32":
+                local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+                hermes_root = os.path.join(local_appdata if local_appdata else os.path.expanduser(r"~\AppData\Local"), "hermes")
+            else:
+                hermes_root = os.path.expanduser("~/.hermes")
+
+            # Enable plugin globally in hermes_root/config.yaml
+            global_config_path = os.path.join(hermes_root, "config.yaml")
+            if os.path.exists(global_config_path):
+                try:
+                    import yaml
+                    with open(global_config_path, "r", encoding="utf-8") as f:
+                        cfg = yaml.safe_load(f) or {}
+                    if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
+                        cfg["plugins"] = {"enabled": []}
+                    if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
+                        cfg["plugins"]["enabled"] = []
+                    if "digital_state" not in cfg["plugins"]["enabled"]:
+                        cfg["plugins"]["enabled"].append("digital_state")
+                    with open(global_config_path, "w", encoding="utf-8") as f:
+                        yaml.safe_dump(cfg, f, default_flow_style=False)
+                except Exception as e:
+                    print(f"Warning: could not update global config.yaml: {e}", file=sys.stderr)
+
+            # Find hermes executable
+            import shutil
+            import subprocess
+            hermes_cmd = shutil.which("hermes")
+            python_cmd = None
+            if not hermes_cmd:
+                if sys.platform == "win32":
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "hermes.exe")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "python.exe")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+                else:
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "hermes")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "python")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+            else:
+                # If hermes is in PATH, try finding its python virtualenv
+                # by locating the python executable in the same parent Scripts/bin folder
+                cmd_dir = os.path.dirname(hermes_cmd)
+                if sys.platform == "win32":
+                    p_path = os.path.join(cmd_dir, "python.exe")
+                else:
+                    p_path = os.path.join(cmd_dir, "python")
+                if os.path.exists(p_path):
+                    python_cmd = p_path
+
+            # Install digital_state in Hermes virtual environment
+            if python_cmd:
+                try:
+                    subprocess.run(
+                        [python_cmd, "-m", "pip", "install", "-e", workspace_root],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                except Exception as e:
+                    print(f"Warning: could not install digital_state in Hermes venv: {e}", file=sys.stderr)
+
+            # Auto-provision profiles
+            if hermes_cmd:
+                profiles = {
+                    "prime": "Digital State Prime Governance profile",
+                    "builder": "Digital State Builder implementation profile",
+                    "auditor": "Digital State Auditor verification profile"
+                }
+                for name, desc in profiles.items():
+                    prof_dir = os.path.join(hermes_root, "profiles", name)
+                    if not os.path.exists(prof_dir):
+                        try:
+                            subprocess.run([
+                                hermes_cmd, "profile", "create", name,
+                                "--no-alias",
+                                "--description", desc
+                            ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        except Exception as e:
+                            print(f"Warning: could not create profile '{name}': {e}", file=sys.stderr)
+
+                    # Now customize SOUL.md and config.yaml for the profile
+                    if os.path.exists(prof_dir):
+                        # 1. SOUL.md
+                        soul_path = os.path.join(prof_dir, "SOUL.md")
+                        soul_content = ""
+                        if name == "prime":
+                            soul_content = "You are Prime, the Chief Governance Officer of Digital State. Your role is to set feature specifications, review and approve plans, and coordinate the state machine. You hold approval and veto authority."
+                        elif name == "builder":
+                            soul_content = "You are Builder, the implementation agent of Digital State. Your role is to execute plans, write verified code, run tests, and submit implementation evidence to the governance gates."
+                        elif name == "auditor":
+                            soul_content = "You are Auditor, the verification agent of Digital State. Your role is to perform audits, verify security boundaries, sanitize temporary files, and run diagnostic validation scripts."
+
+                        with open(soul_path, "w", encoding="utf-8") as f:
+                            f.write(soul_content + "\n")
+
+                        # 2. config.yaml
+                        prof_config_path = os.path.join(prof_dir, "config.yaml")
+                        try:
+                            import yaml
+                            # If config.yaml doesn't exist, try copying from global config
+                            if not os.path.exists(prof_config_path) and os.path.exists(global_config_path):
+                                shutil.copy(global_config_path, prof_config_path)
+                            
+                            cfg = {}
+                            if os.path.exists(prof_config_path):
+                                with open(prof_config_path, "r", encoding="utf-8") as f:
+                                    cfg = yaml.safe_load(f) or {}
+
+                            if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
+                                cfg["plugins"] = {"enabled": []}
+                            if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
+                                cfg["plugins"]["enabled"] = []
+                            if "digital_state" not in cfg["plugins"]["enabled"]:
+                                cfg["plugins"]["enabled"].append("digital_state")
+
+                            with open(prof_config_path, "w", encoding="utf-8") as f:
+                                yaml.safe_dump(cfg, f, default_flow_style=False)
+                        except Exception as e:
+                            print(f"Warning: could not update config.yaml for profile '{name}': {e}", file=sys.stderr)
+            else:
+                print("Warning: hermes executable not found. Profiles could not be provisioned automatically.", file=sys.stderr)
+
             print(json.dumps({"status": "Success", "message": "Digital State workspace initialized successfully."}))
 
         elif args.command == "doctor":

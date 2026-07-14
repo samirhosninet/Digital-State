@@ -79,20 +79,20 @@ class DigitalStatePlugin:
             logger.error(f"Error checking status on session start: {e}")
             return False
 
-    def pre_llm_call_handler(self, prompt: str, context: Dict[str, Any]) -> bool:
-        """Invoked before model routing. Evaluates permission context."""
+    def pre_llm_call_handler(self, prompt: str, context: Dict[str, Any]) -> Any:
+        """Invoked before model routing. Contributes active governance phase context."""
         if not self.is_loaded:
-            return False
+            return None
         feature_id = context.get("feature_id")
-        agent_key = context.get("agent_key")
-        if not feature_id or not agent_key:
-            logger.warning("Missing feature ID or agent key on LLM call.")
-            return False
+        if not feature_id:
+            return None
         try:
-            return validate_gate_approval(feature_id, agent_key, workspace_root=self.ctx.workspace_root)
+            status = check_governance_status(feature_id, workspace_root=self.ctx.workspace_root)
+            if status:
+                return f"[Digital State Governance Context] Active Feature: {feature_id}, Current Phase: {status.get('state', 'Unknown')}"
         except Exception as e:
-            logger.error(f"Error validating policy on LLM call: {e}")
-            return False
+            logger.error(f"Error getting status for pre_llm_call: {e}")
+        return None
 
     def post_llm_call_handler(self, response: str, context: Dict[str, Any]) -> None:
         """Invoked after model response."""
@@ -105,28 +105,40 @@ class DigitalStatePlugin:
             except Exception as e:
                 logger.warning(f"Failed to submit post-LLM evidence: {e}")
 
-    def pre_tool_call_handler(self, tool_name: str, arguments: Dict[str, Any], context: Dict[str, Any]) -> bool:
+    def pre_tool_call_handler(self, tool_name: str, arguments: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """Intercepts tool executions and queries the SDK for authorization."""
         if not self.is_loaded:
             logger.error("Digital State Plugin is not loaded. Fail-Safe Deny triggered.")
-            return False  # FAIL-SAFE DENY
+            return {
+                "action": "block",
+                "message": "Digital State Plugin is not loaded. Fail-Safe Deny triggered."
+            }
             
         agent_key = context.get("agent_key")
         feature_id = context.get("feature_id")
         
         if not agent_key or not feature_id:
             logger.warning("Missing agent key or feature ID metadata. Fail-Safe Deny triggered.")
-            return False  # FAIL-SAFE DENY
+            return {
+                "action": "block",
+                "message": "Missing agent key or feature ID metadata. Fail-Safe Deny triggered."
+            }
             
         try:
             authorized = validate_gate_approval(feature_id, agent_key, workspace_root=self.ctx.workspace_root)
             if not authorized:
                 logger.warning(f"Authorization denied for action '{tool_name}' on feature '{feature_id}'.")
-                return False  # FAIL-SAFE DENY
-            return True
+                return {
+                    "action": "block",
+                    "message": f"Authorization denied for action '{tool_name}' on feature '{feature_id}' due to governance constraints."
+                }
+            return {"action": "approve"}
         except Exception as e:
             logger.error(f"Error validating gate approval for tool call: {e}")
-            return False
+            return {
+                "action": "block",
+                "message": f"Error validating gate approval for tool call: {e}"
+            }
 
     def post_tool_call_handler(self, tool_name: str, outcome: Dict[str, Any], context: Dict[str, Any]) -> None:
         """Invoked after tool execution to log results as evidence."""

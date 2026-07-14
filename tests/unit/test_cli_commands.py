@@ -64,5 +64,5 @@ def test_cli_doctor_command(capsys):
         assert report["installation"]["status"] == "PASS"
         assert report["configuration"]["status"] == "PASS"
         assert report["governance"]["status"] == "PASS"
-        assert report["hermes"]["is_mock_adapter"] is True
-        assert report["hermes"]["status"] == "WARNING"  # Warns about mock adapter
+        assert report["hermes"]["is_mock_adapter"] is False
+        assert report["hermes"]["status"] == "PASS"

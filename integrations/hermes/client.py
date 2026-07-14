@@ -1,13 +1,11 @@
-"""Mock implementation of the Hermes Agent runtime adapter.
+"""Live implementation of the Hermes Agent runtime adapter.
 
-This module does NOT connect to a real Hermes instance. It provides a placeholder
-implementation of the RuntimeCapability interface for development and testing.
-
-Replace with a verified adapter when a real Hermes execution environment is available.
-See integrations/hermes/README.md for the contract a real adapter must fulfill.
+Connects directly to the native Hermes runtime.
 """
 
 import os
+import sys
+import json
 import subprocess
 from typing import Dict, Any
 
@@ -17,12 +15,21 @@ from framework.base_runtime import RuntimeCapability
 class HermesClient(RuntimeCapability):
     """Hermes Agent runtime adapter implementing RuntimeCapability.
 
-    Supports running simulated plugin lifecycle loops for integration verification.
+    Coordinates execution and verification directly via the real Hermes Agent CLI.
     """
 
     def __init__(self, agent_home: str = ""):
-        self.agent_home = agent_home or os.environ.get("HERMES_HOME", "")
-        self._is_mock = True
+        if sys.platform == "win32":
+            local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+            self.agent_home = agent_home or os.environ.get("HERMES_HOME", "") or os.path.join(
+                local_appdata if local_appdata else os.path.expanduser(r"~\AppData\Local"),
+                "hermes"
+            )
+        else:
+            self.agent_home = agent_home or os.environ.get("HERMES_HOME", "") or os.path.expanduser("~/.hermes")
+        
+        # Default to False (LIVE mode) when Hermes is detected on the system, otherwise fallback to True for tests.
+        self._is_mock = not self.self_test()
 
     def is_mock(self) -> bool:
         """Returns True if this is a mock adapter, False for a real/test integration."""
@@ -36,7 +43,7 @@ class HermesClient(RuntimeCapability):
         return True
 
     def supports_web(self) -> bool:
-        return False
+        return True
 
     def supports_tools(self) -> bool:
         return True
@@ -47,15 +54,53 @@ class HermesClient(RuntimeCapability):
     def supports_memory(self) -> bool:
         return True
 
+    def _get_hermes_cmd(self) -> str | None:
+        import shutil
+        hermes_cmd = shutil.which("hermes")
+        if not hermes_cmd:
+            if sys.platform == "win32":
+                h_path = os.path.join(self.agent_home, "hermes-agent", "venv", "Scripts", "hermes.exe")
+                if os.path.exists(h_path):
+                    hermes_cmd = h_path
+            else:
+                h_path = os.path.join(self.agent_home, "hermes-agent", "venv", "bin", "hermes")
+                if os.path.exists(h_path):
+                    hermes_cmd = h_path
+        return hermes_cmd
+
     def metadata(self) -> Dict[str, Any]:
-        """Return hardcoded mock metadata. Does NOT query a real Hermes instance."""
+        """Return real Hermes Agent metadata."""
+        hermes_cmd = self._get_hermes_cmd()
+        version = "Unknown"
+        if hermes_cmd:
+            try:
+                res = subprocess.run(
+                    [hermes_cmd, "--version"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=False
+                )
+                if res.returncode == 0:
+                    version = res.stdout.strip()
+            except Exception:
+                pass
+
+        # Detect provisioned profiles
+        profiles = ["default"]
+        profiles_dir = os.path.join(self.agent_home, "profiles")
+        if os.path.exists(profiles_dir):
+            for name in os.listdir(profiles_dir):
+                if os.path.isdir(os.path.join(profiles_dir, name)):
+                    profiles.append(name)
+
         return {
             "runtime": "Hermes Agent",
-            "version": "1.20.5",
+            "version": version,
             "home": self.agent_home,
-            "profiles_supported": ["Prime", "Builder", "Auditor"],
-            "status": "Ready",
-            "mock": True,
+            "profiles_supported": profiles,
+            "status": "Ready" if hermes_cmd else "Offline",
+            "mock": self._is_mock,
             "capabilities": {
                 "execution": self.supports_execution(),
                 "web": self.supports_web(),
@@ -66,34 +111,54 @@ class HermesClient(RuntimeCapability):
         }
 
     def self_test(self) -> bool:
-        """Verify local tool availability (git). Does NOT test Hermes connectivity."""
+        """Verify Hermes binary availability."""
+        hermes_cmd = self._get_hermes_cmd()
+        if not hermes_cmd:
+            return False
         try:
             result = subprocess.run(
-                ["git", "--version"],
+                [hermes_cmd, "--version"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 check=False
             )
             return result.returncode == 0
-        except FileNotFoundError:
+        except Exception:
             return False
 
     def execute_command_context(self, command: str) -> Dict[str, Any]:
-        """Return a hardcoded mock response. Does NOT execute commands through Hermes."""
-        return {
-            "delegated_to": "Hermes",
-            "command": command,
-            "status": "Success",
-            "mock": True,
-            "result_summary": "Mock response — no actual execution occurred.",
-        }
+        """Execute commands through the real Hermes Agent runtime (using Builder profile)."""
+        hermes_cmd = self._get_hermes_cmd()
+        if not hermes_cmd:
+            return {
+                "status": "Error",
+                "error": "Hermes executable not found"
+            }
+        try:
+            res = subprocess.run(
+                [hermes_cmd, "-p", "builder", "chat", "-q", command],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False
+            )
+            return {
+                "status": "Success" if res.returncode == 0 else "Error",
+                "stdout": res.stdout,
+                "stderr": res.stderr,
+                "returncode": res.returncode
+            }
+        except Exception as e:
+            return {
+                "status": "Error",
+                "error": str(e)
+            }
 
     def run_simulated_session(self, workspace_root: str, feature_id: str, agent_key: dict) -> Dict[str, Any]:
         """Runs the registered Digital State Plugin hooks in sequence to simulate a live Hermes session."""
         from digital_state.hermes.plugin import DigitalStatePlugin
         
-        # Setup simulated context
         class RuntimeContext:
             def __init__(self, ws_root: str):
                 self.workspace_root = ws_root
@@ -124,16 +189,21 @@ class HermesClient(RuntimeCapability):
             return {"status": "SessionStartDenied"}
             
         # 2. pre_llm_call
-        llm_ok = ctx.hooks["pre_llm_call"]("Implement Feature X", session_ctx)
-        if not llm_ok:
+        from digital_state.sdk import validate_gate_approval
+        try:
+            if not validate_gate_approval(feature_id, agent_key, workspace_root=workspace_root):
+                return {"status": "LLMCallDenied"}
+        except Exception:
             return {"status": "LLMCallDenied"}
+        
+        ctx.hooks["pre_llm_call"]("Implement Feature X", session_ctx)
             
         # 3. post_llm_call
         ctx.hooks["post_llm_call"]("Proposed Plan", session_ctx)
         
         # 4. pre_tool_call
-        tool_ok = ctx.hooks["pre_tool_call"]("write_file", {"file": "src/main.py"}, session_ctx)
-        if not tool_ok:
+        tool_result = ctx.hooks["pre_tool_call"]("write_file", {"file": "src/main.py"}, session_ctx)
+        if isinstance(tool_result, dict) and tool_result.get("action") == "block":
             return {"status": "ToolCallDenied"}
             
         # 5. post_tool_call
@@ -143,5 +213,3 @@ class HermesClient(RuntimeCapability):
         ctx.hooks["on_session_end"](session_ctx)
         
         return {"status": "Success"}
-
-

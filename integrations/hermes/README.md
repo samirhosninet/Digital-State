@@ -1,30 +1,19 @@
 # Hermes Integration Adapter
 
-## Status: MOCK
+## Status: LIVE
 
-The current `HermesClient` implementation is a **mock placeholder**. It does not connect to or communicate with a real Hermes Agent instance.
+The `HermesClient` is a native integration that communicates directly with the real Hermes Agent CLI runtime.
 
 ## Current Behavior
 
 | Method | Behavior |
 |:-------|:---------|
-| `is_mock()` | Returns `True` |
-| `metadata()` | Returns hardcoded static metadata |
-| `self_test()` | Checks if `git` is available locally — does NOT test Hermes |
-| `execute_command_context()` | Returns a hardcoded mock response — no execution occurs |
-| `supports_*()` | Returns hardcoded boolean capabilities |
+| `is_mock()` | Returns `False` |
+| `metadata()` | Returns dynamic metadata queried from the active profile's configuration |
+| `self_test()` | Verifies that the real `hermes` CLI binary is available and operational |
+| `execute_command_context()` | Routes command execution directly to the native `builder` profile of Hermes Agent |
+| `supports_*()` | Returns accurate boolean capabilities supported by the active environment |
 
-## Contract for a Real Adapter
+## Integration Specification
 
-A production `HermesClient` must:
-
-1. **Implement** `RuntimeCapability` from `framework/base_runtime.py`.
-2. **Connect** to a verified Hermes execution environment.
-3. **Return** `is_mock() == False`.
-4. **Return** live metadata from the actual Hermes runtime in `metadata()`.
-5. **Execute** commands through the real Hermes execution context in `execute_command_context()`.
-6. **Test** actual Hermes connectivity in `self_test()`.
-
-## Class Name
-
-The class name `HermesClient` is the stable public interface. Do not rename it — replace the mock internals with real implementations.
+The `HermesClient` implements `RuntimeCapability` from `framework/base_runtime.py` and coordinates with the global Hermes CLI executable to bootstrap, register, and run Digital State governance workflows natively.

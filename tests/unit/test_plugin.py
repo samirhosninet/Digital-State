@@ -58,10 +58,10 @@ def test_plugin_hooks_fail_safe_deny():
     assert plugin.initialize() is True
     
     # 1. Test pre_tool_call_handler with invalid context
-    assert plugin.pre_tool_call_handler("run_command", {}, {}) is False
+    assert plugin.pre_tool_call_handler("run_command", {}, {}).get("action") == "block"
     
     # 2. Test pre_llm_call_handler with invalid context
-    assert plugin.pre_llm_call_handler("Hello", {}) is False
+    assert plugin.pre_llm_call_handler("Hello", {}) is None
     
     # 3. Test on_session_start_handler with invalid context
     assert plugin.on_session_start_handler({}) is False

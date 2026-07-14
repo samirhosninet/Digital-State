@@ -4,11 +4,15 @@ version = "0.1.0"
 description = "Governance layer for Hermes Agent"
 requires-python = ">=3.11"
 dependencies = [
-    "cryptography>=41.0.0"
+    "cryptography>=41.0.0",
+    "PyYAML"
 ]
 
 [project.scripts]
 digitalstate = "digital_state.cli.cli:main"
+
+[project.entry-points."hermes_agent.plugins"]
+digital_state = "digital_state.hermes"
 
 
 [build-system]

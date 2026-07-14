@@ -74,4 +74,4 @@ def test_end_to_end_installation():
         assert report["installation"]["status"] == "PASS"
         assert report["configuration"]["status"] == "PASS"
         assert report["governance"]["status"] == "PASS"
-        assert report["hermes"]["is_mock_adapter"] is True  # Verify Hermes boundary remains mock
+        assert report["hermes"]["is_mock_adapter"] is False  # Verify Hermes boundary is LIVE
