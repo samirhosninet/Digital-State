@@ -24,7 +24,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install cryptography>=41.0.0 pytest>=9.1.1
+        run: pip install "cryptography>=41.0.0" "pytest>=9.1.1"
 
       - name: Run test suite
         run: python -m pytest tests/ -v --tb=short
