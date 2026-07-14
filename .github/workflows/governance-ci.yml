@@ -28,5 +28,3 @@ jobs:
 
       - name: Run test suite
         run: python -m pytest tests/ -v --tb=short
-        env:
-          PYTHONPATH: ${{ github.workspace }}/src:${{ github.workspace }}
