@@ -49,7 +49,12 @@ class DigitalStatePlugin:
             logger.warning(f"Failed to register bundled governance skill: {e}")
 
         # 3. Bind lifecycle hooks
+        self.ctx.register_hook("on_session_start", self.on_session_start_handler)
+        self.ctx.register_hook("pre_llm_call", self.pre_llm_call_handler)
+        self.ctx.register_hook("post_llm_call", self.post_llm_call_handler)
         self.ctx.register_hook("pre_tool_call", self.pre_tool_call_handler)
+        self.ctx.register_hook("post_tool_call", self.post_tool_call_handler)
+        self.ctx.register_hook("on_session_end", self.on_session_end_handler)
         
         # 4. Bind slash commands
         self.ctx.register_command("/approve", self.handle_approve_command)
@@ -59,13 +64,53 @@ class DigitalStatePlugin:
         logger.info("Digital State Plugin successfully Loaded.")
         return True
 
+    def on_session_start_handler(self, context: Dict[str, Any]) -> bool:
+        """Invoked when a Hermes session starts."""
+        if not self.is_loaded:
+            return False
+        feature_id = context.get("feature_id")
+        if not feature_id:
+            logger.warning("Missing feature ID metadata on session start.")
+            return False
+        try:
+            status = check_governance_status(feature_id, workspace_root=self.ctx.workspace_root)
+            return status is not None
+        except Exception as e:
+            logger.error(f"Error checking status on session start: {e}")
+            return False
+
+    def pre_llm_call_handler(self, prompt: str, context: Dict[str, Any]) -> bool:
+        """Invoked before model routing. Evaluates permission context."""
+        if not self.is_loaded:
+            return False
+        feature_id = context.get("feature_id")
+        agent_key = context.get("agent_key")
+        if not feature_id or not agent_key:
+            logger.warning("Missing feature ID or agent key on LLM call.")
+            return False
+        try:
+            return validate_gate_approval(feature_id, agent_key, workspace_root=self.ctx.workspace_root)
+        except Exception as e:
+            logger.error(f"Error validating policy on LLM call: {e}")
+            return False
+
+    def post_llm_call_handler(self, response: str, context: Dict[str, Any]) -> None:
+        """Invoked after model response."""
+        if not self.is_loaded:
+            return
+        feature_id = context.get("feature_id")
+        if feature_id:
+            try:
+                submit_evidence(feature_id, "llm_call", {"response_len": len(response)}, workspace_root=self.ctx.workspace_root)
+            except Exception as e:
+                logger.warning(f"Failed to submit post-LLM evidence: {e}")
+
     def pre_tool_call_handler(self, tool_name: str, arguments: Dict[str, Any], context: Dict[str, Any]) -> bool:
         """Intercepts tool executions and queries the SDK for authorization."""
         if not self.is_loaded:
             logger.error("Digital State Plugin is not loaded. Fail-Safe Deny triggered.")
             return False  # FAIL-SAFE DENY
             
-        # Extract agent signature and key metadata from Hermes context
         agent_key = context.get("agent_key")
         feature_id = context.get("feature_id")
         
@@ -73,21 +118,41 @@ class DigitalStatePlugin:
             logger.warning("Missing agent key or feature ID metadata. Fail-Safe Deny triggered.")
             return False  # FAIL-SAFE DENY
             
-        # Delegate directly to SDK validation API (Stateless check)
-        authorized = validate_gate_approval(feature_id, agent_key, workspace_root=self.ctx.workspace_root)
-        if not authorized:
-            logger.warning(f"Authorization denied for action '{tool_name}' on feature '{feature_id}'.")
-            return False  # FAIL-SAFE DENY
-            
-        return True
+        try:
+            authorized = validate_gate_approval(feature_id, agent_key, workspace_root=self.ctx.workspace_root)
+            if not authorized:
+                logger.warning(f"Authorization denied for action '{tool_name}' on feature '{feature_id}'.")
+                return False  # FAIL-SAFE DENY
+            return True
+        except Exception as e:
+            logger.error(f"Error validating gate approval for tool call: {e}")
+            return False
+
+    def post_tool_call_handler(self, tool_name: str, outcome: Dict[str, Any], context: Dict[str, Any]) -> None:
+        """Invoked after tool execution to log results as evidence."""
+        if not self.is_loaded:
+            return
+        feature_id = context.get("feature_id")
+        if feature_id:
+            try:
+                submit_evidence(feature_id, "tool_call", {"tool": tool_name, "outcome": outcome}, workspace_root=self.ctx.workspace_root)
+            except Exception as e:
+                logger.warning(f"Failed to submit post-tool evidence: {e}")
+
+    def on_session_end_handler(self, context: Dict[str, Any]) -> None:
+        """Invoked when a Hermes session ends."""
+        if not self.is_loaded:
+            return
+        try:
+            verify_audit_log(workspace_root=self.ctx.workspace_root)
+        except Exception as e:
+            logger.warning(f"Verification of audit log failed on session end: {e}")
 
     def handle_approve_command(self, args: list) -> str:
         """Slash command handler for approving a gate transition."""
         if not args:
             return "Usage: /approve <feature_id>"
         feature_id = args[0]
-        # In a real session context, we would extract the agent ID from context.
-        # For this thin bridge, we delegate mapping.
         return f"Routing approval request for feature '{feature_id}' to SDK..."
 
     def handle_veto_command(self, args: list) -> str:

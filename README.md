@@ -83,9 +83,9 @@ digitalstate reject --feature <feature_id> --gate <gate> --reason <reason> --age
 
 Run all unit and integration test suites:
 ```powershell
-$env:PYTHONPATH="src"; uv run --with pytest pytest
+$env:PYTHONPATH="D:\Digital-State\src;D:\Digital-State"; uv run python -m pytest tests/ -v
 ```
-* **Success Rate**: **100% Pass** (36 tests verifying baseline, concurrency locks, ECDSA validation, and recovery).
+* **Success Rate**: **100% Pass** (44 tests verifying baseline, concurrency locks, ECDSA validation, recovery, and Hermes plugin flows).
 
 ---
 
@@ -97,4 +97,7 @@ See [SECURITY.md](SECURITY.md) for the security policy, known security boundarie
 
 ## Integration Layer
 
-The Hermes integration adapter at `integrations/hermes/` is currently a **mock implementation**. It does not connect to a real Hermes instance. See [integrations/hermes/README.md](integrations/hermes/README.md) for details and the contract a real adapter must fulfill.
+The Hermes integration adapter at `integrations/hermes/` supports stateless plugin loading, lifecycle hook orchestration (`on_session_start`, `pre_llm_call`, `post_llm_call`, `pre_tool_call`, `post_tool_call`, `on_session_end`), and session simulation loops for integration verification.
+
+For local development contract mock details, see [integrations/hermes/README.md](integrations/hermes/README.md).
+

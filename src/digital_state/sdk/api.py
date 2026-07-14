@@ -13,14 +13,20 @@ def is_compatible(plugin_version: str) -> bool:
     # Simple semantic version compatibility check: target version starts with 0.1
     return plugin_version.startswith("0.1.")
 
-def validate_gate_approval(feature_id: str, agent_key: dict, workspace_root: str = None) -> bool:
+def validate_gate_approval(feature_id: str, agent_key: Any, workspace_root: str = None) -> bool:
     """Validates if the agent's key is authorized to approve the current gate transition."""
     root = workspace_root or os.getcwd()
     try:
         kernel = GovernanceKernel(root, run_bootstrap=False)
+        
+        # Resolve key identifier if passed as a dictionary context from Hermes
+        pubkey_str = agent_key
+        if isinstance(agent_key, dict):
+            pubkey_str = agent_key.get("key_id") or agent_key.get("public_key") or ""
+            
         matching_agent = None
         for agent_id, agent in kernel.registry.agents.items():
-            if agent.public_key == agent_key:
+            if agent.public_key == pubkey_str:
                 matching_agent = agent
                 break
         if not matching_agent:

@@ -80,7 +80,7 @@ Digital State evaluates compliance and security boundaries:
 * **Authority Verification:** Ensuring the requesting agent has permissions for the current gate.
 * **Policy Evaluation:** Enforcing constitutional rules and constraints.
 * **Audit Ledger:** Recording every allowance and denial in the immutable ledger.
-* **Bridge Plugin:** The `digital_state.hermes.plugin` is a **stateless runtime bridge**. It intercepts actions via `pre_tool_call` hooks and queries the SDK for `ALLOW` / `DENY` decisions, but does not participate in Kanban orchestration.
+* **Bridge Plugin:** The `digital_state.hermes.plugin` is a **stateless runtime bridge**. It intercepts actions via standard lifecycle hooks (`on_session_start`, `pre_llm_call`, `post_llm_call`, `pre_tool_call`, `post_tool_call`, `on_session_end`) and queries the SDK for `ALLOW` / `DENY` decisions, but does not participate in Kanban orchestration.
 
 ---
 
