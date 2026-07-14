@@ -22,8 +22,9 @@ def test_hermes_client_simulated_lifecycle_success():
             
         # Copy standard agents registry and configs
         import shutil
+        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         shutil.copy(
-            "D:\\Digital-State\\.specify\\agents.json",
+            os.path.join(repo_root, ".specify", "agents.json"),
             os.path.join(specify_dir, "agents.json")
         )
         
@@ -64,8 +65,9 @@ def test_hermes_client_unauthorized_deny():
             
         shutil_copy = True
         import shutil
+        repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         shutil.copy(
-            "D:\\Digital-State\\.specify\\agents.json",
+            os.path.join(repo_root, ".specify", "agents.json"),
             os.path.join(specify_dir, "agents.json")
         )
         

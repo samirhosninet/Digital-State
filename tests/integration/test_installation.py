@@ -9,7 +9,7 @@ def test_end_to_end_installation():
     """Verify the end-to-end installation journey: clean workspace -> install -> init -> doctor -> success."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # 1. Simulate a clean clone by copying project files (excluding venv, specifying cache, etc.)
-        src_root = "D:\\Digital-State"
+        src_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         dest_root = tmpdir
         
         # Copy package code
