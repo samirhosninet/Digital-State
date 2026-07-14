@@ -40,26 +40,54 @@ The Governance Kernel has been hardened with enterprise-ready parameters:
 
 ## User Installation Journey
 
-Transform the repository into an operational workspace with a single execution path:
+You can install and initialize Digital State using either the primary remote package installation path or the developer repository installation path.
+
+---
+
+### Path A: Primary User Installation (GitHub Remote Package)
+
+This is the recommended path for users consuming Digital State directly as a dependency.
 
 ```text
-Clone Repository
-      │
-      ▼
-Run Installer (install.ps1 / install.sh)
-      │
-      ▼
-Digital State Bootstrap (digitalstate init)
-      │
-      ▼
-Verify Installation (digitalstate doctor)
-      │
-      ▼
-Ready State (Governance Active)
+pip install git+https://github.com/samirhosninet/Digital-State.git
+                       │
+                       ▼
+               digitalstate init
+                       │
+                       ▼
+             digitalstate doctor
+                       │
+                       ▼
+                  Ready State
 ```
 
-### Setup Steps:
+#### Steps:
+1. **Install Package:**
+   ```bash
+   pip install git+https://github.com/samirhosninet/Digital-State.git
+   ```
+2. **Initialize Workspace:**
+   Run the initialization command in your target project directory:
+   ```bash
+   digitalstate init
+   ```
+3. **Verify Setup:**
+   Confirm system readiness:
+   ```bash
+   digitalstate doctor
+   ```
 
+---
+
+### Path B: Developer Repository Installation (Local Clone)
+
+This path is intended for development, local modifications, and self-hosted environments.
+
+```text
+Clone Repository ──> Run Installer (install.ps1 / install.sh) ──> digitalstate doctor
+```
+
+#### Steps:
 1. **Clone the Repository:**
    ```bash
    git clone https://github.com/samirhosninet/Digital-State.git
@@ -77,9 +105,9 @@ Ready State (Governance Active)
      ./install.sh
      ```
 
-   *The installer validates Python >= 3.11, installs package dependencies, and automatically initializes the workspace.*
+   *The installer validates Python >= 3.11, installs package dependencies into a local virtualenv, and bootstraps the workspace state.*
 
-3. **Verify Installation:**
+3. **Verify Setup:**
    Run the verification diagnostics tool:
    - **Windows:**
      ```powershell
