@@ -45,6 +45,7 @@ Following deep architectural audits, we have refined the core security claim of 
 ---
 
 ## 4. Release Registry Detail
-* **Release Version:** `v1.3-release`
-* **Release Commit SHA:** `c81d1d1b32d207ec1df9db58cd8b88d40feff911`
+* **Release Tag:** `v1.3-release`
+* **Release Commit:** `6c9ecea`
+* **Documentation Validation Reference:** `c81d1d1`
 * **Test Success Rate:** 100% (47/47 test cases passing)
