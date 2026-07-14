@@ -1,0 +1,11 @@
+{
+  "agent_id": "prime-agent",
+  "role": "Prime",
+  "permissions": [
+    "define_goals",
+    "sign_off_spec",
+    "approve_completed"
+  ],
+  "status": "Active",
+  "public_key": "key-prime"
+}

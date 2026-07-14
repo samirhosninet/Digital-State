@@ -1,0 +1,14 @@
+{
+  "gate_type": "IMPLEMENTATION",
+  "rules": [
+    {
+      "field": "tasks_file",
+      "operator": "exists"
+    },
+    {
+      "field": "all_tasks_completed",
+      "operator": "eq",
+      "value": true
+    }
+  ]
+}

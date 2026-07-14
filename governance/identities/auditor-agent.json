@@ -1,0 +1,12 @@
+{
+  "agent_id": "auditor-agent",
+  "role": "Auditor",
+  "permissions": [
+    "approve_plan",
+    "approve_tasks",
+    "veto_gate",
+    "verify_evidence"
+  ],
+  "status": "Active",
+  "public_key": "key-auditor"
+}

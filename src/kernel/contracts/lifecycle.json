@@ -1,0 +1,32 @@
+{
+  "phases": [
+    "SPECIFICATION",
+    "PLANNING",
+    "TASKS",
+    "IMPLEMENTATION",
+    "VERIFICATION",
+    "COMPLETED"
+  ],
+  "transitions": {
+    "PLANNING": {
+      "from": "SPECIFICATION",
+      "required_action": "sign_off_spec"
+    },
+    "TASKS": {
+      "from": "PLANNING",
+      "required_action": "approve_plan"
+    },
+    "IMPLEMENTATION": {
+      "from": "TASKS",
+      "required_action": "approve_tasks"
+    },
+    "VERIFICATION": {
+      "from": "IMPLEMENTATION",
+      "required_action": "verify_evidence"
+    },
+    "COMPLETED": {
+      "from": "VERIFICATION",
+      "required_action": "approve_completed"
+    }
+  }
+}

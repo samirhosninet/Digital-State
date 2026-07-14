@@ -1,0 +1,14 @@
+{
+  "gate_type": "PLANNING_AUDIT",
+  "rules": [
+    {
+      "field": "checklist_file",
+      "operator": "exists"
+    },
+    {
+      "field": "checks_pass",
+      "operator": "eq",
+      "value": true
+    }
+  ]
+}

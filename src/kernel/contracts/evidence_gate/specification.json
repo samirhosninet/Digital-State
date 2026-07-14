@@ -1,0 +1,14 @@
+{
+  "gate_type": "SPECIFICATION",
+  "rules": [
+    {
+      "field": "spec_file",
+      "operator": "exists"
+    },
+    {
+      "field": "requirements_count",
+      "operator": "gte",
+      "value": 1
+    }
+  ]
+}

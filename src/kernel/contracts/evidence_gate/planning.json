@@ -1,0 +1,14 @@
+{
+  "gate_type": "PLANNING",
+  "rules": [
+    {
+      "field": "plan_file",
+      "operator": "exists"
+    },
+    {
+      "field": "technical_context_complete",
+      "operator": "eq",
+      "value": true
+    }
+  ]
+}

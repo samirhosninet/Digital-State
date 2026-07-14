@@ -1,0 +1,14 @@
+{
+  "gate_type": "VERIFICATION_AUDIT",
+  "rules": [
+    {
+      "field": "walkthrough_file",
+      "operator": "exists"
+    },
+    {
+      "field": "all_tests_passed",
+      "operator": "eq",
+      "value": true
+    }
+  ]
+}

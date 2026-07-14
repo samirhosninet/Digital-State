@@ -1,0 +1,14 @@
+{
+  "gate_type": "TASKS",
+  "rules": [
+    {
+      "field": "tasks_file",
+      "operator": "exists"
+    },
+    {
+      "field": "tasks_count",
+      "operator": "gte",
+      "value": 1
+    }
+  ]
+}

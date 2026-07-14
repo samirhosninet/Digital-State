@@ -1,0 +1,36 @@
+{
+  "prime-agent": {
+    "agent_id": "prime-agent",
+    "role": "Prime",
+    "permissions": [
+      "define_goals",
+      "sign_off_spec",
+      "approve_completed"
+    ],
+    "status": "Active",
+    "public_key": "key-prime"
+  },
+  "builder-agent": {
+    "agent_id": "builder-agent",
+    "role": "Builder",
+    "permissions": [
+      "submit_plan",
+      "submit_evidence",
+      "execute_tasks"
+    ],
+    "status": "Active",
+    "public_key": "key-builder"
+  },
+  "auditor-agent": {
+    "agent_id": "auditor-agent",
+    "role": "Auditor",
+    "permissions": [
+      "approve_plan",
+      "approve_tasks",
+      "veto_gate",
+      "verify_evidence"
+    ],
+    "status": "Active",
+    "public_key": "key-auditor"
+  }
+}

@@ -1,0 +1,25 @@
+[project]
+name = "digital-state"
+version = "0.1.0"
+description = "Governance layer for Hermes Agent"
+requires-python = ">=3.11"
+dependencies = [
+    "cryptography>=41.0.0"
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
+exclude = ".git,__pycache__,docs,build,dist,.specify,.agents,.hermes"

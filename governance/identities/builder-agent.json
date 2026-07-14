@@ -1,0 +1,11 @@
+{
+  "agent_id": "builder-agent",
+  "role": "Builder",
+  "permissions": [
+    "submit_plan",
+    "submit_evidence",
+    "execute_tasks"
+  ],
+  "status": "Active",
+  "public_key": "key-builder"
+}
