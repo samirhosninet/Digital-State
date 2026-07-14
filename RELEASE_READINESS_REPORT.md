@@ -36,6 +36,8 @@
 - **Dependencies:** Standard primitives are enforced through cryptography >= 41.0.0.
 - **Configuration Safety:** Stored securely under the user's workspace directory `.specify/`.
 - **Hermes Mock Adapter Boundary:** Explicit mock warning flags and status reports are written to the CLI output when running `digitalstate doctor`, ensuring no false remote connection claims are made.
+- **Hermes Hard Enforcement:** NOT VERIFIED / NOT CLAIMED
+- **Governance Enforcement Model:** Evidence-based audit gates (where validations, states, and signatures are recorded and audited in local ledgers).
 
 ---
 

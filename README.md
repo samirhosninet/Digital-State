@@ -171,10 +171,14 @@ See [SECURITY.md](SECURITY.md) for the security policy, known security boundarie
 ## Integration Layer (Mock Hermes Boundary)
 
 > [!WARNING]
-> **Hermes Integration Boundary:** The Hermes client runtime integration layer at `integrations/hermes/` is currently a **mock/simulation implementation**. It does not establish connectivity to a live, production-deployed remote Hermes execution cluster. 
+> **Hermes Integration Boundary:** The Hermes client runtime integration layer at `integrations/hermes/` is currently a **mock/simulation compatibility layer**. It does not establish connectivity to a live, production-deployed remote Hermes execution cluster. 
+
+> [!IMPORTANT]
+> **Corrected Security Claim:** Digital State provides **evidence-gated governance** (where all feature state transitions, tool outcomes, and signatures are validated and recorded to the immutable local audit trail). The Hermes integration boundary does not claim runtime hard enforcement or execution blocking.
 
 The integration supports:
 - Stateless plugin loading and lifecycle hook orchestration (`on_session_start`, `pre_llm_call`, `post_llm_call`, `pre_tool_call`, `post_tool_call`, `on_session_end`).
 - Simulated in-memory session run loops for local test and policy validation.
 
 For developer details on the mock contracts, see the [Hermes integration contract specification](file:///d:/Digital-State/integrations/hermes/README.md).
+

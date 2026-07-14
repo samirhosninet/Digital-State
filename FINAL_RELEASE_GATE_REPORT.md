@@ -34,6 +34,8 @@
 - **[✓] No Critical Findings:** Hardcoded absolute paths and machine dependencies have been completely eliminated from the test suites and source code.
 - **[✓] No Unresolved Security Findings:** Secrets scans return zero active private keys or credentials.
 - **[✓] No Untracked Artifacts:** Working tree is 100% clean (`git status` reports nothing to commit).
+- **[✓] Hermes Hard Enforcement:** NOT VERIFIED / NOT CLAIMED (Governance model relies strictly on evidence-based audit gates, not runtime execution blocking).
+
 
 ---
 
