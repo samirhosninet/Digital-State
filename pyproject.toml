@@ -7,6 +7,10 @@ dependencies = [
     "cryptography>=41.0.0"
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.backends.build"
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
