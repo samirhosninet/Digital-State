@@ -2,7 +2,7 @@
 
 **Milestone Reference**: `v1.3-release`  
 **Evaluation Date**: 2026-07-14  
-**Validation Commit**: `c81d1d1`  
+**Validation Commit**: `6c9ecea`  
 **Validation Outcome**: `HOOK_ENFORCEMENT_NOT_VERIFIED`
 
 ---
