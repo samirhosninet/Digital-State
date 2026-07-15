@@ -8,7 +8,12 @@
       "approve_completed"
     ],
     "status": "Active",
-    "public_key": "key-prime"
+    "public_key": {
+      "key_id": "key-prime",
+      "algorithm": "ECDSA_P256",
+      "status": "Active",
+      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAES1SV1SqqmN7kuWtmDBmkiViu1g1K\nSY/5Z8lcmomZJZZGGIcDgGLQ+TTNBMd+TJhxjFISRKHgLu75MIMWmMEBfw==\n-----END PUBLIC KEY-----\n"
+    }
   },
   "builder-agent": {
     "agent_id": "builder-agent",
@@ -19,7 +24,12 @@
       "execute_tasks"
     ],
     "status": "Active",
-    "public_key": "key-builder"
+    "public_key": {
+      "key_id": "key-builder",
+      "algorithm": "ECDSA_P256",
+      "status": "Active",
+      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFvXsu+qSEBS6mVQoiPRx/94Yq5O2\nUsN0QHtizRT8EMSPlDxpEjvEwA+6Uf6qieugsq04HTxFLNOgOyq1/egnCw==\n-----END PUBLIC KEY-----\n"
+    }
   },
   "auditor-agent": {
     "agent_id": "auditor-agent",
@@ -31,6 +41,11 @@
       "verify_evidence"
     ],
     "status": "Active",
-    "public_key": "key-auditor"
+    "public_key": {
+      "key_id": "key-auditor",
+      "algorithm": "ECDSA_P256",
+      "status": "Active",
+      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+77sMJU2sY94jsItWF6zPIiJII9L\nF77eaAMd3BjTVkfpKmZ3JdChBJq9P8AwZpTsFcz6iMQGTC4LMDskkQs4HQ==\n-----END PUBLIC KEY-----\n"
+    }
   }
 }
