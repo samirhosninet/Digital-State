@@ -1,0 +1,33 @@
+﻿{
+  "installation": {
+    "python_version": "3.11.15 (main, Jun 23 2026, 15:20:37) [MSC v.1944 64 bit (AMD64)]",
+    "cryptography_imported": true,
+    "cryptography_version": "49.0.0",
+    "status": "PASS"
+  },
+  "configuration": {
+    "specify_dir_exists": true,
+    "files_present": {
+      "integration.json": true,
+      "init-options.json": true,
+      "agents.json": true,
+      "state.json": true,
+      "memory/audit_log.jsonl": true
+    },
+    "status": "PASS"
+  },
+  "governance": {
+    "state_readable": true,
+    "features_tracked": [],
+    "status": "PASS"
+  },
+  "hermes": {
+    "is_mock_adapter": false,
+    "connection_type": "LIVE",
+    "self_test": "PASS",
+    "adapter_ready": true,
+    "status": "PASS"
+  },
+  "overall_status": "PASS"
+}
+
