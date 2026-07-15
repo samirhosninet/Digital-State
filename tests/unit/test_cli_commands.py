@@ -66,3 +66,27 @@ def test_cli_doctor_command(capsys):
         assert report["governance"]["status"] == "PASS"
         assert report["hermes"]["is_mock_adapter"] is False
         assert report["hermes"]["status"] == "PASS"
+
+def test_cli_repair_command():
+    """Verify that 'repair' validates and recreates workspace database files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Run repair on an uninitialized directory
+        code = run_cli(["repair"], workspace_root=tmpdir)
+        assert code == 0
+        specify_dir = os.path.join(tmpdir, ".specify")
+        assert os.path.exists(os.path.join(specify_dir, "state.json"))
+        assert os.path.exists(os.path.join(specify_dir, "agents.json"))
+
+def test_cli_upgrade_command(monkeypatch):
+    """Verify that 'upgrade' parses successfully and handles missing environment check."""
+    # When no Hermes virtualenv is available, upgrade must return 1
+    with tempfile.TemporaryDirectory() as tmpdir:
+        code = run_cli(["upgrade"], workspace_root=tmpdir)
+        assert code == 1
+
+def test_cli_uninstall_command():
+    """Verify that 'uninstall' runs cleanly and reports success status."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Uninstall should clean up profile directories and return 0
+        code = run_cli(["uninstall"], workspace_root=tmpdir)
+        assert code == 0

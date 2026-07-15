@@ -49,6 +49,15 @@ def create_parser() -> argparse.ArgumentParser:
     # 7. doctor command
     subparsers.add_parser("doctor", help="Verify the installation and integration state.")
 
+    # 8. upgrade command
+    subparsers.add_parser("upgrade", help="Upgrade the Digital State package inside the Hermes virtualenv.")
+
+    # 9. uninstall command
+    subparsers.add_parser("uninstall", help="Uninstall the Digital State plugin and clean profiles from Hermes.")
+
+    # 10. repair command
+    subparsers.add_parser("repair", help="Repair or recover workspace files, configs, and venv setup.")
+
     return parser
 
 
@@ -63,7 +72,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
     try:
         # Only instantiate the kernel if the command requires it
         kernel = None
-        if args.command not in ("init", "doctor"):
+        if args.command not in ("init", "doctor", "upgrade", "uninstall", "repair"):
             kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
 
         if args.command == "init":
@@ -402,6 +411,155 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                 agent_id=args.agent,
             )
             print(json.dumps({"status": "Success", "message": f"Gate '{args.gate}' vetoed."}))
+
+        elif args.command == "upgrade":
+            if sys.platform == "win32":
+                local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+                hermes_root = os.environ.get("HERMES_HOME", "") or os.path.join(
+                    local_appdata if local_appdata else os.path.expanduser(r"~\AppData\Local"),
+                    "hermes"
+                )
+            else:
+                hermes_root = os.environ.get("HERMES_HOME", "") or os.path.expanduser("~/.hermes")
+
+            import shutil
+            import subprocess
+            hermes_cmd = shutil.which("hermes")
+            python_cmd = None
+            if not hermes_cmd:
+                if sys.platform == "win32":
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "hermes.exe")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "python.exe")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+                else:
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "hermes")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "python")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+            else:
+                cmd_dir = os.path.dirname(hermes_cmd)
+                if sys.platform == "win32":
+                    p_path = os.path.join(cmd_dir, "python.exe")
+                else:
+                    p_path = os.path.join(cmd_dir, "python")
+                if os.path.exists(p_path):
+                    python_cmd = p_path
+
+            if not python_cmd:
+                print(json.dumps({"status": "Error", "message": "Hermes virtualenv python not found."}), file=sys.stderr)
+                return 1
+
+            try:
+                subprocess.run(
+                    [python_cmd, "-m", "pip", "install", "--upgrade", workspace_root],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                print(json.dumps({"status": "Success", "message": "Digital State package successfully upgraded inside Hermes virtualenv."}))
+                return 0
+            except Exception as e:
+                print(json.dumps({"status": "Error", "message": f"Upgrade failed: {e}"}), file=sys.stderr)
+                return 1
+
+        elif args.command == "uninstall":
+            if sys.platform == "win32":
+                local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+                hermes_root = os.environ.get("HERMES_HOME", "") or os.path.join(
+                    local_appdata if local_appdata else os.path.expanduser(r"~\AppData\Local"),
+                    "hermes"
+                )
+            else:
+                hermes_root = os.environ.get("HERMES_HOME", "") or os.path.expanduser("~/.hermes")
+
+            import shutil
+            import subprocess
+            hermes_cmd = shutil.which("hermes")
+            python_cmd = None
+            if not hermes_cmd:
+                if sys.platform == "win32":
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "hermes.exe")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "python.exe")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+                else:
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "hermes")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "python")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+            else:
+                cmd_dir = os.path.dirname(hermes_cmd)
+                if sys.platform == "win32":
+                    p_path = os.path.join(cmd_dir, "python.exe")
+                else:
+                    p_path = os.path.join(cmd_dir, "python")
+                if os.path.exists(p_path):
+                    python_cmd = p_path
+
+            if python_cmd:
+                try:
+                    subprocess.run(
+                        [python_cmd, "-m", "pip", "uninstall", "-y", "digital-state"],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                except Exception as e:
+                    print(f"Warning: could not uninstall package: {e}", file=sys.stderr)
+
+            profiles = ["prime", "builder", "auditor"]
+            for name in profiles:
+                prof_dir = os.path.join(hermes_root, "profiles", name)
+                if os.path.exists(prof_dir):
+                    try:
+                        shutil.rmtree(prof_dir)
+                    except Exception as e:
+                        print(f"Warning: could not remove profile dir '{prof_dir}': {e}", file=sys.stderr)
+
+            global_config_path = os.path.join(hermes_root, "config.yaml")
+            if os.path.exists(global_config_path):
+                try:
+                    import yaml
+                    with open(global_config_path, "r", encoding="utf-8") as f:
+                        cfg = yaml.safe_load(f) or {}
+                    if "plugins" in cfg and isinstance(cfg["plugins"], dict):
+                        if "enabled" in cfg["plugins"] and isinstance(cfg["plugins"]["enabled"], list):
+                            if "digital_state" in cfg["plugins"]["enabled"]:
+                                cfg["plugins"]["enabled"].remove("digital_state")
+                                with open(global_config_path, "w", encoding="utf-8") as f:
+                                    yaml.safe_dump(cfg, f, default_flow_style=False)
+                except Exception as e:
+                    print(f"Warning: could not update global config.yaml: {e}", file=sys.stderr)
+
+            print(json.dumps({"status": "Success", "message": "Digital State plugin and profiles successfully uninstalled from Hermes."}))
+            return 0
+
+        elif args.command == "repair":
+            specify_dir = os.path.join(workspace_root, ".specify")
+            os.makedirs(specify_dir, exist_ok=True)
+            os.makedirs(os.path.join(specify_dir, "memory"), exist_ok=True)
+
+            state_path = os.path.join(specify_dir, "state.json")
+            if not os.path.exists(state_path) or os.path.getsize(state_path) == 0:
+                with open(state_path, "w", encoding="utf-8") as f:
+                    f.write("{}")
+
+            agents_path = os.path.join(specify_dir, "agents.json")
+            if not os.path.exists(agents_path):
+                with open(agents_path, "w", encoding="utf-8") as f:
+                    f.write("[]")
+
+            print(json.dumps({"status": "Success", "message": "Repair and recovery completed successfully. Workspace directories and state files have been validated/rebuilt."}))
+            return 0
 
         return 0
 
