@@ -37,14 +37,12 @@ class DigitalStatePlugin:
             
         # 2. Register bundled skills read-only (Namespaced and isolated)
         try:
+            from pathlib import Path
             skill_data = pkgutil.get_data(__name__, "skills/governance.md")
             if skill_data:
-                # Save as a temporary package file for Hermes registration if required by path API,
-                # or register content directly if supported by context.
-                # In standard plugin API, we register the resource path.
                 package_dir = os.path.dirname(os.path.abspath(__file__))
                 skill_path = os.path.join(package_dir, "skills", "governance.md")
-                self.ctx.register_skill("governance_playbook", skill_path)
+                self.ctx.register_skill("governance_playbook", Path(skill_path))
         except Exception as e:
             logger.warning(f"Failed to register bundled governance skill: {e}")
 
@@ -57,8 +55,8 @@ class DigitalStatePlugin:
         self.ctx.register_hook("on_session_end", self.on_session_end_handler)
         
         # 4. Bind slash commands
-        self.ctx.register_command("/approve", self.handle_approve_command)
-        self.ctx.register_command("/veto", self.handle_veto_command)
+        self.ctx.register_command("/ds-approve", self.handle_approve_command)
+        self.ctx.register_command("/ds-veto", self.handle_veto_command)
         
         self.is_loaded = True
         logger.info("Digital State Plugin successfully Loaded.")

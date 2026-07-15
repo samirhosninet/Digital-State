@@ -186,7 +186,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             if python_cmd:
                 try:
                     subprocess.run(
-                        [python_cmd, "-m", "pip", "install", "-e", workspace_root],
+                        [python_cmd, "-m", "pip", "install", workspace_root],
                         check=True,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE

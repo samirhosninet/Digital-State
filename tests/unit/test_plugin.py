@@ -27,7 +27,7 @@ def test_plugin_registration():
     assert plugin.initialize() is True
     assert "governance_playbook" in ctx.skills
     assert "pre_tool_call" in ctx.hooks
-    assert "/approve" in ctx.commands
+    assert "/ds-approve" in ctx.commands
 
 def test_plugin_version_mismatch():
     """Verify that version mismatch blocks initialization and returns False."""

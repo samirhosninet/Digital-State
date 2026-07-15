@@ -1,3 +1,19 @@
 {
-  "evidence": []
+  "spec": "005-hermes-hard-enforcement",
+  "verified_by": "auditor (Digital State runtime verification)",
+  "verified_on": "2026-07-15",
+  "environment": "Windows 10; uv-managed venv; python 3.11.15",
+  "results": {
+    "pytest_suite": "PASS (47/47)",
+    "hook_contract": "VERIFIED",
+    "security_boundaries": "VERIFIED",
+    "audit_log_tamper_detection": "VERIFIED",
+    "documentation_reconciled": true,
+    "stale_claim_flagged": "kanban-worker runtime referenced but absent from repo"
+  },
+  "artifacts": [
+    "scripts/verify_hook_contract.py",
+    "scripts/verify_security_boundaries.py"
+  ],
+  "notes": "Root validation-report.md was already VERIFIED (commit 5793a4a). Spec-local copy reconciled. RELEASE_NOTES.md still pins Release Commit to 6c9ecea; consider updating to the actual release commit once published."
 }
