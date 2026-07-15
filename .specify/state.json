@@ -1,9 +1,17 @@
 {
   "feature_states": {
-    "feat-bootstrap": "COMPLETED"
+    "feat-bootstrap": "COMPLETED",
+    "feat-003": "COMPLETED"
   },
   "gate_validations": {
     "feat-bootstrap": {
+      "SPECIFICATION": true,
+      "PLANNING": true,
+      "TASKS": true,
+      "IMPLEMENTATION": true,
+      "VERIFICATION": true
+    },
+    "feat-003": {
       "SPECIFICATION": true,
       "PLANNING": true,
       "TASKS": true,
