@@ -1,9 +1,9 @@
 {
   "feature_states": {
-    "feat-004": "COMPLETED"
+    "feat-007": "COMPLETED"
   },
   "gate_validations": {
-    "feat-004": {
+    "feat-007": {
       "SPECIFICATION": true,
       "PLANNING": true,
       "TASKS": true,
