@@ -17,7 +17,7 @@ The fail-closed block executes along a strict hook validation chain:
           "message": "Digital State Plugin is not loaded. Fail-Safe Deny triggered."
       }
   ```
-* **Bypass Mitigation:** Every native tool call executed by the Hermes interpreter routes through `pre_tool_call` before launching the subprocess, ensuring no tool call can bypass this validation.
+* **Bypass Mitigation:** All Digital State–governed tool executions pass through the registered `pre_tool_call` hook.
 
 ---
 
