@@ -69,3 +69,12 @@ Captured call path execution during E2E session runs:
 | **DS-MIG-001** | **OPEN** | Native Hermes profile configuration schemas | Hermes core runtime |
 | **DS-MIG-002** | **OPEN** | Native Hermes `kanban.db` database adapter schema | Hermes core runtime |
 | **Ledger State Reconstruction** | **PLANNED** | Parsing logic for `audit_log.jsonl` hash blocks | Digital State |
+| **Runtime Instrumentation Traces** | **OPEN (EVIDENCE GAP)** | Diagnostic call trace logger middleware | Digital State |
+| **Invocation Order Verification** | **OPEN (EVIDENCE GAP)** | Dynamic call-order assertions in E2E tests | Digital State |
+
+---
+
+## 5. Architectural Acceptance Status
+
+**STATUS:** `READY FOR FINAL ACCEPTANCE REVIEW`
+
