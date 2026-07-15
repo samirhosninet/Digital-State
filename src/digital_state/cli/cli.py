@@ -556,7 +556,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             agents_path = os.path.join(specify_dir, "agents.json")
             if not os.path.exists(agents_path):
                 with open(agents_path, "w", encoding="utf-8") as f:
-                    f.write("[]")
+                    f.write("{}")
 
             print(json.dumps({"status": "Success", "message": "Repair and recovery completed successfully. Workspace directories and state files have been validated/rebuilt."}))
             return 0
