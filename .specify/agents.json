@@ -12,7 +12,7 @@
       "key_id": "key-prime",
       "algorithm": "ECDSA_P256",
       "status": "Active",
-      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAES1SV1SqqmN7kuWtmDBmkiViu1g1K\nSY/5Z8lcmomZJZZGGIcDgGLQ+TTNBMd+TJhxjFISRKHgLu75MIMWmMEBfw==\n-----END PUBLIC KEY-----\n"
+      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8wHz1y10Wx08GoCxbnQIM8AWNKIp\nFjlPpAxt+W5UoE1wh6Y4OTwWcHPsNxEVv5UKyiqKQNYNY2rLO7MqB8vNCQ==\n-----END PUBLIC KEY-----\n"
     }
   },
   "builder-agent": {
@@ -28,7 +28,7 @@
       "key_id": "key-builder",
       "algorithm": "ECDSA_P256",
       "status": "Active",
-      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEFvXsu+qSEBS6mVQoiPRx/94Yq5O2\nUsN0QHtizRT8EMSPlDxpEjvEwA+6Uf6qieugsq04HTxFLNOgOyq1/egnCw==\n-----END PUBLIC KEY-----\n"
+      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEU6Y01bZrnrnM+0MILIHd8lTWi8Xt\n07hrwtiuQZnfrgmEeG/FGwLp1nbpi0JpQzvEd4oe1rz+r3UqNWMc+2QHdg==\n-----END PUBLIC KEY-----\n"
     }
   },
   "auditor-agent": {
@@ -45,7 +45,7 @@
       "key_id": "key-auditor",
       "algorithm": "ECDSA_P256",
       "status": "Active",
-      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+77sMJU2sY94jsItWF6zPIiJII9L\nF77eaAMd3BjTVkfpKmZ3JdChBJq9P8AwZpTsFcz6iMQGTC4LMDskkQs4HQ==\n-----END PUBLIC KEY-----\n"
+      "value": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECPxfzdaaaJ0isr7Mfqy/L2zzunwb\n4sq+8cA/bbJwEo6lj5M2iIAVfyy+AntU18e4rfP/QlivIMB+lHORah+miQ==\n-----END PUBLIC KEY-----\n"
     }
   }
 }
