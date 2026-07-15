@@ -26,7 +26,10 @@ def validate_gate_approval(feature_id: str, agent_key: Any, workspace_root: str 
             
         matching_agent = None
         for agent_id, agent in kernel.registry.agents.items():
-            if agent.public_key == pubkey_str:
+            reg_pubkey = agent.public_key
+            if isinstance(reg_pubkey, dict):
+                reg_pubkey = reg_pubkey.get("key_id") or reg_pubkey.get("value") or ""
+            if reg_pubkey == pubkey_str:
                 matching_agent = agent
                 break
         if not matching_agent:
