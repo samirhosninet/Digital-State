@@ -23,9 +23,32 @@ class DigitalStatePlugin:
         self.name = "digital_state"
         self.version = "0.1.0"
         self.is_loaded = False
+        # Resolve workspace_root: prefer ctx attribute, then env, then CWD
+        self._workspace_root = (
+            getattr(ctx, "workspace_root", None)
+            or os.environ.get("HERMES_WORKSPACE")
+            or os.getcwd()
+        )
+
+    @staticmethod
+    def _governed_context(context: Any) -> tuple[str | None, Any]:
+        """Return only runtime-supplied governance context; never invent identity."""
+        if not isinstance(context, dict):
+            return None, None
+        return context.get("feature_id"), context.get("agent_key")
         
     def initialize(self) -> bool:
         """Runs the handshake check and hooks initialization on plugin load."""
+        # Clean no_proxy of IPv6 addresses that break httpx
+        for env_key in ("no_proxy", "NO_PROXY"):
+            val = os.environ.get(env_key, "")
+            if "::1" in val:
+                clean_val = ",".join(
+                    part for part in val.split(",")
+                    if "::1" not in part
+                )
+                os.environ[env_key] = clean_val
+
         # 1. Compatibility Handshake (Refinement E)
         if not is_compatible(self.version):
             logger.error(
@@ -78,17 +101,13 @@ class DigitalStatePlugin:
         print(f"--- [Digital State Worker Log] Env Vars: {json.dumps(env_vars)}", flush=True)
         
         context = args[0] if args else (kwargs.get("context") or kwargs)
-        feature_id = context.get("feature_id")
+        feature_id, _ = self._governed_context(context)
         if not feature_id:
-            if os.environ.get("HERMES_KANBAN_TASK"):
-                feature_id = "feat-010"
-                print(f"Fallback: mapped task to feature '{feature_id}'", flush=True)
-            else:
-                logger.warning("Missing feature ID metadata on session start.")
-                return False
+            logger.warning("Missing validated feature ID metadata on session start.")
+            return False
                 
         try:
-            status = check_governance_status(feature_id, workspace_root=self.ctx.workspace_root)
+            status = check_governance_status(feature_id, workspace_root=self._workspace_root)
             return status is not None
         except Exception as e:
             logger.error(f"Error checking status on session start: {e}")
@@ -99,13 +118,11 @@ class DigitalStatePlugin:
         if not self.is_loaded:
             return None
         context = args[1] if len(args) > 1 else (kwargs.get("context") or kwargs)
-        feature_id = context.get("feature_id")
-        if not feature_id and os.environ.get("HERMES_KANBAN_TASK"):
-            feature_id = "feat-010"
+        feature_id, _ = self._governed_context(context)
         if not feature_id:
             return None
         try:
-            status = check_governance_status(feature_id, workspace_root=self.ctx.workspace_root)
+            status = check_governance_status(feature_id, workspace_root=self._workspace_root)
             if status:
                 return f"[Digital State Governance Context] Active Feature: {feature_id}, Current Phase: {status.get('state', 'Unknown')}"
         except Exception as e:
@@ -118,14 +135,9 @@ class DigitalStatePlugin:
             return
         response = args[0] if args else (kwargs.get("response") or "")
         context = args[1] if len(args) > 1 else (kwargs.get("context") or kwargs)
-        feature_id = context.get("feature_id")
-        if not feature_id and os.environ.get("HERMES_KANBAN_TASK"):
-            feature_id = "feat-010"
-        if feature_id:
-            try:
-                submit_evidence(feature_id, "llm_call", {"response_len": len(response)}, workspace_root=self.ctx.workspace_root)
-            except Exception as e:
-                logger.warning(f"Failed to submit post-LLM evidence: {e}")
+        feature_id, agent_key = self._governed_context(context)
+        if feature_id and isinstance(agent_key, dict):
+            logger.info("LLM response observed for feature '%s'; evidence requires a signed payload.", feature_id)
 
     def pre_tool_call_handler(self, *args, **kwargs) -> Dict[str, Any]:
         """Intercepts tool executions and queries the SDK for authorization."""
@@ -140,36 +152,16 @@ class DigitalStatePlugin:
         arguments = args[1] if len(args) > 1 else (kwargs.get("args") or kwargs.get("arguments") or {})
         context = args[2] if len(args) > 2 else (kwargs.get("context") or kwargs)
         
-        agent_key = context.get("agent_key")
-        feature_id = context.get("feature_id")
-        
+        feature_id, agent_key = self._governed_context(context)
         if not agent_key or not feature_id:
-            task_id = os.environ.get("HERMES_KANBAN_TASK")
-            profile_name = os.environ.get("HERMES_PROFILE")
-            if task_id and profile_name:
-                feature_id = feature_id or "feat-010"
-                if profile_name == "builder":
-                    agent_key = {
-                        "key_id": "key-builder",
-                        "role": "Builder",
-                        "public_key": "key-builder"
-                    }
-                elif profile_name == "prime":
-                    agent_key = {
-                        "key_id": "key-prime",
-                        "role": "Prime",
-                        "public_key": "key-prime"
-                    }
-                print(f"Fallback auth mapping: feature={feature_id}, profile={profile_name}", flush=True)
-            else:
-                logger.warning("Missing agent key or feature ID metadata. Fail-Safe Deny triggered.")
-                return {
-                    "action": "block",
-                    "message": "Missing agent key or feature ID metadata. Fail-Safe Deny triggered."
-                }
+            logger.warning("Missing signed agent key or feature ID metadata. Fail-Safe Deny triggered.")
+            return {
+                "action": "block",
+                "message": "Missing signed agent key or feature ID metadata. Fail-Safe Deny triggered."
+            }
             
         try:
-            authorized = validate_gate_approval(feature_id, agent_key, workspace_root=self.ctx.workspace_root)
+            authorized = validate_gate_approval(feature_id, agent_key, workspace_root=self._workspace_root)
             if not authorized:
                 logger.warning(f"Authorization denied for action '{tool_name}' on feature '{feature_id}'.")
                 return {
@@ -188,24 +180,26 @@ class DigitalStatePlugin:
         """Invoked after tool execution to log results as evidence."""
         if not self.is_loaded:
             return
-        tool_name = args[0] if args else kwargs.get("tool_name")
-        outcome = args[1] if len(args) > 1 else (kwargs.get("outcome") or kwargs.get("result") or {})
-        context = args[2] if len(args) > 2 else (kwargs.get("context") or kwargs)
-        feature_id = context.get("feature_id")
-        if not feature_id and os.environ.get("HERMES_KANBAN_TASK"):
-            feature_id = "feat-010"
-        if feature_id:
-            try:
-                submit_evidence(feature_id, "tool_call", {"tool": tool_name, "outcome": outcome}, workspace_root=self.ctx.workspace_root)
-            except Exception as e:
-                logger.warning(f"Failed to submit post-tool evidence: {e}")
+        try:
+            # positional arguments: tool_name, tool_args, result, task_id, duration_ms
+            tool_name = args[0] if len(args) > 0 else kwargs.get("tool_name")
+            tool_args = args[1] if len(args) > 1 else kwargs.get("args")
+            result = args[2] if len(args) > 2 else kwargs.get("result")
+            context = args[3] if len(args) > 3 and isinstance(args[3], dict) else kwargs.get("context", {})
+
+            outcome = {"result": result, "args": tool_args}
+            feature_id, agent_key = self._governed_context(context)
+            if feature_id and isinstance(agent_key, dict):
+                logger.info("Tool result observed for feature '%s'; evidence requires a signed payload.", feature_id)
+        except Exception as e:
+            logger.warning(f"Failed in post_tool_call_handler: {e}")
 
     def on_session_end_handler(self, *args, **kwargs) -> None:
         """Invoked when a Hermes session ends."""
         if not self.is_loaded:
             return
         try:
-            verify_audit_log(workspace_root=self.ctx.workspace_root)
+            verify_audit_log(workspace_root=self._workspace_root)
         except Exception as e:
             logger.warning(f"Verification of audit log failed on session end: {e}")
 
@@ -227,7 +221,7 @@ class DigitalStatePlugin:
         """Logs a version mismatch event directly to the audit system."""
         try:
             # Re-verify audit log config via fallback
-            verify_audit_log(self.ctx.workspace_root)
+            verify_audit_log(self._workspace_root)
         except Exception:
             pass
 

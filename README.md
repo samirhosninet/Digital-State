@@ -126,7 +126,7 @@ The standalone command interface wraps the governance kernel:
 
 ### 1. Register Agent
 ```powershell
-digitalstate register --id <agent_id> --role <role> --key <key>
+digitalstate register --id <agent_id> --role <Prime|Builder|Auditor> --key-id <key_id> --public-key-file <ecdsa-p256-public-key.pem>
 ```
 
 ### 2. Status Check
@@ -181,4 +181,3 @@ The integration supports:
 - Simulated in-memory session run loops for local test and policy validation.
 
 For developer details on the mock contracts, see the [Hermes integration contract specification](file:///d:/Digital-State/integrations/hermes/README.md).
-

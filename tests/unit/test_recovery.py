@@ -6,6 +6,7 @@ import pytest
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import EvidenceError, GovernanceError
 from digital_state.core.locking import FileLock
+from tests.conftest import sign_payload
 
 
 def test_boot_alignment_validation():
@@ -25,11 +26,9 @@ def test_boot_alignment_validation():
         feature_id = "feat-recovery-test"
 
         spec_content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-        serialized = json.dumps(spec_content, sort_keys=True)
-        import hashlib
-        spec_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        spec_sig = f"key-prime-signed-{spec_hash}"
+        spec_sig = sign_payload("prime", spec_content)
         kernel.submit_spec_evidence(feature_id, "prime-agent", "specs/001-spec.md", 3, spec_sig)
+        kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
 
         assert kernel.get_feature_state(feature_id) == "PLANNING"
 

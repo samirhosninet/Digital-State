@@ -5,6 +5,7 @@ import pytest
 
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import LifecycleError, EvidenceError
+from tests.conftest import sign_payload
 
 
 def test_duplicate_and_rollback_prevention():
@@ -24,11 +25,9 @@ def test_duplicate_and_rollback_prevention():
 
         # 1. SPECIFICATION -> PLANNING
         spec_content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-        serialized = json.dumps(spec_content, sort_keys=True)
-        import hashlib
-        spec_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        spec_sig = f"key-prime-signed-{spec_hash}"
+        spec_sig = sign_payload("prime", spec_content)
         kernel.submit_spec_evidence(feature_id, "prime-agent", "specs/001-spec.md", 3, spec_sig)
+        kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
 
         # 2. Try duplicate transition to PLANNING (should fail because current state is PLANNING)
         with pytest.raises(LifecycleError):
@@ -43,9 +42,7 @@ def test_duplicate_and_rollback_prevention():
 
         # 3. Submit planning evidence
         plan_content = {"plan_file": "specs/001-plan.md", "technical_context_complete": True}
-        plan_serialized = json.dumps(plan_content, sort_keys=True)
-        plan_hash = hashlib.sha256(plan_serialized.encode("utf-8")).hexdigest()
-        builder_sig = f"key-builder-signed-{plan_hash}"
+        builder_sig = sign_payload("builder", plan_content)
         kernel.submit_planning_evidence(feature_id, "builder-agent", "specs/001-plan.md", True, builder_sig)
 
         # 4. Approve transition to TASKS
@@ -85,11 +82,9 @@ def test_last_record_truncation_detection():
 
         # State transition to PLANNING
         spec_content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-        serialized = json.dumps(spec_content, sort_keys=True)
-        import hashlib
-        spec_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        spec_sig = f"key-prime-signed-{spec_hash}"
+        spec_sig = sign_payload("prime", spec_content)
         kernel.submit_spec_evidence(feature_id, "prime-agent", "specs/001-spec.md", 3, spec_sig)
+        kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
 
         # Verification must pass originally
         assert kernel.verify_integrity() is True

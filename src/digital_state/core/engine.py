@@ -111,10 +111,6 @@ class GovernanceKernel:
             }
         )
 
-        # Auto-approve SPECIFICATION sign-off
-        if gate == "SPECIFICATION":
-            self._approve_gate_unlocked(feature_id, "SPECIFICATION", agent_id)
-
     def approve_gate(self, feature_id: str, gate: str, agent_id: str) -> None:
         """Generic endpoint to audit and sign off on a gate, transitioning state."""
         with FileLock(self.lock_dir):
@@ -128,6 +124,28 @@ class GovernanceKernel:
         agent = self.registry.get_agent(agent_id)
         if not agent:
             raise RegistryError(f"Agent '{agent_id}' is not registered.")
+
+        submitters = {
+            entry["agent_id"]
+            for entry in self.audit_logger.read_entries()
+            if entry.get("event_type") == "SUBMIT_EVIDENCE"
+            and entry.get("details", {}).get("feature_id") == feature_id
+            and entry.get("details", {}).get("evidence_type") == gate
+        }
+        if agent_id in submitters:
+            self.audit_logger.append_entry(
+                event_type="AUTHORIZATION_DENIED",
+                agent_id=agent_id,
+                details={
+                    "feature_id": feature_id,
+                    "gate_state": gate,
+                    "action": "approve_gate",
+                    "reason": "Independent approval required: evidence submitter cannot approve the same gate.",
+                },
+            )
+            raise LifecycleError(
+                f"Agent '{agent_id}' cannot approve gate '{gate}' because it submitted its evidence."
+            )
 
         # Find next state from transition map
         next_state = None
@@ -153,6 +171,16 @@ class GovernanceKernel:
             registry=self.registry,
             policy_engine=self.policy_engine,
             audit_logger=self.audit_logger,
+        )
+        self.audit_logger.append_entry(
+            event_type="AUTHORIZATION_GRANTED",
+            agent_id=agent_id,
+            details={
+                "feature_id": feature_id,
+                "gate_state": gate,
+                "action": "approve_gate",
+                "independent_of": sorted(submitters),
+            },
         )
 
     def reject_gate(self, feature_id: str, gate: str, reason: str, agent_id: str) -> None:

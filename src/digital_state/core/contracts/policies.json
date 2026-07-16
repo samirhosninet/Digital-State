@@ -1,7 +1,7 @@
 {
   "rules": {
     "define_goals": "define_goals",
-    "sign_off_spec": "sign_off_spec",
+    "approve_spec": "approve_spec",
     "submit_plan": "submit_plan",
     "approve_plan": "approve_plan",
     "approve_tasks": "approve_tasks",

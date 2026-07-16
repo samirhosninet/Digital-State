@@ -16,8 +16,11 @@ def create_parser() -> argparse.ArgumentParser:
     # 1. register command
     reg_parser = subparsers.add_parser("register", help="Register a new agent profile.")
     reg_parser.add_argument("--id", required=True, help="Unique identifier for the agent.")
-    reg_parser.add_argument("--role", required=True, help="Assigned governance profile (Prime/Builder/Auditor).")
-    reg_parser.add_argument("--key", required=True, help="Verification public key credential.")
+    reg_parser.add_argument("--role", required=True, choices=["Prime", "Builder", "Auditor"], help="Assigned governance profile.")
+    reg_parser.add_argument("--public-key-file", help="PEM public-key file for an ECDSA P-256 identity.")
+    reg_parser.add_argument("--key-id", help="Stable public identifier for the registered key.")
+    reg_parser.add_argument("--algorithm", default="ECDSA_P256", choices=["ECDSA_P256"], help="Signature algorithm.")
+    reg_parser.add_argument("--key", help="Deprecated plaintext key option; always rejected.")
 
     # 2. status command
     status_parser = subparsers.add_parser("status", help="Inspect status and transition logs.")
@@ -346,11 +349,32 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             print(json.dumps(doctor_report, indent=2))
 
         elif args.command == "register":
+            if args.key:
+                raise GovernanceError(
+                    "--key is no longer supported. Use --public-key-file and --key-id with an ECDSA P-256 public key."
+                )
+            if not args.public_key_file or not args.key_id:
+                raise GovernanceError("register requires --public-key-file and --key-id.")
+            try:
+                with open(args.public_key_file, "r", encoding="utf-8") as key_file:
+                    public_key_value = key_file.read()
+            except OSError as exc:
+                raise GovernanceError(f"Unable to read public-key file: {exc}") from exc
+            role_permissions = {
+                "Prime": ["define_goals", "sign_off_spec", "approve_completed"],
+                "Builder": ["submit_plan", "submit_evidence", "execute_tasks"],
+                "Auditor": ["approve_spec", "approve_plan", "approve_tasks", "veto_gate", "verify_evidence"],
+            }
             kernel.registry.register_agent(
                 agent_id=args.id,
                 role=args.role,
-                permissions=["submit_evidence", "execute_tasks"],  # standard baseline
-                public_key=args.key,
+                permissions=role_permissions[args.role],
+                public_key={
+                    "key_id": args.key_id,
+                    "algorithm": args.algorithm,
+                    "status": "Active",
+                    "value": public_key_value,
+                },
             )
             print(json.dumps({"status": "Success", "message": f"Agent '{args.id}' registered successfully."}))
 

@@ -5,6 +5,7 @@ import pytest
 
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import LifecycleError, RegistryError, EvidenceError
+from tests.conftest import sign_payload
 
 
 def test_planning_gate_unit_rules():
@@ -35,10 +36,7 @@ def test_planning_gate_unit_rules():
 
         # Transition feature to PLANNING state first
         spec_content = {"spec_file": "specs/001-spec.md", "requirements_count": 2}
-        serialized = json.dumps(spec_content, sort_keys=True)
-        import hashlib
-        spec_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        spec_sig = f"key-prime-signed-{spec_hash}"
+        spec_sig = sign_payload("prime", spec_content)
         
         kernel.submit_spec_evidence(
             feature_id=feature_id,
@@ -47,6 +45,7 @@ def test_planning_gate_unit_rules():
             requirements_count=2,
             signature=spec_sig,
         )
+        kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
         assert kernel.get_feature_state(feature_id) == "PLANNING"
 
         # Now in PLANNING state - invalid signature must fail
@@ -61,9 +60,7 @@ def test_planning_gate_unit_rules():
 
         # Non-compliant contract (technical_context_complete is False) must fail
         bad_plan_content = {"plan_file": "specs/001-plan.md", "technical_context_complete": False}
-        bad_plan_serialized = json.dumps(bad_plan_content, sort_keys=True)
-        bad_plan_hash = hashlib.sha256(bad_plan_serialized.encode("utf-8")).hexdigest()
-        bad_plan_sig = f"key-builder-signed-{bad_plan_hash}"
+        bad_plan_sig = sign_payload("builder", bad_plan_content)
 
         with pytest.raises(EvidenceError) as exc:
             kernel.submit_planning_evidence(

@@ -72,24 +72,56 @@ class AgentRegistry:
             json.dump(data, f, indent=2)
 
     def _ensure_default_agents(self) -> None:
-        """Initialize the baseline defaults for the Prime, Builder, and Auditor profiles."""
+        """Bootstrap the baseline trust roots (Prime/Builder/Auditor) with their
+        ECDSA P-256 public-key identities. Operators may register additional
+        real-key identities at runtime; these defaults keep the kernel bootable."""
         self.register_agent(
             agent_id="prime-agent",
             role="Prime",
-            permissions=["define_goals", "sign_off_spec", "approve_completed"],
-            public_key="key-prime",
+            permissions=["define_goals", "approve_spec", "approve_completed"],
+            public_key={
+                "key_id": "key-prime",
+                "status": "Active",
+                "algorithm": "ECDSA_P256",
+                "value": (
+                    "-----BEGIN PUBLIC KEY-----\n"
+                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8wHz1y10Wx08GoCxbnQIM8AWNKIp\n"
+                    "FjlPpAxt+W5UoE1wh6Y4OTwWcHPsNxEVv5UKyiqKQNYNY2rLO7MqB8vNCQ==\n"
+                    "-----END PUBLIC KEY-----\n"
+                ),
+            },
         )
         self.register_agent(
             agent_id="builder-agent",
             role="Builder",
             permissions=["submit_plan", "submit_evidence", "execute_tasks"],
-            public_key="key-builder",
+            public_key={
+                "key_id": "key-builder",
+                "status": "Active",
+                "algorithm": "ECDSA_P256",
+                "value": (
+                    "-----BEGIN PUBLIC KEY-----\n"
+                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEU6Y01bZrnrnM+0MILIHd8lTWi8Xt\n"
+                    "07hrwtiuQZnfrgmEeG/FGwLp1nbpi0JpQzvEd4oe1rz+r3UqNWMc+2QHdg==\n"
+                    "-----END PUBLIC KEY-----\n"
+                ),
+            },
         )
         self.register_agent(
             agent_id="auditor-agent",
             role="Auditor",
-            permissions=["approve_plan", "approve_tasks", "veto_gate", "verify_evidence"],
-            public_key="key-auditor",
+            permissions=["approve_plan", "approve_tasks", "approve_spec", "veto_gate", "verify_evidence"],
+            public_key={
+                "key_id": "key-auditor",
+                "status": "Active",
+                "algorithm": "ECDSA_P256",
+                "value": (
+                    "-----BEGIN PUBLIC KEY-----\n"
+                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECPxfzdaaaJ0isr7Mfqy/L2zzunwb\n"
+                    "4sq+8cA/bbJwEo6lj5M2iIAVfyy+AntU18e4rfP/QlivIMB+lHORah+miQ==\n"
+                    "-----END PUBLIC KEY-----\n"
+                ),
+            },
         )
 
     def register_agent(
@@ -98,6 +130,8 @@ class AgentRegistry:
         """Register a new agent in the registry."""
         if agent_id in self.agents:
             raise RegistryError(f"Agent with ID '{agent_id}' is already registered.")
+        from digital_state.core.verifier import CryptoVerifier
+        CryptoVerifier.validate_key_metadata(public_key)
 
         agent = Agent(agent_id=agent_id, role=role, permissions=permissions, public_key=public_key)
         self.agents[agent_id] = agent

@@ -34,14 +34,11 @@ def test_hermes_client_simulated_lifecycle_success():
         # We need the feature to be in SPECIFICATION state
         assert kernel.get_feature_state(feature_id) == "SPECIFICATION"
         
-        # Prepare a valid signature context for the mock Prime agent
-        # For 'prime-agent', public key is 'key-prime'
-        agent_key = {
-            "key_id": "key-prime",
-            "role": "Prime",
-            # We mock the signature verification check: "{key_id}-signed-{hash}"
-            "signature": "key-prime-signed-mockhash"
-        }
+        from tests.conftest import public_key_dict
+
+        # The plugin now requires agent_key to be a real ECDSA P-256 identity dict
+        # (not a plaintext string). Provide Prime's validated public-key identity.
+        agent_key = public_key_dict("prime")
         
         client = HermesClient()
         client.set_mock_mode(False)

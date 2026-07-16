@@ -5,6 +5,7 @@ import pytest
 
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import LifecycleError, EvidenceError
+from tests.conftest import sign_payload
 
 
 def test_verification_gates_unit_rules():
@@ -24,17 +25,13 @@ def test_verification_gates_unit_rules():
 
         # Initialize to PLANNING
         spec_content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-        serialized = json.dumps(spec_content, sort_keys=True)
-        import hashlib
-        spec_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        spec_sig = f"key-prime-signed-{spec_hash}"
+        spec_sig = sign_payload("prime", spec_content)
         kernel.submit_spec_evidence(feature_id, "prime-agent", "specs/001-spec.md", 3, spec_sig)
+        kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
 
         # Submit plan
         plan_content = {"plan_file": "specs/001-plan.md", "technical_context_complete": True}
-        plan_serialized = json.dumps(plan_content, sort_keys=True)
-        plan_hash = hashlib.sha256(plan_serialized.encode("utf-8")).hexdigest()
-        plan_sig = f"key-builder-signed-{plan_hash}"
+        plan_sig = sign_payload("builder", plan_content)
         kernel.submit_planning_evidence(feature_id, "builder-agent", "specs/001-plan.md", True, plan_sig)
         
         # Approve and transition to TASKS
@@ -43,9 +40,7 @@ def test_verification_gates_unit_rules():
 
         # Now in TASKS: Submit invalid tasks evidence (tasks_count is 0, which is < 1)
         bad_tasks = {"tasks_file": "specs/001-tasks.md", "tasks_count": 0, "requirements_count": 3}
-        bad_tasks_serialized = json.dumps(bad_tasks, sort_keys=True)
-        bad_tasks_hash = hashlib.sha256(bad_tasks_serialized.encode("utf-8")).hexdigest()
-        bad_tasks_sig = f"key-builder-signed-{bad_tasks_hash}"
+        bad_tasks_sig = sign_payload("builder", bad_tasks)
 
         with pytest.raises(EvidenceError) as exc:
             kernel.submit_evidence(feature_id, "TASKS", bad_tasks, "builder-agent", bad_tasks_sig)
@@ -53,9 +48,7 @@ def test_verification_gates_unit_rules():
 
         # Submit valid tasks evidence
         ok_tasks = {"tasks_file": "specs/001-tasks.md", "tasks_count": 21, "requirements_count": 21}
-        ok_tasks_serialized = json.dumps(ok_tasks, sort_keys=True)
-        ok_tasks_hash = hashlib.sha256(ok_tasks_serialized.encode("utf-8")).hexdigest()
-        ok_tasks_sig = f"key-builder-signed-{ok_tasks_hash}"
+        ok_tasks_sig = sign_payload("builder", ok_tasks)
         kernel.submit_evidence(feature_id, "TASKS", ok_tasks, "builder-agent", ok_tasks_sig)
 
         # Auditor approves tasks transition to IMPLEMENTATION

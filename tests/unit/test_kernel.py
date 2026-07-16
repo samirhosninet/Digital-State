@@ -18,6 +18,8 @@ from digital_state.core.exceptions import (
     LifecycleError,
     GovernanceError,
 )
+from digital_state.core.engine import GovernanceKernel
+from tests.conftest import content_hash, public_key_dict, sign_payload
 
 
 def test_agent_registry():
@@ -37,7 +39,7 @@ def test_agent_registry():
             agent_id="custom-agent",
             role="QA",
             permissions=["veto_gate"],
-            public_key="key-qa",
+            public_key=public_key_dict("builder"),
         )
         assert registry.get_agent("custom-agent").role == "QA"
 
@@ -47,14 +49,10 @@ def test_agent_registry():
 
 
 def test_evidence_verification():
-    """Verify evidence model hashes content and verifies mock digital signature."""
+    """Verify evidence model hashes content and verifies a real ECDSA signature."""
     content = {"spec_file": "specs/001-spec.md", "requirements_count": 5}
-    
-    # Correct signature calculation
-    serialized = json.dumps(content, sort_keys=True)
-    import hashlib
-    content_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-    correct_sig = f"key-prime-signed-{content_hash}"
+
+    correct_sig = sign_payload("prime", content)
 
     evidence = Evidence(
         evidence_id="ev-001",
@@ -64,12 +62,19 @@ def test_evidence_verification():
         signature=correct_sig,
     )
 
-    assert evidence.hash == content_hash
-    assert evidence.verify_signature("key-prime") is True
+    assert evidence.hash == content_hash(content)
+    assert evidence.verify_signature(public_key_dict("prime")) is True
 
-    # Modified key or invalid signature must raise EvidenceError
+    # Tampered content must fail verification
+    tampered = Evidence(
+        evidence_id="ev-001",
+        owner="prime-agent",
+        evidence_type="SPECIFICATION",
+        content={"spec_file": "specs/001-spec.md", "requirements_count": 999},
+        signature=correct_sig,
+    )
     with pytest.raises(EvidenceError):
-        evidence.verify_signature("key-wrong")
+        tampered.verify_signature(public_key_dict("prime"))
 
 
 def test_policy_engine():
@@ -181,3 +186,28 @@ def test_hermes_runtime_adapter():
     client = HermesClient()
     assert client.metadata()["status"] == "Ready"
     assert client.self_test() is True
+
+
+def test_submitter_cannot_approve_own_gate():
+    """Independent approval is enforced and its denial is retained in the audit log."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        specify_dir = os.path.join(tmpdir, ".specify")
+        os.makedirs(os.path.join(specify_dir, "memory"))
+        with open(os.path.join(specify_dir, "agents.json"), "w", encoding="utf-8") as f:
+            json.dump({
+                "builder": {"agent_id": "builder", "role": "Builder", "status": "Active",
+                            "permissions": ["submit_evidence"], "public_key": {}},
+                "auditor": {"agent_id": "auditor", "role": "Auditor", "status": "Active",
+                            "permissions": ["approve_spec"], "public_key": {}},
+            }, f)
+        with open(os.path.join(specify_dir, "state.json"), "w", encoding="utf-8") as f:
+            json.dump({"feature_states": {}, "gate_validations": {"feat": {"SPECIFICATION": True}}}, f)
+        kernel = GovernanceKernel(tmpdir, run_bootstrap=False)
+        kernel.audit_logger.append_entry("SUBMIT_EVIDENCE", "builder", {
+            "feature_id": "feat", "evidence_type": "SPECIFICATION", "evidence_id": "ev-spec"
+        })
+        with pytest.raises(LifecycleError, match="cannot approve"):
+            kernel.approve_gate("feat", "SPECIFICATION", "builder")
+        assert kernel.audit_logger.read_entries()[-1]["event_type"] == "AUTHORIZATION_DENIED"
+        kernel.approve_gate("feat", "SPECIFICATION", "auditor")
+        assert kernel.get_feature_state("feat") == "PLANNING"

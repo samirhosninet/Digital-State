@@ -10,7 +10,7 @@
   "transitions": {
     "PLANNING": {
       "from": "SPECIFICATION",
-      "required_action": "sign_off_spec"
+      "required_action": "approve_spec"
     },
     "TASKS": {
       "from": "PLANNING",

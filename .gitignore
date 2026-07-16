@@ -31,3 +31,13 @@ Thumbs.db
 
 # Runtime locks (generated at runtime)
 .specify/governance.lock/
+
+# Private keys — NEVER commit (project is a public trust/governance repo)
+*.pem
+.specify/keys/
+
+# Scratch / throwaway working dir
+scratch/
+
+# Runtime agent registry (generated at boot, contains no secrets)
+.specify/agents.json

@@ -2,6 +2,8 @@ import os
 import tempfile
 import json
 import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
 from digital_state.cli.cli import run_cli
 
 def test_cli_init_command():
@@ -66,6 +68,31 @@ def test_cli_doctor_command(capsys):
         assert report["governance"]["status"] == "PASS"
         assert report["hermes"]["is_mock_adapter"] is False
         assert report["hermes"]["status"] == "PASS"
+
+
+def test_cli_register_requires_cryptographic_public_key(tmp_path, capsys):
+    """The public CLI registers only a valid ECDSA P-256 public-key identity."""
+    assert run_cli(["init"], workspace_root=str(tmp_path)) == 0
+    capsys.readouterr()
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    pem_path = tmp_path / "agent-public.pem"
+    pem_path.write_bytes(private_key.public_key().public_bytes(
+        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+    ))
+    assert run_cli([
+        "register", "--id", "secure-builder", "--role", "Builder",
+        "--key-id", "builder-2026", "--public-key-file", str(pem_path),
+    ], workspace_root=str(tmp_path)) == 0
+    with open(tmp_path / ".specify" / "agents.json", encoding="utf-8") as registry_file:
+        assert json.load(registry_file)["secure-builder"]["public_key"]["algorithm"] == "ECDSA_P256"
+
+
+def test_cli_register_rejects_legacy_plaintext_key(tmp_path, capsys):
+    assert run_cli(["init"], workspace_root=str(tmp_path)) == 0
+    capsys.readouterr()
+    assert run_cli([
+        "register", "--id", "insecure", "--role", "Builder", "--key", "key-builder"
+    ], workspace_root=str(tmp_path)) == 1
 
 def test_cli_repair_command():
     """Verify that 'repair' validates and recreates workspace database files."""

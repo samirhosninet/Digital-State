@@ -5,16 +5,14 @@ import pytest
 
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import LifecycleError, RegistryError, EvidenceError
+from tests.conftest import sign_payload
 
 
 def setup_spec_and_transition(kernel: GovernanceKernel, feature_id: str) -> None:
     """Helper utility to initialize a feature and transition it to PLANNING."""
     spec_content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-    serialized = json.dumps(spec_content, sort_keys=True)
-    import hashlib
-    spec_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-    spec_sig = f"key-prime-signed-{spec_hash}"
-    
+    spec_sig = sign_payload("prime", spec_content)
+
     kernel.submit_spec_evidence(
         feature_id=feature_id,
         agent_id="prime-agent",
@@ -22,6 +20,7 @@ def setup_spec_and_transition(kernel: GovernanceKernel, feature_id: str) -> None
         requirements_count=3,
         signature=spec_sig,
     )
+    kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
 
 
 def test_story2_planning_gate_approval_success():
@@ -45,10 +44,7 @@ def test_story2_planning_gate_approval_success():
 
         # Builder signs valid planning evidence
         content = {"plan_file": "specs/001-plan.md", "technical_context_complete": True}
-        serialized = json.dumps(content, sort_keys=True)
-        import hashlib
-        content_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        builder_sig = f"key-builder-signed-{content_hash}"
+        builder_sig = sign_payload("builder", content)
 
         kernel.submit_planning_evidence(
             feature_id=feature_id,
@@ -60,18 +56,19 @@ def test_story2_planning_gate_approval_success():
 
         # Auditor approves transition
         kernel.approve_plan(feature_id=feature_id, agent_id="auditor-agent")
-        
+
         # State transitions to TASKS
         assert kernel.get_feature_state(feature_id) == "TASKS"
 
         # Check logs are generated for both submit and transition
         assert kernel.verify_integrity() is True
         logs = kernel.audit_logger.read_entries()
-        # 4 logs: 1. SUBMIT SPEC, 2. SPEC transition, 3. Submit planning evidence, 4. PLAN transition
-        assert len(logs) == 4
-        assert logs[2]["event_type"] == "SUBMIT_EVIDENCE"
-        assert logs[3]["event_type"] == "STATE_TRANSITION"
-        assert logs[3]["details"]["to_state"] == "TASKS"
+        # 6 logs: 1. SUBMIT SPEC, 2. SPEC transition, 3. AUTHORIZATION_GRANTED (auditor),
+        #         4. Submit planning evidence, 5. PLAN transition, 6. AUTHORIZATION_GRANTED (auditor)
+        assert len(logs) == 6
+        assert logs[3]["event_type"] == "SUBMIT_EVIDENCE"
+        assert logs[4]["event_type"] == "STATE_TRANSITION"
+        assert logs[4]["details"]["to_state"] == "TASKS"
 
 
 def test_story2_planning_gate_rejection_path():
@@ -93,10 +90,7 @@ def test_story2_planning_gate_rejection_path():
 
         # Builder submits conforming evidence
         content = {"plan_file": "specs/001-plan.md", "technical_context_complete": True}
-        serialized = json.dumps(content, sort_keys=True)
-        import hashlib
-        content_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        builder_sig = f"key-builder-signed-{content_hash}"
+        builder_sig = sign_payload("builder", content)
 
         kernel.submit_planning_evidence(
             feature_id=feature_id,
@@ -143,10 +137,7 @@ def test_story2_planning_gate_unauthorized_attempt():
 
         # Submit plan
         content = {"plan_file": "specs/001-plan.md", "technical_context_complete": True}
-        serialized = json.dumps(content, sort_keys=True)
-        import hashlib
-        content_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        builder_sig = f"key-builder-signed-{content_hash}"
+        builder_sig = sign_payload("builder", content)
 
         kernel.submit_planning_evidence(
             feature_id=feature_id,

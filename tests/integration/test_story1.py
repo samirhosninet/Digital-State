@@ -5,6 +5,7 @@ import pytest
 
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import RegistryError, EvidenceError, LifecycleError
+from tests.conftest import sign_payload
 
 
 def test_story1_specification_gate_success():
@@ -27,13 +28,9 @@ def test_story1_specification_gate_success():
         # Check initial state
         assert kernel.get_feature_state(feature_id) == "SPECIFICATION"
 
-        # Generate a valid signature mock: "{public_key}-signed-{hash}"
-        # For 'prime-agent', default public key is 'key-prime'
+        # Generate a real ECDSA P-256 signature from the Prime identity
         content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-        serialized = json.dumps(content, sort_keys=True)
-        import hashlib
-        content_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        valid_signature = f"key-prime-signed-{content_hash}"
+        valid_signature = sign_payload("prime", content)
 
         # Submit valid evidence
         kernel.submit_spec_evidence(
@@ -43,6 +40,7 @@ def test_story1_specification_gate_success():
             requirements_count=3,
             signature=valid_signature,
         )
+        kernel.approve_gate(feature_id, "SPECIFICATION", "auditor-agent")
 
         # State must transition to PLANNING
         assert kernel.get_feature_state(feature_id) == "PLANNING"
@@ -50,8 +48,12 @@ def test_story1_specification_gate_success():
         # Verify audit log contains transition
         assert kernel.verify_integrity() is True
         logs = kernel.audit_logger.read_entries()
-        assert len(logs) == 2
+        # 3 entries: 1. SUBMIT_EVIDENCE, 2. STATE_TRANSITION (to PLANNING),
+        # 3. AUTHORIZATION_GRANTED from the independent auditor approval.
+        assert len(logs) == 3
+        assert logs[1]["event_type"] == "STATE_TRANSITION"
         assert logs[1]["details"]["to_state"] == "PLANNING"
+        assert logs[2]["event_type"] == "AUTHORIZATION_GRANTED"
 
 
 def test_story1_specification_gate_failures():
@@ -69,23 +71,27 @@ def test_story1_specification_gate_failures():
         kernel = GovernanceKernel(tmpdir, run_bootstrap=False)
         feature_id = "feat-us1-failed"
 
-        # 1. Unauthorized Agent (Builder agent lacks 'sign_off_spec' permission)
-        # Generate signature for Builder agent (public key is 'key-builder')
+        # 1. Builder agent CAN submit specification evidence (spec 009 allows ANY
+        #    agent to SUBMIT), but CANNOT independently approve the gate.
         content = {"spec_file": "specs/001-spec.md", "requirements_count": 3}
-        serialized = json.dumps(content, sort_keys=True)
-        import hashlib
-        content_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-        builder_sig = f"key-builder-signed-{content_hash}"
+        builder_sig = sign_payload("builder", content)
 
+        # Submit succeeds for the builder agent.
+        kernel.submit_spec_evidence(
+            feature_id=feature_id,
+            agent_id="builder-agent",
+            spec_file="specs/001-spec.md",
+            requirements_count=3,
+            signature=builder_sig,
+        )
+        # Builder submitted evidence but state must remain SPECIFICATION until an
+        # independent approver transitions it.
+        assert kernel.get_feature_state(feature_id) == "SPECIFICATION"
+
+        # Builder cannot self-approve: independent (auditor) approval is required.
         with pytest.raises(LifecycleError) as exc_info:
-            kernel.submit_spec_evidence(
-                feature_id=feature_id,
-                agent_id="builder-agent",
-                spec_file="specs/001-spec.md",
-                requirements_count=3,
-                signature=builder_sig,
-            )
-        assert "is not authorized" in str(exc_info.value)
+            kernel.approve_gate(feature_id, "SPECIFICATION", "builder-agent")
+        assert "cannot approve gate" in str(exc_info.value)
         assert kernel.get_feature_state(feature_id) == "SPECIFICATION"
 
         # 2. Invalid signature
@@ -97,15 +103,13 @@ def test_story1_specification_gate_failures():
                 requirements_count=3,
                 signature="invalid-signature-value",
             )
-        assert "Invalid signature" in str(exc_info.value)
+        assert "signature" in str(exc_info.value).lower()
         assert kernel.get_feature_state(feature_id) == "SPECIFICATION"
 
         # 3. Non-compliant contract (requirements_count must be >= 1)
         # Re-generate prime signature with low requirements_count
         bad_content = {"spec_file": "specs/001-spec.md", "requirements_count": 0}
-        bad_serialized = json.dumps(bad_content, sort_keys=True)
-        bad_hash = hashlib.sha256(bad_serialized.encode("utf-8")).hexdigest()
-        bad_prime_sig = f"key-prime-signed-{bad_hash}"
+        bad_prime_sig = sign_payload("prime", bad_content)
 
         with pytest.raises(EvidenceError) as exc_info:
             kernel.submit_spec_evidence(
