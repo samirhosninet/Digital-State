@@ -8,6 +8,11 @@ __pycache__/
 dist/
 build/
 
+# Release artifacts: the frozen, versioned release bundle under release/ is an
+# immutable deliverable (wheel + checksum) and must be tracked despite the
+# throwaway-build `dist/` rule above.
+!release/**/dist/
+
 # Virtual environments
 .venv/
 venv/

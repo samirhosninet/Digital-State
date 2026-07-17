@@ -1,0 +1,57 @@
+{
+  "release_name": "Digital State v1.4-release",
+  "release_state": "PRODUCTION RELEASE (FINAL PASS)",
+  "commit_sha": "4005834f3f0c3897f6585b60f8fd3a862a0f21ab",
+  "commit_short": "4005834",
+  "tag": "v1.4-release",
+  "tag_object_sha": "76e90c9601896ac621f8454e26af433b10efe345",
+  "tagger_date": "2026-07-18T01:00:42+03:00",
+  "package_version": "0.1.0",
+  "wheel": {
+    "filename": "digital_state-0.1.0-py3-none-any.whl",
+    "sha256": "c75d747930ef88d555a79cd9180e15a01d839b03af8d338cc0b63ea771948a1e",
+    "reproducible": true,
+    "build_timestamp_utc": "2026-07-17T22:01:54Z",
+    "source_date_epoch": 1752796800,
+    "build_command": "git archive v1.4-release | tar -x ; SOURCE_DATE_EPOCH=1752796800 uv build --wheel"
+  },
+  "toolchain": {
+    "python": "Python 3.11.15",
+    "uv": "uv 0.11.29 (901092ee1 2026-07-15 x86_64-pc-windows-msvc)",
+    "hatchling": "resolved at build time via uv build --wheel (build backend)",
+    "git": "git version 2.54.0.windows.1"
+  },
+  "platform_compatibility": "py3-none-any (pure-Python, OS-independent); requires >=3.11",
+  "test_summary": {
+    "framework": "pytest 9.1.1 (uv run)",
+    "result": "58/58 PASS",
+    "regression_locks": "tests/unit/test_bug_val_regressions.py (BUG-VAL-001, BUG-VAL-002)"
+  },
+  "doctor_summary": {
+    "overall_status": "PASS",
+    "subsystems": {
+      "installation": "PASS",
+      "configuration": "PASS",
+      "governance": "PASS",
+      "hermes": "PASS"
+    }
+  },
+  "accepted_findings": {
+    "VAL-001": "CLOSED",
+    "VAL-002": "CLOSED",
+    "VAL-003": "CLOSED",
+    "VAL-004": "CLOSED"
+  },
+  "artifacts": {
+    "manifest": "release/v1.4-release/RELEASE_MANIFEST.md",
+    "wheel": "release/v1.4-release/dist/digital_state-0.1.0-py3-none-any.whl",
+    "checksum": "release/v1.4-release/dist/digital_state-0.1.0-py3-none-any.whl.sha256"
+  },
+  "excluded": [
+    ".audit-clean/",
+    ".audit-venv/",
+    ".venv-install/ (temporary audit envs)",
+    "governance/product-validation/test-keys/*.pem (private keys, .gitignore)"
+  ],
+  "governance_transition": "CONDITIONAL PASS -> FINAL PASS / PRODUCTION RELEASE / RELEASE APPROVED"
+}
