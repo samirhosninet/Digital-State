@@ -4,14 +4,14 @@
     "gate": "ACCEPTANCE",
     "agent": "prime-agent",
     "decision": "ACCEPTED",
-    "ts": "2026-07-17T23:54:22.883504+00:00"
+    "ts": "2026-07-17T23:57:43.714016+00:00"
   },
   "signature": {
     "signer": "prime-agent",
     "key_id": "key-prime",
     "algorithm": "ECDSA-P256-SHA256",
-    "signature": "MEUCIAqh3lfyupfzT6/qP1+SIxVC0J3JIp5yzig6Lk2rPyl7AiEAj75z2TAIURm422D/WvVYGmX17F4x1pK3toUkbS0EV30=",
-    "r": "0xaa1de57f2ba97f34fafea3f5f92231542d09dc9229e72ce283a2e4dab3f297b",
-    "s": "0x8fbe73d930085119b8db60ff5af5581a65f5ec5e31d692b7b685246d2d04577d"
+    "signature": "MEUCIQDfqG7qYIC0l87D7DdJTYaBsKSWLszLE3Ax60RpXaSFhQIgFiIK3bS9RhVdg5A8tpKiyCwBylz0g1mwVSpIcjRV3K0=",
+    "r": "0xdfa86eea6080b497cec3ec37494d8681b0a4962ecccb137031eb44695da48585",
+    "s": "0x16220addb4bd46155d83903cb692a2c82c01ca5cf48359b0552a48723455dcad"
   }
 }

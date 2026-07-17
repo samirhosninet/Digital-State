@@ -124,8 +124,10 @@ def write_tasks():
 def bump_version(ledger: Ledger):
     pyp = ROOT / "pyproject.toml"
     txt = pyp.read_text()
+    if 'version = "1.6.0"' in txt:
+        return
     new = txt.replace('version = "1.5.0"', 'version = "1.6.0"', 1)
-    assert new != txt, "version line not found"
+    assert new != txt, "version line not found (expected 1.5.0)"
     pyp.write_text(new)
     ledger.append("VERSION", "prime-agent", {"from": "1.5.0", "to": "1.6.0"})
 
@@ -268,10 +270,10 @@ def main():
 
     # Release: commit artifacts, tag locally, then push tag + create GitHub Release
     import subprocess as _sp
-    commit = _sp.run(
-        ["git", "add", "governance/self-governance/002-bootstrap/", "pyproject.toml"],
-        capture_output=True, text=True)
-    commit = _sp.run(
+    bump_version(ledger)  # bump before commit so the committed tree carries 1.6.0
+    _sp.run(["git", "add", "governance/self-governance/002-bootstrap/", "pyproject.toml"],
+            capture_output=True, text=True)
+    _sp.run(
         ["git", "-c", "user.name=Prime (Digital State)", "-c", "user.email=prime@digital-state.local",
          "commit", "-m",
          f"gov(bootstrap): {EVENT_ID} - runnable Kanban Orchestrator + self-application lifecycle\n\n"
@@ -285,7 +287,6 @@ def main():
     _sp.run(["git", "tag", "-f", "-a", NEW_TAG, "-m",
              f"Digital State Bootstrap {EVENT_ID} (runnable Kanban Orchestrator; Auditor-verified; simulated Hermes)"],
             capture_output=True, text=True)
-    bump_version(ledger)  # record version already bumped in file
     write_release_body()
     create_github_release(ledger)
     print("DONE chain valid:", ledger.valid(),
