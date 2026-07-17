@@ -1,0 +1,4 @@
+role: Prime
+agent_id: prime-agent
+trust_model: ECDSA_P256
+independent_approval: required

@@ -1,0 +1,4 @@
+role: Builder
+agent_id: builder-agent
+trust_model: ECDSA_P256
+submit_only: true

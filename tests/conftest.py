@@ -70,3 +70,27 @@ def shared_contracts_dir() -> str:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     contracts_dir = os.path.join(current_dir, "..", "src", "digital_state", "core", "contracts")
     return os.path.abspath(contracts_dir)
+
+
+@pytest.fixture(autouse=True)
+def isolate_runtime_home(tmp_path, monkeypatch):
+    """Isolate the Digital State Runtime per test (ADR-011-01: DIGITAL_STATE_HOME).
+
+    SPEC-012 FINAL REMEDIATION (test-hygiene, no engine change): the authoritative
+    Runtime-first identity resolution in ``AgentRegistry.get_agent`` reads the
+    Runtime at ``DIGITAL_STATE_HOME``. The prior remediation never isolated the
+    Runtime per test, so the first test that provisioned the *shared* default
+    Runtime (LOCALAPPDATA/digital-state) changed identity resolution for every
+    later test that relied on the workspace store — producing cross-test
+    pollution failures that were NOT regressions of the authority fix.
+
+    This autouse fixture gives every test a private, empty Runtime root (a real
+    Windows path via pytest ``tmp_path``), so ``get_agent`` deterministically
+    falls back to the workspace registry unless a test provisions its own Runtime.
+    It preserves Runtime-first authority (a test that bootstraps the Runtime still
+    wins) and makes the full suite reproducibly green.
+    """
+    rt = tmp_path / "ds-runtime"
+    rt.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("DIGITAL_STATE_HOME", str(rt))
+    yield

@@ -1,8 +1,15 @@
-import json
 import os
+import json
 from typing import Dict, Any, Optional, List
 
 from digital_state.core.exceptions import RegistryError
+from digital_state.runtime.store import RuntimeStore
+from digital_state.runtime.stores import IdentityRecord
+
+
+# Built-in trust-root public keys are shipped as a Package asset and consumed by
+# the Runtime IdentityStore at Governance Provisioning. They are NOT hardcoded
+# here (moved to assets/trust_roots.json; see ADR-011-03/011-04).
 
 
 class Agent:
@@ -51,7 +58,7 @@ class AgentRegistry:
         self._load_agents()
 
     def _load_agents(self) -> None:
-        """Load registered agents from registry file."""
+        """Load registered agents from registry file (workspace registry)."""
         if not os.path.exists(self.storage_path):
             self._ensure_default_agents()
             return
@@ -65,64 +72,91 @@ class AgentRegistry:
             raise RegistryError(f"Failed to parse agent registry file: {e}") from e
 
     def _save_agents(self) -> None:
-        """Persist agents to registry file."""
+        """Persist agents to workspace registry file (legacy/secondary store)."""
         os.makedirs(os.path.dirname(self.storage_path), exist_ok=True)
         data = {agent_id: agent.to_dict() for agent_id, agent in self.agents.items()}
         with open(self.storage_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
+    def get_agent(self, agent_id: str) -> Optional[Agent]:
+        """Retrieve an agent profile by identity.
+
+        Resolution order (ADR-011-06 / SPEC-012 CRITICAL-01): the Runtime
+        IdentityStore is the AUTHORITATIVE owner of mutable identities. It is
+        queried FIRST. The workspace registry is a legacy/secondary source and
+        is consulted ONLY when:
+
+          1. the Runtime is unavailable, or
+          2. the identity does not exist in the Runtime.
+
+        No execution path may return a workspace identity while a Runtime
+        identity for the same identity_id exists.
+        """
+        try:
+            store = RuntimeStore()
+            if store.identity.exists():
+                rec = store.identity.get(agent_id)
+                if rec:
+                    return Agent(
+                        agent_id=rec.identity_id,
+                        role=rec.role,
+                        permissions=self._permissions_for_role(rec.role),
+                        public_key=rec.public_key,
+                        status=rec.status,
+                    )
+        except Exception:
+            # Runtime unavailable: fall through to workspace-only resolution.
+            pass
+
+        # Secondary (legacy) source. Reached ONLY when the Runtime is absent or
+        # does not hold this identity — never when it does.
+        return self.agents.get(agent_id)
+
+    @staticmethod
+    def _permissions_for_role(role: str) -> List[str]:
+        """Resolve permissions for a role from the Package roles.json asset (ADR-011-03)."""
+        assets = os.path.join(os.path.dirname(__file__), "assets", "roles.json")
+        try:
+            with open(assets, "r", encoding="utf-8") as f:
+                roles = json.load(f).get("roles", {})
+            return roles.get(role, {}).get("permissions", [])
+        except (OSError, json.JSONDecodeError):
+            return []
+
     def _ensure_default_agents(self) -> None:
-        """Bootstrap the baseline trust roots (Prime/Builder/Auditor) with their
-        ECDSA P-256 public-key identities. Operators may register additional
-        real-key identities at runtime; these defaults keep the kernel bootable."""
-        self.register_agent(
-            agent_id="prime-agent",
-            role="Prime",
-            permissions=["define_goals", "approve_spec", "approve_completed"],
-            public_key={
-                "key_id": "key-prime",
-                "status": "Active",
-                "algorithm": "ECDSA_P256",
-                "value": (
-                    "-----BEGIN PUBLIC KEY-----\n"
-                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8wHz1y10Wx08GoCxbnQIM8AWNKIp\n"
-                    "FjlPpAxt+W5UoE1wh6Y4OTwWcHPsNxEVv5UKyiqKQNYNY2rLO7MqB8vNCQ==\n"
-                    "-----END PUBLIC KEY-----\n"
-                ),
-            },
-        )
-        self.register_agent(
-            agent_id="builder-agent",
-            role="Builder",
-            permissions=["submit_plan", "submit_evidence", "execute_tasks"],
-            public_key={
-                "key_id": "key-builder",
-                "status": "Active",
-                "algorithm": "ECDSA_P256",
-                "value": (
-                    "-----BEGIN PUBLIC KEY-----\n"
-                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEU6Y01bZrnrnM+0MILIHd8lTWi8Xt\n"
-                    "07hrwtiuQZnfrgmEeG/FGwLp1nbpi0JpQzvEd4oe1rz+r3UqNWMc+2QHdg==\n"
-                    "-----END PUBLIC KEY-----\n"
-                ),
-            },
-        )
-        self.register_agent(
-            agent_id="auditor-agent",
-            role="Auditor",
-            permissions=["approve_plan", "approve_tasks", "approve_spec", "veto_gate", "verify_evidence"],
-            public_key={
-                "key_id": "key-auditor",
-                "status": "Active",
-                "algorithm": "ECDSA_P256",
-                "value": (
-                    "-----BEGIN PUBLIC KEY-----\n"
-                    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECPxfzdaaaJ0isr7Mfqy/L2zzunwb\n"
-                    "4sq+8cA/bbJwEo6lj5M2iIAVfyy+AntU18e4rfP/QlivIMB+lHORah+miQ==\n"
-                    "-----END PUBLIC KEY-----\n"
-                ),
-            },
-        )
+        """Seed baseline trust roots from the Package roles.json asset (data-driven).
+
+        These defaults keep the kernel bootable when no Runtime is present. They
+        are intentionally public-key-only (no private keys); real key pairs are
+        generated by Governance Provisioning into the Runtime (ADR-011-04).
+        """
+        assets = os.path.join(os.path.dirname(__file__), "assets", "roles.json")
+        try:
+            with open(assets, "r", encoding="utf-8") as f:
+                role_defs = json.load(f).get("roles", {})
+        except (OSError, json.JSONDecodeError):
+            return
+
+        # Reuse the shipped public-key trust roots (asset) for the bootable defaults.
+        trust = os.path.join(os.path.dirname(__file__), "assets", "trust_roots.json")
+        public_keys = {}
+        if os.path.exists(trust):
+            with open(trust, "r", encoding="utf-8") as f:
+                public_keys = json.load(f).get("trust_roots", {})
+
+        for role_key, role_def in role_defs.items():
+            identity_id = f"{role_key}-agent"
+            public_key = public_keys.get(
+                role_key,
+                {"key_id": f"key-{role_key}", "status": "Active",
+                 "algorithm": "ECDSA_P256", "value": ""},
+            )
+            self.register_agent(
+                agent_id=identity_id,
+                role=role_key.capitalize(),
+                permissions=role_def.get("permissions", []),
+                public_key=public_key,
+            )
 
     def register_agent(
         self, agent_id: str, role: str, permissions: List[str], public_key: Any = ""
@@ -137,10 +171,6 @@ class AgentRegistry:
         self.agents[agent_id] = agent
         self._save_agents()
         return agent
-
-    def get_agent(self, agent_id: str) -> Optional[Agent]:
-        """Retrieve an agent profile by identity."""
-        return self.agents.get(agent_id)
 
     def update_agent_status(self, agent_id: str, status: str) -> None:
         """Update status of a registered agent profile (e.g. Active or Suspended)."""

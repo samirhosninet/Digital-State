@@ -1,0 +1,5 @@
+role: Auditor
+agent_id: auditor-agent
+trust_model: ECDSA_P256
+independent_approval: required
+veto: enabled

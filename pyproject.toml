@@ -10,6 +10,7 @@ dependencies = [
 
 [project.scripts]
 digitalstate = "digital_state.cli.cli:main"
+digital-state = "digital_state.cli.cli:main"
 
 [project.entry-points."hermes_agent.plugins"]
 digital_state = "digital_state.hermes"
@@ -21,6 +22,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/digital_state", "framework", "integrations"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/digital_state/core/assets" = "digital_state/core/assets"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
