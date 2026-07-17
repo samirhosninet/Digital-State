@@ -1,0 +1,18 @@
+{
+  "$schema": "digital-state/roles/v1",
+  "roles": {
+    "prime": {
+      "description": "Strategic governance orchestrator; defines goals and approves specifications and completed work.",
+      "permissions": ["define_goals", "approve_spec", "approve_completed"]
+    },
+    "builder": {
+      "description": "Implementation agent; submits plans, evidence, and executes governed tasks.",
+      "permissions": ["submit_plan", "submit_evidence", "execute_tasks"]
+    },
+    "auditor": {
+      "description": "Independent verification agent; approves gates, vetoes, and verifies evidence.",
+      "permissions": ["approve_plan", "approve_tasks", "approve_spec", "veto_gate", "verify_evidence"]
+    }
+  },
+  "note": "Role definitions are data-driven (ADR-011-03/009). The engine loads these instead of hardcoding agents. New governance models add roles here without engine changes."
+}

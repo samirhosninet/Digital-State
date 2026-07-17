@@ -31,9 +31,19 @@ def test_end_to_end_installation():
         # we run it within the current context python setup.
         # To avoid altering the global system environment during tests, we can call the CLI
         # module directly on the temp workspace to simulate the installer's bootstrap step.
+        # Isolate the Runtime to a temp dir for this test (ADR-011-01: DIGITAL_STATE_HOME).
+        # The Runtime root is provided by the autouse `isolate_runtime_home`
+        # fixture (a real Windows path under pytest tmp_path). We let the
+        # subprocess inherit that isolated DIGITAL_STATE_HOME rather than
+        # overriding it with a git-bash /tmp path, which resolves inconsistently
+        # on Windows and breaks the parent/child manifest check below.
+        env = os.environ.copy()
+        env["PYTHONPATH"] = f"{os.path.join(dest_root, 'src')};{dest_root}"
+
         result_init = subprocess.run(
             [sys.executable, "-m", "digital_state.cli.cli", "init"],
             cwd=dest_root,
+            env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -46,14 +56,24 @@ def test_end_to_end_installation():
         assert os.path.exists(specify_dir)
         assert os.path.exists(os.path.join(specify_dir, "integration.json"))
         assert os.path.exists(os.path.join(specify_dir, "init-options.json"))
-        assert os.path.exists(os.path.join(specify_dir, "agents.json"))
+        # Per ADR-011-06 the Workspace must NEVER become the authoritative identity
+        # store; `init` does NOT create agents.json. Identities live in the Runtime
+        # (Digital State Runtime at DIGITAL_STATE_HOME), which `init` bootstraps.
+        assert not os.path.exists(os.path.join(specify_dir, "agents.json"))
         assert os.path.exists(os.path.join(specify_dir, "state.json"))
         assert os.path.exists(os.path.join(specify_dir, "memory", "audit_log.jsonl"))
+        # Runtime bootstrapped by init (governance state ready). The Runtime root
+        # is the isolated DIGITAL_STATE_HOME from the autouse fixture.
+        rt_root = os.environ.get("DIGITAL_STATE_HOME")
+        if rt_root:
+            assert os.path.exists(os.path.join(rt_root, "manifest.json"))
         
         # 3. Execute doctor verification
         # Set PYTHONPATH so that python can import the package in the temporary directory
         env = os.environ.copy()
         env["PYTHONPATH"] = f"{os.path.join(dest_root, 'src')};{dest_root}"
+        # Inherit the fixture-isolated DIGITAL_STATE_HOME (do not override with a
+        # git-bash /tmp path — see init block above).
         
         result_doctor = subprocess.run(
             [sys.executable, "-m", "digital_state.cli.cli", "doctor"],

@@ -21,17 +21,18 @@ def test_cli_init_command():
         assert os.path.exists(specify_dir)
         assert os.path.exists(os.path.join(specify_dir, "integration.json"))
         assert os.path.exists(os.path.join(specify_dir, "init-options.json"))
-        assert os.path.exists(os.path.join(specify_dir, "agents.json"))
         assert os.path.exists(os.path.join(specify_dir, "state.json"))
         assert os.path.exists(os.path.join(specify_dir, "memory", "audit_log.jsonl"))
 
-        # Verify agents.json starts empty (for user initialization)
-        with open(os.path.join(specify_dir, "agents.json"), "r", encoding="utf-8") as f:
-            agents_data = json.load(f)
-            assert agents_data == {}
+        # Per ADR-011-06 the Workspace must NEVER become the authoritative identity
+        # store. `init` therefore does NOT create an empty agents.json; identities
+        # live in the Runtime (Digital State Runtime at DIGITAL_STATE_HOME). Legacy
+        # agents.json (if present) is preserved, not overwritten.
+        assert not os.path.exists(os.path.join(specify_dir, "agents.json"))
 
-        # Edit agents.json to check idempotency / non-destructive check
-        with open(os.path.join(specify_dir, "agents.json"), "w", encoding="utf-8") as f:
+        # Edit a legacy agents.json to check init preserves it (non-destructive)
+        legacy_path = os.path.join(specify_dir, "agents.json")
+        with open(legacy_path, "w", encoding="utf-8") as f:
             json.dump({"test-agent": {}}, f)
 
         # Run init again
@@ -39,7 +40,7 @@ def test_cli_init_command():
         assert code == 0
 
         # Assert custom agent is preserved (not overwritten)
-        with open(os.path.join(specify_dir, "agents.json"), "r", encoding="utf-8") as f:
+        with open(legacy_path, "r", encoding="utf-8") as f:
             agents_data = json.load(f)
             assert "test-agent" in agents_data
 

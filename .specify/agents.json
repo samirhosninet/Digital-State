@@ -4,7 +4,7 @@
     "role": "Prime",
     "permissions": [
       "define_goals",
-      "sign_off_spec",
+      "approve_spec",
       "approve_completed"
     ],
     "status": "Active",
@@ -35,6 +35,7 @@
     "agent_id": "auditor-agent",
     "role": "Auditor",
     "permissions": [
+      "approve_spec",
       "approve_plan",
       "approve_tasks",
       "veto_gate",
