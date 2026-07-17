@@ -1,0 +1,17 @@
+{
+  "payload": {
+    "event_id": "DS-SELF-GOVERNANCE-001",
+    "gate": "ACCEPTANCE",
+    "agent": "prime-agent",
+    "decision": "ACCEPTED",
+    "timestamp": "2026-07-17T23:18:08.589644+00:00"
+  },
+  "signature": {
+    "signer": "prime-agent",
+    "key_id": "key-prime",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQCIACJm7DDgPXmrRrYuvwy7l7f4p/rME9sYlNihEpXslQIgXFyvVXtdU9/HLEmlJf3/is7tN2sTyh/nrkYHGtbzYMs=",
+    "r": "0x88002266ec30e03d79ab46b62ebf0cbb97b7f8a7facc13db1894d8a11295ec95",
+    "s": "0x5c5caf557b5d53dfc72c49a525fdff8aceed376b13ca1fe7ae46071ad6f360cb"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-SELF-GOVERNANCE-001",
+    "gate": "VERIFICATION",
+    "agent": "auditor-agent",
+    "independent_pytest_returncode": 0,
+    "builder_signature_valid": true,
+    "veto": false,
+    "findings": [],
+    "timestamp": "2026-07-17T23:18:08.587140+00:00"
+  },
+  "signature": {
+    "signer": "auditor-agent",
+    "key_id": "key-auditor",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQCt7wK819KDw0pVeeXUMtmFRNO9vGLi5YQThLuDXW3YuAIgGyfvorAGqeTfv39j6LDKO3RsoTE9iqkT2U8+3C9V8rI=",
+    "r": "0xadef02bcd7d283c34a5579e5d432d98544d3bdbc62e2e5841384bb835d6dd8b8",
+    "s": "0x1b27efa2b006a9e4dfbf7f63e8b0ca3b746ca1313d8aa913d94f3edc2f55f2b2"
+  }
+}

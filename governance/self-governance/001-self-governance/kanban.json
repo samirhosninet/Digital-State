@@ -1,0 +1,49 @@
+{
+  "board": "self-governance-001",
+  "simulated": true,
+  "note": "Hermes execution cluster is a simulation in this environment; no live Kanban tools available.",
+  "cards": [
+    {
+      "id": "K001",
+      "title": "Builder: run test suite + doctor",
+      "gate": "IMPLEMENTATION",
+      "assignee": "builder-agent",
+      "status": "in_progress",
+      "evidence": "builder-evidence.json"
+    },
+    {
+      "id": "K002",
+      "title": "Auditor: independent verification + veto watch",
+      "gate": "VERIFICATION",
+      "assignee": "auditor-agent",
+      "status": "pending",
+      "evidence": "auditor-verification.json"
+    }
+  ],
+  "history": [
+    {
+      "ts": "2026-07-17T23:16:08.354625+00:00",
+      "action": "card_created",
+      "card": "K001",
+      "by": "prime-agent"
+    },
+    {
+      "ts": "2026-07-17T23:16:08.354625+00:00",
+      "action": "card_created",
+      "card": "K002",
+      "by": "prime-agent"
+    },
+    {
+      "ts": "2026-07-17T23:16:08.354625+00:00",
+      "action": "assigned",
+      "card": "K001",
+      "to": "builder-agent"
+    },
+    {
+      "ts": "2026-07-17T23:16:08.354625+00:00",
+      "action": "assigned",
+      "card": "K002",
+      "to": "auditor-agent"
+    }
+  ]
+}
