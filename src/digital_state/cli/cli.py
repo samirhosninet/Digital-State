@@ -21,6 +21,13 @@ def create_parser() -> argparse.ArgumentParser:
     reg_parser.add_argument("--key-id", help="Stable public identifier for the registered key.")
     reg_parser.add_argument("--algorithm", default="ECDSA_P256", choices=["ECDSA_P256"], help="Signature algorithm.")
     reg_parser.add_argument("--key", help="Deprecated plaintext key option; always rejected.")
+    reg_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing (e.g. default-seeded) identity with this new keypair. "
+             "Required when registering your own keypair under a trust-root ID "
+             "(prime-agent/builder-agent/auditor-agent) that init pre-seeded without a private key.",
+    )
 
     # 2. status command
     status_parser = subparsers.add_parser("status", help="Inspect status and transition logs.")
@@ -393,6 +400,8 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                 "value": public_key_value,
             }
             # Authoritative write: Runtime IdentityStore (ADR-011-04/011-06).
+            # upsert is overwrite-by-id, so re-registering under a seeded trust-root
+            # ID (with --force) replaces the public-only key with the user's keypair.
             try:
                 from digital_state.runtime.store import RuntimeStore
                 from digital_state.runtime.stores import IdentityRecord
@@ -413,6 +422,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                 role=role_key.capitalize(),
                 permissions=role_permissions,
                 public_key=public_key,
+                force=args.force,
             )
             print(json.dumps({"status": "Success", "message": f"Agent '{args.id}' registered successfully."}))
 
