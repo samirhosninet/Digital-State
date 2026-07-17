@@ -1,0 +1,19 @@
+{
+  "payload": {
+    "event_id": "DS-BOOTSTRAP-REAL-WORLD-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "pytest_summary": "returncode=0",
+    "pytest_rc": 0,
+    "doctor_pass": true,
+    "ts": "2026-07-17T23:53:10.943261+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEQCIDuVdB5ab0U4ptf2UT8thKHBMYyWpUd5uS6a+XmMSZplAiBKmC9TodVpidO9teMIb/rNun2xz7sf4AELGBi9Gham3g==",
+    "r": "0x3b95741e5a6f4538a6d7f6513f2d84a1c1318c96a54779b92e9af9798c499a65",
+    "s": "0x4a982f53a1d56989d3bdb5e3086ffacdba7db1cfbb1fe0010b1818bd1a16a6de"
+  }
+}
