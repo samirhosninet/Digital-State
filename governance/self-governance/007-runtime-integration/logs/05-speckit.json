@@ -1,5 +1,9 @@
 {
-  "ts": "2026-07-18T10:08:06.728611+00:00",
-  "artifacts": [],
+  "ts": "2026-07-18T10:18:17.019105+00:00",
+  "artifacts": [
+    "plan.md",
+    "spec.md",
+    "tasks.md"
+  ],
   "source": "repo .specify/templates (no external specify binary)"
 }

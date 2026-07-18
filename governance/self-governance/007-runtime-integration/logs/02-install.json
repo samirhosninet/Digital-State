@@ -1,7 +1,7 @@
 {
-  "ts": "2026-07-18T10:08:06.414231+00:00",
+  "ts": "2026-07-18T10:17:45.578479+00:00",
   "returncode": 0,
   "stdout": "",
-  "stderr": "warning: `VIRTUAL_ENV=D:\\Digital-State\\.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nUsing CPython 3.11.15\nCreating virtual environment at: .venv\nResolved 11 packages in 2ms\n   Building digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-tj3l315f/Digital-State\n      Built digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-tj3l315f/Digital-State\nPrepared 1 package in 71",
+  "stderr": "Using CPython 3.11.15\nCreating virtual environment at: .venv\nResolved 11 packages in 223ms\n   Building digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-8mvtjb_5/Digital-State\n      Built digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-8mvtjb_5/Digital-State\nPrepared 1 package in 1.06s\nInstalled 11 packages in 219ms\n + cffi==2.1.0\n + colorama==0.4.6\n + cryptography==49.0.0\n + digital-state==1.8.0 (from file:///C:/Users/I-Master/AppData/Local/Temp/ds-ac",
   "uv": true
 }

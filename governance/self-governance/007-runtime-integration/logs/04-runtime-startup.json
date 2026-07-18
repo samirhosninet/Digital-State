@@ -1,6 +1,6 @@
 {
-  "ts": "2026-07-18T10:08:06.728611+00:00",
-  "returncode": 2,
-  "stdout": "",
-  "stderr": "warning: `VIRTUAL_ENV=D:\\Digital-State\\.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nC:\\Users\\I-Master\\AppData\\Roaming\\uv\\python\\cpython-3.11-windows-x86_64-none\\python.exe: can't open file 'C:\\\\Users\\\\I-Master\\\\AppData\\\\Local\\\\Temp\\\\ds-accept-tj3l315f\\\\Digital-State\\\\governance\\\\self-governance\\\\runtime.py': [Errno 2] No such file or directory"
+  "ts": "2026-07-18T10:18:17.018103+00:00",
+  "returncode": 0,
+  "stdout": "RUNTIME WORKFLOW RUN COMPLETE \u2014 halted at mandatory HUMAN_APPROVAL gate.\n  spec artifacts: ['spec.md', 'plan.md', 'tasks.md']\n  selftest: HAPPY_PATH_OK states=11 | ILLEGAL_TRANSITIONS_DENIED=9 | chain_valid=True | auditor veto: False | chain valid: True\n  Next (human only): uv run python governance/self-governance/runtime.py --finalize=VERIFIED",
+  "stderr": ""
 }

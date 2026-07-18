@@ -4,7 +4,7 @@
       "id": "K001",
       "title": "Runtime Workflow Integration",
       "gate": "EVENT",
-      "state": "HUMAN_APPROVAL",
+      "state": "DONE",
       "assignee": null,
       "comments": []
     }
@@ -80,6 +80,20 @@
       "by": "prime-agent",
       "card": "K001",
       "to": "HUMAN_APPROVAL"
+    },
+    {
+      "ts": "2026-07-18T10:18:50.490485+00:00",
+      "action": "transition",
+      "by": "human",
+      "card": "K001",
+      "to": "RELEASE_WORKFLOW"
+    },
+    {
+      "ts": "2026-07-18T10:18:50.492504+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "DONE"
     }
   ]
 }

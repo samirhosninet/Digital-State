@@ -1,0 +1,10 @@
+{
+  "event_id": "DS-WORKFLOW-KERNEL-001",
+  "status": "VERIFIED",
+  "verdict": "PASS",
+  "ts": "2026-07-18T10:12:35.833520+00:00",
+  "reason": "Codified existing constitutional workflow as state machine (Workflow Kernel) + GitHub Release Workflow (auto after Human Approval). Kernel is the sole transition authority; human gate preserved; no roles/layers/constitution/architecture change.",
+  "human_decision": "ACCEPT (FINAL GOVERNANCE DIRECTIVE)",
+  "pytest": "returncode=0",
+  "constraints": "no new roles/layers; no src/ change; Hermes simulated"
+}
