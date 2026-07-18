@@ -1,7 +1,7 @@
 {
-  "ts": "2026-07-18T10:20:46.664731+00:00",
+  "ts": "2026-07-18T10:51:44.856868+00:00",
   "returncode": 0,
   "stdout": "",
-  "stderr": "Using CPython 3.11.15\nCreating virtual environment at: .venv\nResolved 11 packages in 3ms\n   Building digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-gswsviy0/Digital-State\n      Built digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-gswsviy0/Digital-State\nPrepared 1 package in 1.84s\nInstalled 11 packages in 391ms\n + cffi==2.1.0\n + colorama==0.4.6\n + cryptography==49.0.0\n + digital-state==1.9.0 (from file:///C:/Users/I-Master/AppData/Local/Temp/ds-acce",
+  "stderr": "Using CPython 3.11.15\nCreating virtual environment at: .venv\nResolved 11 packages in 5ms\n   Building digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-6m0107ii/Digital-State\n      Built digital-state @ file:///C:/Users/I-Master/AppData/Local/Temp/ds-accept-6m0107ii/Digital-State\nPrepared 1 package in 2.55s\nInstalled 11 packages in 719ms\n + cffi==2.1.0\n + colorama==0.4.6\n + cryptography==49.0.0\n + digital-state==1.9.0 (from file:///C:/Users/I-Master/AppData/Local/Temp/ds-acce",
   "uv": true
 }

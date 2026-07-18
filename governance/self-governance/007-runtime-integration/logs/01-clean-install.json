@@ -1,9 +1,9 @@
 {
-  "ts": "2026-07-18T10:20:44.228755+00:00",
+  "ts": "2026-07-18T10:51:41.284864+00:00",
   "returncode": 0,
   "stdout": "",
-  "stderr": "Cloning into 'C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-gswsviy0\\Digital-State'...",
-  "target": "C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-gswsviy0\\Digital-State",
-  "ref": "spec-012/authority-remediation",
-  "note": "Cloned the branch that ships the runtime workflow entrypoint."
+  "stderr": "Cloning into 'C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-6m0107ii\\Digital-State'...",
+  "target": "C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-6m0107ii\\Digital-State",
+  "ref": "main",
+  "note": "Cloned default branch 'main' (real new-user install path)."
 }

@@ -7,14 +7,14 @@
     "independent_selftest_rc": 0,
     "builder_sig_valid": true,
     "veto": false,
-    "ts": "2026-07-18T10:07:14.765665+00:00"
+    "ts": "2026-07-18T10:33:47.243490+00:00"
   },
   "signature": {
     "signer": "auditor-agent",
     "key_id": "key-auditor",
     "algorithm": "ECDSA-P256-SHA256",
-    "signature": "MEYCIQDg9B+tF2S2Jx0crqPqQNzRMU9b2fX6MlPAuZZxpNNj8wIhAOhMqGWRJrJU3TFn+FoVE67FNGDlMWOCxmCBxbit0v08",
-    "r": "0xe0f41fad1764b6271d1caea3ea40dcd1314f5bd9f5fa3253c0b99671a4d363f3",
-    "s": "0xe84ca8659126b254dd3167f85a1513aec53460e5316382c66081c5b8add2fd3c"
+    "signature": "MEUCIGdwrcaQuMaQlA5iokLk2CXPlKaXCHRm8eKDAbX62WQqAiEAtpFGNZi9F0pszRJvtnnIs51bTjSFcdGRxumlRXFTdmQ=",
+    "r": "0x6770adc690b8c690940e62a242e4d825cf94a697087466f1e28301b5fad9642a",
+    "s": "0xb691463598bd174a6ccd126fb679c8b39d5b4e348571d191c6e9a54571537664"
   }
 }
