@@ -16,7 +16,8 @@ from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
 
-KEYS = Path("D:/Digital-State/governance/product-validation/test-keys")
+_GENROOT = Path(__file__).resolve().parent.parent.parent.parent  # .../Digital-State (ledger.py in self-governance/_lib/)
+KEYS = _GENROOT / "governance/product-validation/test-keys"
 GENESIS = "0" * 64
 
 

@@ -1,0 +1,8 @@
+{
+  "ts": "2026-07-18T10:08:06.414231+00:00",
+  "digital_state": "initialized (repo present, ledger lib importable)",
+  "hermes_integration": "Hermes Kanban Orchestrator (simulated kernel-driven execution kernel)",
+  "orchestrator_path": "C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-tj3l315f\\Digital-State\\governance\\self-governance\\002-bootstrap\\kanban_orchestrator.py",
+  "runtime_entrypoint": "C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-tj3l315f\\Digital-State\\governance\\self-governance\\runtime.py",
+  "note": "Hermes is a LOCAL SIMULATION; no live cluster in this environment."
+}

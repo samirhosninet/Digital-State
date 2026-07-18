@@ -2,98 +2,84 @@
   "cards": {
     "K001": {
       "id": "K001",
-      "title": "Codify governance workflow engine",
+      "title": "Runtime Workflow Integration",
       "gate": "EVENT",
-      "state": "DONE",
+      "state": "HUMAN_APPROVAL",
       "assignee": null,
       "comments": []
     }
   },
   "history": [
     {
-      "ts": "2026-07-18T10:11:26.328217+00:00",
+      "ts": "2026-07-18T10:06:33.845345+00:00",
       "action": "create_card",
       "by": "prime-agent",
       "card": "K001",
-      "title": "Codify governance workflow engine",
+      "title": "Runtime Workflow Integration",
       "gate": "EVENT"
     },
     {
-      "ts": "2026-07-18T10:11:26.328217+00:00",
+      "ts": "2026-07-18T10:06:33.846346+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "PRIME_SPECKIT"
     },
     {
-      "ts": "2026-07-18T10:11:26.328217+00:00",
+      "ts": "2026-07-18T10:06:33.847347+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "KANBAN_CREATED"
     },
     {
-      "ts": "2026-07-18T10:11:26.328217+00:00",
+      "ts": "2026-07-18T10:06:33.848344+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "BUILDER_QUEUE"
     },
     {
-      "ts": "2026-07-18T10:11:26.328217+00:00",
+      "ts": "2026-07-18T10:06:33.850349+00:00",
       "action": "transition",
       "by": "builder-agent",
       "card": "K001",
       "to": "BUILDER_EXECUTION"
     },
     {
-      "ts": "2026-07-18T10:11:26.340341+00:00",
+      "ts": "2026-07-18T10:06:33.851346+00:00",
       "action": "transition",
       "by": "builder-agent",
       "card": "K001",
       "to": "READY_FOR_AUDIT"
     },
     {
-      "ts": "2026-07-18T10:11:26.342542+00:00",
+      "ts": "2026-07-18T10:06:33.853344+00:00",
       "action": "transition",
       "by": "auditor-agent",
       "card": "K001",
       "to": "AUDITOR_REVIEW"
     },
     {
-      "ts": "2026-07-18T10:11:26.342542+00:00",
+      "ts": "2026-07-18T10:06:33.855100+00:00",
       "action": "transition",
       "by": "auditor-agent",
       "card": "K001",
       "to": "READY_FOR_PRIME"
     },
     {
-      "ts": "2026-07-18T10:11:26.344549+00:00",
+      "ts": "2026-07-18T10:06:33.856099+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "PRIME_REVIEW"
     },
     {
-      "ts": "2026-07-18T10:11:26.344549+00:00",
+      "ts": "2026-07-18T10:06:33.858101+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "HUMAN_APPROVAL"
-    },
-    {
-      "ts": "2026-07-18T10:12:33.073603+00:00",
-      "action": "transition",
-      "by": "human",
-      "card": "K001",
-      "to": "RELEASE_WORKFLOW"
-    },
-    {
-      "ts": "2026-07-18T10:12:33.073603+00:00",
-      "action": "transition",
-      "by": "prime-agent",
-      "card": "K001",
-      "to": "DONE"
     }
   ]
 }
