@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-ROLE-BOUNDARY-VALIDATION-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "card": "K001",
+    "tests_passed": 3,
+    "pytest_summary": "returncode=0",
+    "pytest_rc": 0,
+    "ts": "2026-07-18T00:31:01.399593+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQCGC/bSgB6n1YWNMQ2VTvnHGCMQ7M+rMqeki2mbzFwDYQIgO4f/Sdc2Zr72Rp+svxOyYxpG7yz/yVIhngTf8faic9k=",
+    "r": "0x860bf6d2801ea7d5858d310d954ef9c7182310eccfab32a7a48b699bcc5c0361",
+    "s": "0x3b87ff49d73666bef6469facbf13b2631a46ef2cffc952219e04dff1f6a273d9"
+  }
+}

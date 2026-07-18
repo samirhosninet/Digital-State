@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-WORKFLOW-KERNEL-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "card": "K001",
+    "selftest_output": "HAPPY_PATH_OK states=11 | ILLEGAL_TRANSITIONS_DENIED=9 | chain_valid=True",
+    "selftest_rc": 0,
+    "pytest_summary": "returncode=0",
+    "ts": "2026-07-18T10:11:59.570570+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQDu4EGYIUsddOLADaL8eXYe7E8f5JOKCF5l71WV3BP8IAIgaXjwKx8BXzCRocDhyOS26xeNR8vfGQtepgYCkAxkWmw=",
+    "r": "0xeee04198214b1d74e2c00da2fc79761eec4f1fe4938a085e65ef5595dc13fc20",
+    "s": "0x6978f02b1f015f3091a1c0e1c8e4b6eb178d47cbdf190b5ea60602900c645a6c"
+  }
+}

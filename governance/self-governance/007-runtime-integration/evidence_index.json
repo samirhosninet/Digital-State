@@ -1,0 +1,37 @@
+{
+  "event_id": "DS-RUNTIME-ACCEPTANCE-001",
+  "repo": "samirhosninet/Digital-State",
+  "version": "1.9.0",
+  "tag": "v1.9-runtime-integration",
+  "generated": "2026-07-18T10:22:41.520436+00:00",
+  "evidence_items": {
+    "01-clean-install": "01-clean-install.json",
+    "02-install": "02-install.json",
+    "03-bootstrap": "03-bootstrap.json",
+    "04-runtime-startup": "04-runtime-startup.json",
+    "05-speckit": "05-speckit.json",
+    "06-builder-retrieval": "06-builder-retrieval.json",
+    "07-auditor-retrieval": "07-auditor-retrieval.json",
+    "08-human-approval": "08-human-approval.json",
+    "09-git-commit": "09-git-commit.json",
+    "10-git-tag": "10-git-tag.json",
+    "11-github-push": "11-github-push.json",
+    "12-github-release": "12-github-release.json",
+    "13-governance-ledger": "13-governance-ledger.json"
+  },
+  "acceptance_mapping": {
+    "01-clean-install": "Clean installation log (git clone + uv sync).",
+    "02-install": "Install log (Digital State installed in clone).",
+    "03-bootstrap": "Bootstrap log (Digital State + Hermes Orchestrator initialized).",
+    "04-runtime-startup": "Runtime startup log (runtime.py launched, no chat).",
+    "05-speckit": "SpecKit evidence (spec/plan/tasks generated from repo templates).",
+    "06-builder-retrieval": "Builder card retrieval via Hermes Kanban Orchestrator.",
+    "07-auditor-retrieval": "Auditor card retrieval via Hermes Kanban Orchestrator.",
+    "08-human-approval": "Human Approval evidence (this card authorizes).",
+    "09-git-commit": "Git commit evidence.",
+    "10-git-tag": "Git tag evidence.",
+    "11-github-push": "GitHub push evidence.",
+    "12-github-release": "GitHub Release evidence.",
+    "13-governance-ledger": "Governance Ledger evidence (hash-chained, signed, valid)."
+  }
+}

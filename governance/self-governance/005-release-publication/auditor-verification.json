@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-RELEASE-PUBLICATION-001",
+    "gate": "VERIFICATION",
+    "agent": "auditor-agent",
+    "pytest_rc": 0,
+    "builder_sig_valid": true,
+    "prior_ledgers_valid": true,
+    "veto": false,
+    "ts": "2026-07-18T00:36:32.939372+00:00"
+  },
+  "signature": {
+    "signer": "auditor-agent",
+    "key_id": "key-auditor",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEQCIAWtljtUpLWVuHZjKIFeXq5CBzYInTF1yurREfVZpD7YAiBIg8cB8wwAVlclb7CJhRw3bLJHMvOqq2QH68wyfdR71A==",
+    "r": "0x5ad963b54a4b595b8766328815e5eae420736089d3175caead111f559a43ed8",
+    "s": "0x4883c701f30c005657256fb089851c376cb24732f3aaab6407ebcc327dd47bd4"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "payload": {
+    "event_id": "DS-RUNTIME-WORKFLOW-INTEGRATION-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "card": "K001",
+    "speckit_artifacts": [
+      "spec.md",
+      "plan.md",
+      "tasks.md"
+    ],
+    "selftest_output": "HAPPY_PATH_OK states=11 | ILLEGAL_TRANSITIONS_DENIED=9 | chain_valid=True",
+    "selftest_rc": 0,
+    "pytest_summary": "returncode=0",
+    "ts": "2026-07-18T10:07:14.360857+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEYCIQDeUsdc3J87L8QKmRFy/8kuL7MRyhM8EMiA2Y3XKE5LcwIhAIjFr13m7yvXTtvlQ8pBOTGYGhoMnOeYpSocbyDaP0I3",
+    "r": "0xde52c75cdc9f3b2fc40a991172ffc92e2fb311ca133c10c880d98dd7284e4b73",
+    "s": "0x88c5af5de6ef2bd74edbe543ca413931981a1a0c9ce798a52a1c6f20da3f4237"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-BOOTSTRAP-REAL-WORLD-001",
+    "gate": "VERIFICATION",
+    "agent": "auditor-agent",
+    "independent_pytest_rc": 0,
+    "builder_sig_valid": true,
+    "veto": false,
+    "findings": [],
+    "ts": "2026-07-17T23:57:43.706050+00:00"
+  },
+  "signature": {
+    "signer": "auditor-agent",
+    "key_id": "key-auditor",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIGQ3KAs8S40JhNg8jkv+611BnBkRnirCbfXltkx+Y/aMAiEAj/g6GjREwBUUaoSSLJad7z2VxyYMcw5CJ6mHKVNeYtU=",
+    "r": "0x6437280b3c4b8d0984d83c8e4bfeeb5d419c19119e2ac26df5e5b64c7e63f68c",
+    "s": "0x8ff83a1a3444c015146a84922c969def3d95c7260c730e4227a98729535e62d5"
+  }
+}

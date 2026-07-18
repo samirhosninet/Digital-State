@@ -1,0 +1,17 @@
+{
+  "payload": {
+    "event_id": "DS-BOOTSTRAP-REAL-WORLD-001",
+    "gate": "ACCEPTANCE",
+    "agent": "prime-agent",
+    "decision": "ACCEPTED",
+    "ts": "2026-07-17T23:57:43.714016+00:00"
+  },
+  "signature": {
+    "signer": "prime-agent",
+    "key_id": "key-prime",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQDfqG7qYIC0l87D7DdJTYaBsKSWLszLE3Ax60RpXaSFhQIgFiIK3bS9RhVdg5A8tpKiyCwBylz0g1mwVSpIcjRV3K0=",
+    "r": "0xdfa86eea6080b497cec3ec37494d8681b0a4962ecccb137031eb44695da48585",
+    "s": "0x16220addb4bd46155d83903cb692a2c82c01ca5cf48359b0552a48723455dcad"
+  }
+}

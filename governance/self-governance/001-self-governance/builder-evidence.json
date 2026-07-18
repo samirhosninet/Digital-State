@@ -1,0 +1,19 @@
+{
+  "payload": {
+    "event_id": "DS-SELF-GOVERNANCE-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "pytest_returncode": 0,
+    "pytest_summary": "returncode=0",
+    "doctor_overall_pass": true,
+    "timestamp": "2026-07-17T23:17:09.534570+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEQCIF4J6Z63INiMcc2zGm5CCbhqzI25RkMZKVnTCN9JcLMIAiBZRBTq2u0HEpucmq/zTjisLV8HSXfxIPxxUVnk8oVMGA==",
+    "r": "0x5e09e99eb720d88c71cdb31a6e4209b86acc8db94643192959d308df4970b308",
+    "s": "0x594414eadaed07129b9c9aaff34e38ac2d5f074977f120fc715159e4f2854c18"
+  }
+}

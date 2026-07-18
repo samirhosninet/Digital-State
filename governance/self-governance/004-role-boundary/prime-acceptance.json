@@ -1,0 +1,17 @@
+{
+  "payload": {
+    "event_id": "DS-ROLE-BOUNDARY-VALIDATION-001",
+    "gate": "ACCEPTANCE",
+    "agent": "prime-agent",
+    "decision": "ACCEPTED",
+    "ts": "2026-07-18T00:33:38.848028+00:00"
+  },
+  "signature": {
+    "signer": "prime-agent",
+    "key_id": "key-prime",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIHQVW8cZPexmAv66mvM+iX2W+5W/V41F1yl2UY5OqMc5AiEAgQRqSmwgncyRwRDCvW+X50mS642ImsH+6prOHaR29nM=",
+    "r": "0x74155bc7193dec6602feba9af33e897d96fb95bf578d45d72976518e4ea8c739",
+    "s": "0x81046a4a6c209dcc91c110c2bd6f97e74992eb8d889ac1feea9ace1da476f673"
+  }
+}

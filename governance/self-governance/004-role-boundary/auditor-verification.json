@@ -1,0 +1,21 @@
+{
+  "payload": {
+    "event_id": "DS-ROLE-BOUNDARY-VALIDATION-001",
+    "gate": "VERIFICATION",
+    "agent": "auditor-agent",
+    "card": "K001",
+    "independent_boundary_check": true,
+    "builder_sig_valid": true,
+    "pytest_rc": 0,
+    "veto": false,
+    "ts": "2026-07-18T00:31:01.416198+00:00"
+  },
+  "signature": {
+    "signer": "auditor-agent",
+    "key_id": "key-auditor",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEQCIFaSBnr9duyU4n329VRxkz+kxlJEQUgEewmcWjqQcD/OAiArfGBylAtoW62TQcbizCYlzoTz2LM7r/LuiErhvBg1PA==",
+    "r": "0x5692067afd76ec94e27df6f55471933fa4c652444148047b099c5a3a90703fce",
+    "s": "0x2b7c6072940b685bad9341c6e2cc2625ce84f3d8b33baff2ee884ae1bc18353c"
+  }
+}

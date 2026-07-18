@@ -1,0 +1,9 @@
+{
+  "ts": "2026-07-18T10:21:41.752231+00:00",
+  "artifacts": [
+    "plan.md",
+    "spec.md",
+    "tasks.md"
+  ],
+  "source": "repo .specify/templates (no external specify binary)"
+}

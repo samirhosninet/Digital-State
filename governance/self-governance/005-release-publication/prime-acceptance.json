@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "event_id": "DS-RELEASE-PUBLICATION-001",
+    "gate": "ACCEPTANCE",
+    "agent": "prime-agent",
+    "decision": "ACCEPTED",
+    "human_authorization": "DS-RELEASE-PUBLICATION-001",
+    "ts": "2026-07-18T00:36:32.941381+00:00"
+  },
+  "signature": {
+    "signer": "prime-agent",
+    "key_id": "key-prime",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQD9l8JtW7kERh1ZTuUsFsC+Yk9O6Ookd3FI7rsvJZj77wIgD+XmWCmHh8eh5Pu9C0WpG2ZsyWLogKVZzJfI0jCvNAs=",
+    "r": "0xfd97c26d5bb904461d594ee52c16c0be624f4ee8ea24777148eebb2f2598fbef",
+    "s": "0xfe5e658298787c7a1e4fbbd0b45a91b666cc962e880a559cc97c8d230af340b"
+  }
+}

@@ -114,12 +114,19 @@ class AgentRegistry:
 
     @staticmethod
     def _permissions_for_role(role: str) -> List[str]:
-        """Resolve permissions for a role from the Package roles.json asset (ADR-011-03)."""
+        """Resolve permissions for a role from the Package roles.json asset (ADR-011-03).
+
+        BUG-VAL-001 fix: role keys in roles.json are lowercase ("auditor") while the
+        Runtime-provisioned identity stores a capitalized role ("Auditor"). Normalize
+        the lookup by lowercasing so every Runtime-seeded identity resolves its real
+        permissions instead of silently falling back to [] (which blocked all approval,
+        veto, and verification actions for independent users).
+        """
         assets = os.path.join(os.path.dirname(__file__), "assets", "roles.json")
         try:
             with open(assets, "r", encoding="utf-8") as f:
                 roles = json.load(f).get("roles", {})
-            return roles.get(role, {}).get("permissions", [])
+            return roles.get(role.strip().lower(), {}).get("permissions", [])
         except (OSError, json.JSONDecodeError):
             return []
 
@@ -159,10 +166,20 @@ class AgentRegistry:
             )
 
     def register_agent(
-        self, agent_id: str, role: str, permissions: List[str], public_key: Any = ""
+        self, agent_id: str, role: str, permissions: List[str], public_key: Any = "",
+        force: bool = False,
     ) -> Agent:
-        """Register a new agent in the registry."""
-        if agent_id in self.agents:
+        """Register a new agent in the registry.
+
+        BUG-VAL-002 fix: when ``force`` is set, an existing (e.g. default-seeded)
+        identity is overwritten with the supplied keypair instead of raising. This
+        lets a user inject their own private key under a canonical trust-root ID
+        (prime-agent/builder-agent/auditor-agent) that ``init`` pre-seeds without a
+        private key — previously they were stuck: unable to sign as the seeded
+        identity (no private key) and unable to re-register (rejected as "already
+        registered").
+        """
+        if agent_id in self.agents and not force:
             raise RegistryError(f"Agent with ID '{agent_id}' is already registered.")
         from digital_state.core.verifier import CryptoVerifier
         CryptoVerifier.validate_key_metadata(public_key)
