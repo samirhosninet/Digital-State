@@ -1,0 +1,71 @@
+{
+  "cards": {
+    "K001": {
+      "id": "K001",
+      "title": "Agent role-boundary integrity validation",
+      "gate": "EVENT",
+      "state": "PRIME_ACCEPTANCE",
+      "assignee": "builder-agent",
+      "comments": []
+    }
+  },
+  "history": [
+    {
+      "ts": "2026-07-18T00:29:40.121686+00:00",
+      "action": "create_card",
+      "by": "prime-agent",
+      "card": "K001",
+      "title": "Agent role-boundary integrity validation",
+      "gate": "EVENT"
+    },
+    {
+      "ts": "2026-07-18T00:29:40.123679+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "PLANNED"
+    },
+    {
+      "ts": "2026-07-18T00:29:40.127209+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "TASK_CREATED"
+    },
+    {
+      "ts": "2026-07-18T00:29:40.132223+00:00",
+      "action": "assign",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "builder-agent"
+    },
+    {
+      "ts": "2026-07-18T00:29:40.134217+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "BUILDER_ASSIGNED"
+    },
+    {
+      "ts": "2026-07-18T00:31:01.414141+00:00",
+      "action": "transition",
+      "by": "builder-agent",
+      "card": "K001",
+      "to": "IMPLEMENTATION"
+    },
+    {
+      "ts": "2026-07-18T00:31:01.418224+00:00",
+      "action": "transition",
+      "by": "auditor-agent",
+      "card": "K001",
+      "to": "AUDITOR_REVIEW"
+    },
+    {
+      "ts": "2026-07-18T00:33:38.878613+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "PRIME_ACCEPTANCE"
+    }
+  ]
+}

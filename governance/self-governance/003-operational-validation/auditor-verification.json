@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-FIRST-OPERATIONAL-VALIDATION-001",
+    "gate": "VERIFICATION",
+    "agent": "auditor-agent",
+    "card": "K001",
+    "independent_pytest_rc": 0,
+    "builder_sig_valid": true,
+    "veto": false,
+    "ts": "2026-07-18T00:18:31.634717+00:00"
+  },
+  "signature": {
+    "signer": "auditor-agent",
+    "key_id": "key-auditor",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEQCIAhwgVNFpOw+aspfCS5fKqBWnaq0/Pp5XshWy2i+otZeAiAlzTQ0k+GDq4H+6yRg3ak/I9er/iLE8NotAm7xbLdchQ==",
+    "r": "0x870815345a4ec3e6aca5f092e5f2aa0569daab4fcfa795ec856cb68bea2d65e",
+    "s": "0x25cd343493e183ab81feeb2460dda93f23d7abfe22c4f0da2d026ef16cb75c85"
+  }
+}

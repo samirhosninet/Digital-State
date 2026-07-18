@@ -1,0 +1,19 @@
+{
+  "payload": {
+    "event_id": "DS-FIRST-OPERATIONAL-VALIDATION-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "card": "K001",
+    "pytest_summary": "returncode=0",
+    "pytest_rc": 0,
+    "ts": "2026-07-18T00:17:13.515540+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIBMnlrn0S6gTSWMWvgtulmU9rwNGfYXNUF3vo1+nfLMvAiEAgb/BWFIMl+xnDA/ZussKeCKNKKil8O6npYXExFAbvFw=",
+    "r": "0x132796b9f44ba813496316be0b6e96653daf03467d85cd505defa35fa77cb32f",
+    "s": "0x81bfc158520c97ec670c0fd9bacb0a78228d28a8a5f0eea7a585c4c4501bbc5c"
+  }
+}

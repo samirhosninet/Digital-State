@@ -1,0 +1,17 @@
+{
+  "payload": {
+    "event_id": "DS-FIRST-OPERATIONAL-VALIDATION-001",
+    "gate": "ACCEPTANCE",
+    "agent": "prime-agent",
+    "decision": "ACCEPTED",
+    "ts": "2026-07-18T00:21:49.613825+00:00"
+  },
+  "signature": {
+    "signer": "prime-agent",
+    "key_id": "key-prime",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIFa1l66K7LEsESa1hfs7IMySLddii9ZbcxTGvkYdVFjTAiEA9e4sH9IVvHSmfFyNZtMQlHSFsoSSQLH2BGAUE2arJLo=",
+    "r": "0x56b597ae8aecb12c1126b585fb3b20cc922dd7628bd65b7314c6be461d5458d3",
+    "s": "0xf5ee2c1fd215bc74a67c5c8d66d310947485b2849240b1f60460141366ab24ba"
+  }
+}

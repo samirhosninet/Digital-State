@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "event_id": "DS-RELEASE-PUBLICATION-001",
+    "gate": "IMPLEMENTATION",
+    "agent": "builder-agent",
+    "pytest_summary": "returncode=0",
+    "pytest_rc": 0,
+    "ts": "2026-07-18T00:35:26.053774+00:00"
+  },
+  "signature": {
+    "signer": "builder-agent",
+    "key_id": "key-builder",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEQCIAWIVxDB3azqVL45K3ZMdxJPqPlK6T9zv3mSyIsJK7iYAiARE6bEkPazN1QsP6gFExuswo045sNZ+Fz8OSWtLK8gMQ==",
+    "r": "0x5885710c1ddacea54be392b764c77124fa8f94ae93f73bf7992c88b092bb898",
+    "s": "0x1113a6c490f6b337542c3fa805131bacc28d38e6c359f85cfc3925ad2caf2031"
+  }
+}

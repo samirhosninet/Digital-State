@@ -1,0 +1,1 @@
+{"sequence_id": 1, "timestamp": "2026-07-18T00:36:32.945883+00:00", "event_type": "VERSION", "agent_id": "prime-agent", "details": {"from": "1.6.0", "to": "1.7.0"}, "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000", "hash": "4f60b41454a8089cf0e4bd60604dedf5639dc83d2a0efc8837c4b58a55a26bc3"}

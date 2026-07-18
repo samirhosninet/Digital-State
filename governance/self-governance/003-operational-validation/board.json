@@ -1,0 +1,71 @@
+{
+  "cards": {
+    "K001": {
+      "id": "K001",
+      "title": "Operational validation of existing Digital State governance cycle",
+      "gate": "EVENT",
+      "state": "PRIME_ACCEPTANCE",
+      "assignee": "builder-agent",
+      "comments": []
+    }
+  },
+  "history": [
+    {
+      "ts": "2026-07-18T00:15:49.932754+00:00",
+      "action": "create_card",
+      "by": "prime-agent",
+      "card": "K001",
+      "title": "Operational validation of existing Digital State governance cycle",
+      "gate": "EVENT"
+    },
+    {
+      "ts": "2026-07-18T00:15:49.936260+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "PLANNED"
+    },
+    {
+      "ts": "2026-07-18T00:15:49.940276+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "TASK_CREATED"
+    },
+    {
+      "ts": "2026-07-18T00:15:49.944280+00:00",
+      "action": "assign",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "builder-agent"
+    },
+    {
+      "ts": "2026-07-18T00:15:49.946796+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "BUILDER_ASSIGNED"
+    },
+    {
+      "ts": "2026-07-18T00:17:13.555644+00:00",
+      "action": "transition",
+      "by": "builder-agent",
+      "card": "K001",
+      "to": "IMPLEMENTATION"
+    },
+    {
+      "ts": "2026-07-18T00:18:31.638231+00:00",
+      "action": "transition",
+      "by": "auditor-agent",
+      "card": "K001",
+      "to": "AUDITOR_REVIEW"
+    },
+    {
+      "ts": "2026-07-18T00:21:49.639904+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "K001",
+      "to": "PRIME_ACCEPTANCE"
+    }
+  ]
+}
