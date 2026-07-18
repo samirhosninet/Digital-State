@@ -2,7 +2,7 @@
   "event_id": "DS-RUNTIME-WORKFLOW-INTEGRATION-001",
   "status": "VERIFIED",
   "verdict": "PASS",
-  "ts": "2026-07-18T10:18:54.069679+00:00",
+  "ts": "2026-07-18T10:54:24.427999+00:00",
   "reason": "Repository runtime workflow integrated: SpecKit artifacts generated from repo templates, Hermes Kanban Orchestrator coordinates all stages via the Workflow Kernel (sole transition authority), Human Approval gate mandatory, Release Workflow automated after approval. No roles/layers/constitution/architecture change.",
   "human_decision": "ACCEPT",
   "pytest": "returncode=0",

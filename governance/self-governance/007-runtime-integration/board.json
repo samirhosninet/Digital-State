@@ -11,7 +11,7 @@
   },
   "history": [
     {
-      "ts": "2026-07-18T10:06:33.845345+00:00",
+      "ts": "2026-07-18T10:32:14.767750+00:00",
       "action": "create_card",
       "by": "prime-agent",
       "card": "K001",
@@ -19,77 +19,77 @@
       "gate": "EVENT"
     },
     {
-      "ts": "2026-07-18T10:06:33.846346+00:00",
+      "ts": "2026-07-18T10:32:14.770748+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "PRIME_SPECKIT"
     },
     {
-      "ts": "2026-07-18T10:06:33.847347+00:00",
+      "ts": "2026-07-18T10:32:14.774785+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "KANBAN_CREATED"
     },
     {
-      "ts": "2026-07-18T10:06:33.848344+00:00",
+      "ts": "2026-07-18T10:32:14.778819+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "BUILDER_QUEUE"
     },
     {
-      "ts": "2026-07-18T10:06:33.850349+00:00",
+      "ts": "2026-07-18T10:32:14.782326+00:00",
       "action": "transition",
       "by": "builder-agent",
       "card": "K001",
       "to": "BUILDER_EXECUTION"
     },
     {
-      "ts": "2026-07-18T10:06:33.851346+00:00",
+      "ts": "2026-07-18T10:32:14.788374+00:00",
       "action": "transition",
       "by": "builder-agent",
       "card": "K001",
       "to": "READY_FOR_AUDIT"
     },
     {
-      "ts": "2026-07-18T10:06:33.853344+00:00",
+      "ts": "2026-07-18T10:32:14.791369+00:00",
       "action": "transition",
       "by": "auditor-agent",
       "card": "K001",
       "to": "AUDITOR_REVIEW"
     },
     {
-      "ts": "2026-07-18T10:06:33.855100+00:00",
+      "ts": "2026-07-18T10:32:14.797285+00:00",
       "action": "transition",
       "by": "auditor-agent",
       "card": "K001",
       "to": "READY_FOR_PRIME"
     },
     {
-      "ts": "2026-07-18T10:06:33.856099+00:00",
+      "ts": "2026-07-18T10:32:14.800298+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "PRIME_REVIEW"
     },
     {
-      "ts": "2026-07-18T10:06:33.858101+00:00",
+      "ts": "2026-07-18T10:32:14.804821+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",
       "to": "HUMAN_APPROVAL"
     },
     {
-      "ts": "2026-07-18T10:18:50.490485+00:00",
+      "ts": "2026-07-18T10:54:21.314540+00:00",
       "action": "transition",
       "by": "human",
       "card": "K001",
       "to": "RELEASE_WORKFLOW"
     },
     {
-      "ts": "2026-07-18T10:18:50.492504+00:00",
+      "ts": "2026-07-18T10:54:21.317550+00:00",
       "action": "transition",
       "by": "prime-agent",
       "card": "K001",

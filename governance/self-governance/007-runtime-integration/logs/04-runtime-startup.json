@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-18T10:21:41.750227+00:00",
+  "ts": "2026-07-18T10:52:59.402907+00:00",
   "returncode": 0,
   "stdout": "RUNTIME WORKFLOW RUN COMPLETE \u2014 halted at mandatory HUMAN_APPROVAL gate.\n  spec artifacts: ['spec.md', 'plan.md', 'tasks.md']\n  selftest: HAPPY_PATH_OK states=11 | ILLEGAL_TRANSITIONS_DENIED=9 | chain_valid=True | auditor veto: False | chain valid: True\n  Next (human only): uv run python governance/self-governance/runtime.py --finalize=VERIFIED",
   "stderr": ""

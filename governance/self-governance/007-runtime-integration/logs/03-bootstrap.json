@@ -1,9 +1,12 @@
 {
-  "ts": "2026-07-18T10:20:46.699313+00:00",
-  "digital_state": "initialized (repo present, ledger lib importable)",
-  "hermes_integration": "Hermes Kanban Orchestrator (simulated kernel-driven execution kernel)",
-  "orchestrator_path": "C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-gswsviy0\\Digital-State\\governance\\self-governance\\002-bootstrap\\kanban_orchestrator.py",
-  "runtime_entrypoint": "C:\\Users\\I-Master\\AppData\\Local\\Temp\\ds-accept-gswsviy0\\Digital-State\\governance\\self-governance\\runtime.py",
-  "test_keys": "generated-ephemeral (['prime', 'builder', 'auditor'])",
-  "note": "Hermes is a LOCAL SIMULATION; no live cluster in this environment."
+  "ts": "2026-07-18T10:51:44.881277+00:00",
+  "constitution": true,
+  "architecture": true,
+  "profiles_present": true,
+  "runtime_entrypoint": true,
+  "workflow_kernel": true,
+  "hermes_integration": "Hermes Kanban Orchestrator (simulated execution kernel)",
+  "loaded_by_runtime": false,
+  "note": "runtime.py assumes the repo tree exists; it generates SpecKit from templates and drives kernel transitions but does not load/parse constitution/architecture/profiles.",
+  "test_keys": "n/a"
 }

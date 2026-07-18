@@ -121,26 +121,25 @@ def ensure_test_keys(clone):
 # --------------------------------------------------------------------------
 # PHASE 1-2: clone + install
 # --------------------------------------------------------------------------
-def clone_and_install(local_path=None, token=""):
+def clone_and_install(branch="main", local_path=None, token=""):
     ws = Path(tempfile.mkdtemp(prefix="ds-accept-"))
     clone = ws / "Digital-State"
     env = dict(os.environ)
     env.pop("VIRTUAL_ENV", None)  # avoid uv --directory confusion with host venv
     if local_path:
         # Validate harness logic against the local working tree (no network).
-        res = subprocess.run(["git", "clone", "--branch", "spec-012/authority-remediation",
+        res = subprocess.run(["git", "clone", "--branch", branch,
                               str(Path(local_path)), str(clone)],
                              capture_output=True, text=True, env=env, timeout=300)
-        ref = f"local:{local_path}"
+        ref = f"local:{local_path}@{branch}"
         note = "Cloned LOCAL working tree (network-free validation of harness logic)."
     else:
-        # Clone the branch that carries the runtime entrypoint (proves the repo ships it).
-        ref = "spec-012/authority-remediation"
-        res = subprocess.run(["git", "clone", "--branch", ref, f"https://github.com/{REPO}.git", str(clone)],
+        # NEW-USER PATH: clone the default branch (main) the way any user would.
+        res = subprocess.run(["git", "clone", "--branch", branch, f"https://github.com/{REPO}.git", str(clone)],
                              capture_output=True, text=True, env=env, timeout=300)
-        note = "Cloned the branch that ships the runtime workflow entrypoint."
+        note = f"Cloned default branch '{branch}' (real new-user install path)."
     clean = {"returncode": res.returncode, "stdout": res.stdout.strip()[:500],
-             "stderr": res.stderr.strip()[:500], "target": str(clone), "ref": ref, "note": note}
+             "stderr": res.stderr.strip()[:500], "target": str(clone), "ref": branch, "note": note}
     log("01-clean-install", clean)
     # Install (uv sync). uv may be absent; fall back gracefully to python -m venv + pip.
     if shutil.which("uv"):
@@ -282,14 +281,33 @@ def build_evidence_index():
 def main():
     args = sys.argv[1:]
     local_path = None
+    branch = "main"  # NEW-USER PATH: default clone branch
     if "--local" in args:
         local_path = ROOT if (ROOT := Path("D:/Digital-State").resolve()).exists() else Path.cwd()
+    for a in args:
+        if a.startswith("--branch="):
+            branch = a.split("=", 1)[1]
     prepare()
-    print("[phase 0] prepared evidence dir")
-    clone = clone_and_install(local_path)
+    print(f"[phase 0] prepared evidence dir (branch={branch})")
+    clone = clone_and_install(branch, local_path)
     print("[phase 1-2] clone + install done ->", clone)
     clone, led, rt = bootstrap(clone)
     print("[phase 3-5] bootstrap done")
+    # PHASE 3: does the runtime actually LOAD constitution/architecture/profiles/runtime/
+    # kernel/hermes, or merely assume the repo tree is present? Honest load-check.
+    phase3 = {
+        "constitution": bool((clone / "governance/CONSTITUTION_v1.md").exists()),
+        "architecture": bool((clone / "specs/ARCHITECTURE.md").exists()),
+        "profiles_present": bool(list((clone / "src/digital_state/core/assets/profiles").rglob("*")) if
+                                 (clone / "src/digital_state/core/assets/profiles").exists() else []),
+        "runtime_entrypoint": bool(rt.exists()),
+        "workflow_kernel": bool((clone / "governance/self-governance/_engine/workflow_kernel.py").exists()),
+        "hermes_integration": "Hermes Kanban Orchestrator (simulated execution kernel)",
+        "loaded_by_runtime": False,  # DEFECT: runtime.py does NOT import/parse these docs
+        "note": "runtime.py assumes the repo tree exists; it generates SpecKit from templates and "
+                "drives kernel transitions but does not load/parse constitution/architecture/profiles."
+    }
+    log("03-bootstrap", {**phase3, "test_keys": phase3.get("test_keys", "n/a")})
     startup = run_runtime(clone, rt)
     print("[phase 6-15] runtime ran -> rc", startup["returncode"])
     # SpecKit evidence is produced inside the clone by runtime.py; surface a pointer.
