@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "event_id": "DS-WORKFLOW-KERNEL-001",
+    "gate": "VERIFICATION",
+    "agent": "auditor-agent",
+    "card": "K001",
+    "independent_selftest_rc": 0,
+    "builder_sig_valid": true,
+    "veto": false,
+    "ts": "2026-07-18T01:25:55.371543+00:00"
+  },
+  "signature": {
+    "signer": "auditor-agent",
+    "key_id": "key-auditor",
+    "algorithm": "ECDSA-P256-SHA256",
+    "signature": "MEUCIQCwyf4Z6gH3hlett1mpSKXCz9AUu4tQ33aqjWYUDq+GFQIgf6CxsVtmlDt096L+2tR6OSxLlBqmtYLYBGhTnHPrqmk=",
+    "r": "0xb0c9fe19ea01f78657adb759a948a5c2cfd014bb8b50df76aa8d66140eaf8615",
+    "s": "0x7fa0b1b15b66943b74f7a2fedad47a392c4b941aa6b582d80468539c73ebaa69"
+  }
+}
