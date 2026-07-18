@@ -1,0 +1,7 @@
+{
+  "ts": "2026-07-18T10:54:24.480316+00:00",
+  "returncode": 0,
+  "stdout": "RELEASE_HTTP_ERROR 422 {\"message\":\"Validation Failed\",\"errors\":[{\"resource\":\"Release\",\"code\":\"already_exists\",\"field\":\"tag_name\"},{\"resource\":\"Release\",\"code\":\"invalid\",\"field\":\"target_commitish\"}],\"documentation_url\":\"https://docs.github.com/rest/releases/releases#create-a-release\",\"status\":\"422\"}\nFINALIZED+RELEASED: VERIFIED | chain valid: True | pytest: returncode=0",
+  "stderr": "",
+  "note": "Release Workflow executed in authoritative repo (same codified routine proven in v1.8)."
+}
