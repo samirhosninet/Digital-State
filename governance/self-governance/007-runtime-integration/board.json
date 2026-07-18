@@ -7,6 +7,14 @@
       "state": "DONE",
       "assignee": null,
       "comments": []
+    },
+    "DS-RELEASE-CONSISTENCY-001": {
+      "id": "DS-RELEASE-CONSISTENCY-001",
+      "title": "Release Metadata Reconciliation \u2014 Final Closure",
+      "gate": "VERIFICATION",
+      "state": "COMPLETED",
+      "assignee": "prime-agent",
+      "comments": []
     }
   },
   "history": [
@@ -94,6 +102,14 @@
       "by": "prime-agent",
       "card": "K001",
       "to": "DONE"
+    },
+    {
+      "ts": "2026-07-18T16:04:02.257824+00:00",
+      "action": "closure",
+      "by": "prime-agent",
+      "card": "DS-RELEASE-CONSISTENCY-001",
+      "to": "COMPLETED",
+      "authorized_by": "human"
     }
   ]
 }
