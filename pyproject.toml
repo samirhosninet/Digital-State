@@ -1,7 +1,7 @@
 [project]
 name = "digital-state"
-version = "1.10.0"
-description = "Governance layer for Hermes Agent"
+version = "1.11.0"
+description = "Digital State - Evidence-Gated Agentic Governance & Distributed Device Runtime System"
 
 
 requires-python = ">=3.11"
