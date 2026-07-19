@@ -1,4 +1,28 @@
+# Official Release Notes: Digital State v1.12.0-evidence
+
+We are pleased to announce the official release of **Digital State v1.12.0-evidence** (Evidence Governance Framework Integration). This additive release introduces reusable evidence governance infrastructure to enforce evidence classification, boundary isolation, and negative-evidence rules across all future architectural reviews and audits while preserving 100% frozen baseline compatibility with `v1.11.0-device-verified` (`0abc5a8`).
+
+---
+
+## Key Capabilities Introduced in v1.12.0-evidence
+
+1. **Canonical Evidence Classification Model**:
+   - Enforces strict typed classifications: `VERIFIED`, `VERIFIED ABSENCE`, `NOT FOUND IN CURRENT OFFICIAL DOCUMENTATION`, and `UNVERIFIED`.
+2. **Boundary Taxonomy & Isolation**:
+   - Enforces explicit separation between Digital State Repository, Hermes Agent Framework, Python Packaging Specifications (PEP 427), and External Platform Behaviors.
+3. **Negative-Evidence Governance Rules**:
+   - Rules Engine (`EvidenceValidationEngine`) programmatically prevents documentation silence from being misclassified as proof of impossibility (`VERIFIED_ABSENCE`).
+4. **Machine-Readable Governance Artifacts**:
+   - Supports dual export format (Markdown Audit Tables and JSON Evidence Manifests) for automated CI/CD validation pipelines.
+5. **Dynamic Repository Independence**:
+   - Resolves workspace root dynamically without hardcoded filesystem paths.
+6. **Additive Console Command**:
+   - Added `digitalstate audit-evidence` CLI subcommand.
+
+---
+
 # Official Release Notes: Digital State v1.11.0-device
+
 
 We are pleased to announce the official release of **Digital State v1.11.0-device** (Distributed Device Runtime Governance). This additive major feature release extends Digital State from single-repository governance to distributed host user devices while preserving 100% frozen baseline compatibility with `v1.10.0-production-verified` (`b4fd79687cac128bde2b237363382bc221d84c6a`).
 

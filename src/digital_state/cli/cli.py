@@ -72,6 +72,11 @@ def create_parser() -> argparse.ArgumentParser:
     vl_parser = subparsers.add_parser("verify-ledger", help="Verify cryptographic hash-chain integrity of governance ledger.")
     vl_parser.add_argument("--ledger-path", help="Path to ledger.jsonl file.")
 
+    # 12. audit-evidence command
+    ae_parser = subparsers.add_parser("audit-evidence", help="Audit and validate architectural evidence records.")
+    ae_parser.add_argument("--file", help="Path to JSON file containing evidence records.")
+    ae_parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Output report format.")
+
     return parser
 
 
@@ -654,6 +659,27 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             print(json.dumps(res, indent=2))
             return 0 if res.get("chain_intact", True) else 1
 
+        elif args.command == "audit-evidence":
+            from digital_state.governance.evidence import (
+                EvidenceRecord,
+                EvidenceValidationEngine,
+                EvidenceReportGenerator,
+            )
+            engine = EvidenceValidationEngine()
+            generator = EvidenceReportGenerator(validation_engine=engine)
+            records = []
+            if getattr(args, "file", None) and os.path.exists(args.file):
+                with open(args.file, "r", encoding="utf-8") as f:
+                    raw_data = json.load(f)
+                    if isinstance(raw_data, list):
+                        records = [EvidenceRecord.from_dict(item) for item in raw_data]
+                    elif isinstance(raw_data, dict) and "records" in raw_data:
+                        records = [EvidenceRecord.from_dict(item) for item in raw_data["records"]]
+            if getattr(args, "format", "markdown") == "json":
+                print(generator.render_json_manifest(records))
+            else:
+                print(generator.render_markdown_table(records))
+            return 0
 
         return 0
 
