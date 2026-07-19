@@ -30,12 +30,17 @@ class DigitalStatePlugin:
             or os.getcwd()
         )
 
-    @staticmethod
-    def _governed_context(context: Any) -> tuple[str | None, Any]:
-        """Return only runtime-supplied governance context; never invent identity."""
-        if not isinstance(context, dict):
-            return None, None
-        return context.get("feature_id"), context.get("agent_key")
+    def _governed_context(self_or_ctx: Any, context: Any = None) -> tuple[str | None, Any]:
+        """Resolves runtime governance context via 3-tier lookup pipeline (ADR-013 / Option E)."""
+        from digital_state.runtime.adapter import resolve_governance_context
+        ws_root = None
+        if isinstance(self_or_ctx, DigitalStatePlugin):
+            ws_root = getattr(self_or_ctx, "_workspace_root", None)
+            target_ctx = context
+        else:
+            target_ctx = self_or_ctx
+        return resolve_governance_context(target_ctx, workspace_root=ws_root)
+
         
     def initialize(self) -> bool:
         """Runs the handshake check and hooks initialization on plugin load."""

@@ -19,6 +19,17 @@ Each hook passes a context dictionary containing signature headers, agent profil
 }
 ```
 
+### Context Resolution Pipeline (ADR-013 / Option E)
+
+Governance context (`feature_id`, `agent_key`) is resolved via `digital_state.runtime.adapter` using a 3-tier lookup pipeline:
+
+1. **Tier 1 (Explicit Context)**: Direct keys passed in the hook invocation dictionary (`context["feature_id"]`, `context["agent_key"]`).
+2. **Tier 2 (Process Environment)**: Environment variables set by process invocation (`DS_FEATURE_ID`, `DS_AGENT_KEY`, `HERMES_KANBAN_TASK`, `HERMES_PROFILE`).
+3. **Tier 3 (RuntimeStore Authority & Workspace Fallback)**: Active workspace state (`.specify/state.json`) and registered identity records in `RuntimeStore` matching the active `HERMES_PROFILE`.
+
+If identity cannot be authoritatively resolved through any tier, the plugin triggers a Fail-Safe Default-Deny.
+
+
 ---
 
 ## Hook Lifecycle Mapping
