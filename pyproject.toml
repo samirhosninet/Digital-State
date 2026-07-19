@@ -13,6 +13,8 @@ dependencies = [
 [project.scripts]
 digitalstate = "digital_state.cli.cli:main"
 digital-state = "digital_state.cli.cli:main"
+digitalstate-device = "digital_state.device.cli:main"
+
 
 [project.entry-points."hermes_agent.plugins"]
 digital_state = "digital_state.hermes"
