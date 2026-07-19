@@ -18,27 +18,32 @@ def resolve_governance_context(
     """Resolves (feature_id, agent_key) through a structured 3-tier lookup.
 
     Returns (None, None) if context cannot be authoritatively resolved through any tier.
+    Attaches tenant_id to agent_key context metadata (defaulting to 'default_tenant').
     """
     feature_id: Optional[str] = None
     agent_key: Any = None
+    tenant_id: Optional[str] = None
 
     # Tier 1: Explicit Context Dictionary
     if isinstance(context, dict):
         f_id = context.get("feature_id")
         a_key = context.get("agent_key")
+        t_id = context.get("tenant_id")
         if f_id:
             feature_id = str(f_id)
         if a_key:
             agent_key = a_key
-
-    if feature_id and agent_key:
-        return feature_id, agent_key
+        if t_id:
+            tenant_id = str(t_id)
 
     # Tier 2: Process Environment Variables
     if not feature_id:
         env_feature = os.environ.get("DS_FEATURE_ID") or os.environ.get("HERMES_KANBAN_TASK")
         if env_feature:
             feature_id = env_feature
+
+    if not tenant_id:
+        tenant_id = os.environ.get("DS_TENANT_ID") or "default_tenant"
 
     if not agent_key:
         env_key = os.environ.get("DS_AGENT_KEY")
@@ -51,9 +56,6 @@ def resolve_governance_context(
                 except Exception:
                     agent_key = env_key
 
-    if feature_id and agent_key:
-        return feature_id, agent_key
-
     # Tier 3: RuntimeStore Authority & Workspace State Fallback
     ws_root = workspace_root or os.environ.get("HERMES_WORKSPACE") or os.getcwd()
 
@@ -65,10 +67,7 @@ def resolve_governance_context(
                 with open(state_file, "r", encoding="utf-8") as f:
                     state_data = json.load(f)
                 if isinstance(state_data, dict) and state_data:
-                    if len(state_data) == 1:
-                        feature_id = next(iter(state_data.keys()))
-                    else:
-                        feature_id = next(iter(state_data.keys()))
+                    feature_id = next(iter(state_data.keys()))
             except Exception:
                 pass
 
@@ -82,9 +81,10 @@ def resolve_governance_context(
 
         try:
             from digital_state.runtime.store import RuntimeStore
-            store = RuntimeStore()
+            store = RuntimeStore(root=ws_root)
             if store.exists():
-                identities = store.identity.all()
+
+                identities = store.identity.all_for_tenant(tenant_id)
                 matching_record = None
                 for iid, record in identities.items():
                     if (
@@ -103,11 +103,15 @@ def resolve_governance_context(
                         "signature": pub.get("value") or pub.get("key_id") or "verified",
                         "role": matching_record.role,
                         "public_key": pub,
+                        "tenant_id": matching_record.tenant_id,
                     }
         except Exception:
             pass
 
     if feature_id and agent_key:
+        if isinstance(agent_key, dict) and "tenant_id" not in agent_key:
+            agent_key["tenant_id"] = tenant_id or "default_tenant"
         return feature_id, agent_key
 
     return None, None
+

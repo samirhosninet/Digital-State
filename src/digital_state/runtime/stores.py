@@ -19,12 +19,14 @@ class IdentityRecord:
         public_key: Dict[str, Any],
         private_key_path: Optional[str] = None,
         status: str = "Active",
+        tenant_id: str = "default_tenant",
     ):
         self.identity_id = identity_id
         self.role = role
         self.public_key = public_key
         self.private_key_path = private_key_path
         self.status = status
+        self.tenant_id = tenant_id or "default_tenant"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -33,6 +35,7 @@ class IdentityRecord:
             "public_key": self.public_key,
             "private_key_path": self.private_key_path,
             "status": self.status,
+            "tenant_id": self.tenant_id,
         }
 
     @classmethod
@@ -43,6 +46,7 @@ class IdentityRecord:
             public_key=data["public_key"],
             private_key_path=data.get("private_key_path"),
             status=data.get("status", "Active"),
+            tenant_id=data.get("tenant_id", "default_tenant"),
         )
 
 
@@ -75,13 +79,28 @@ class IdentityStore:
         rec = self._read_all().get(identity_id)
         return IdentityRecord.from_dict(rec) if rec else None
 
+    def get_for_tenant(self, identity_id: str, tenant_id: str = "default_tenant") -> Optional[IdentityRecord]:
+        rec = self.get(identity_id)
+        if rec and (rec.tenant_id == tenant_id or tenant_id == "default_tenant"):
+            return rec
+        return None
+
     def all(self) -> Dict[str, IdentityRecord]:
         return {
             iid: IdentityRecord.from_dict(rec) for iid, rec in self._read_all().items()
         }
 
+    def all_for_tenant(self, tenant_id: str = "default_tenant") -> Dict[str, IdentityRecord]:
+        all_recs = self.all()
+        if not tenant_id or tenant_id == "default_tenant":
+            return all_recs
+        return {
+            iid: rec for iid, rec in all_recs.items() if rec.tenant_id == tenant_id
+        }
+
     def exists(self) -> bool:
         return os.path.exists(self._path)
+
 
 
 class ProfileStore:

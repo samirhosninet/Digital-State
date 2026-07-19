@@ -78,7 +78,7 @@ class AgentRegistry:
         with open(self.storage_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-    def get_agent(self, agent_id: str) -> Optional[Agent]:
+    def get_agent(self, agent_id: str, tenant_id: str = "default_tenant") -> Optional[Agent]:
         """Retrieve an agent profile by identity.
 
         Resolution order (ADR-011-06 / SPEC-012 CRITICAL-01): the Runtime
@@ -95,7 +95,7 @@ class AgentRegistry:
         try:
             store = RuntimeStore()
             if store.identity.exists():
-                rec = store.identity.get(agent_id)
+                rec = store.identity.get_for_tenant(agent_id, tenant_id=tenant_id)
                 if rec:
                     return Agent(
                         agent_id=rec.identity_id,
@@ -111,6 +111,7 @@ class AgentRegistry:
         # Secondary (legacy) source. Reached ONLY when the Runtime is absent or
         # does not hold this identity — never when it does.
         return self.agents.get(agent_id)
+
 
     @staticmethod
     def _permissions_for_role(role: str) -> List[str]:
