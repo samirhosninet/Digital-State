@@ -56,9 +56,10 @@ WORKSPACE = EV / "workspace"            # generated SpecKit artifacts live here
 EVENT_ID = "DS-RUNTIME-WORKFLOW-INTEGRATION-001"
 REPO = "samirhosninet/Digital-State"
 TEMPLATES = ROOT / ".specify/templates"
-NEW_TAG = "v1.9.1"
-NEW_VER = "1.9.1"
-FROM_VER = "1.9.0"
+NEW_TAG = "v1.10.0"
+NEW_VER = "1.10.0"
+FROM_VER = "1.9.1"
+
 
 K = WorkflowKernel()
 
