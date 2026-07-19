@@ -40,14 +40,15 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SELF_GOV = HERE  # runtime.py lives directly under governance/self-governance/
+ROOT = SELF_GOV.parent.parent  # .../Digital-State (runtime.py lives in governance/self-governance/)
 for p in (SELF_GOV, SELF_GOV / "_lib", SELF_GOV / "002-bootstrap", SELF_GOV / "_engine",
-          SELF_GOV / "006-workflow-kernel"):
+          SELF_GOV / "006-workflow-kernel", ROOT / "src", ROOT):
     sys.path.insert(0, str(p))
 from ledger import Ledger
 from kanban_orchestrator import KanbanOrchestrator
 from workflow_kernel import WorkflowKernel
 
-ROOT = SELF_GOV.parent.parent  # .../Digital-State (runtime.py lives in governance/self-governance/)
+
 EV = ROOT / "governance/self-governance/007-runtime-integration"
 LEDGER = EV / "ledger.jsonl"
 BOARD = EV / "board.json"
@@ -59,6 +60,38 @@ NEW_TAG = "v1.9-runtime-integration"
 NEW_VER = "1.9.0"
 FROM_VER = "1.8.0"
 K = WorkflowKernel()
+
+
+def load_governance_context(ledger: Ledger) -> dict:
+    """Parses and validates governance/CONSTITUTION_v1.md, specs/ARCHITECTURE.md, and profile templates (DS-END-TO-END-INSTALL-VALIDATION-001)."""
+    constitution_path = ROOT / "governance" / "CONSTITUTION_v1.md"
+    architecture_path = ROOT / "specs" / "ARCHITECTURE.md"
+
+    if not constitution_path.exists():
+        raise FileNotFoundError(f"Constitution missing: {constitution_path}")
+    if not architecture_path.exists():
+        raise FileNotFoundError(f"Architecture spec missing: {architecture_path}")
+
+    const_text = constitution_path.read_text(encoding="utf-8")
+    arch_text = architecture_path.read_text(encoding="utf-8")
+
+    from digital_state.core.assets import PROFILE_TEMPLATES
+
+
+    payload = {
+        "loaded_files": [
+            str(constitution_path.relative_to(ROOT)),
+            str(architecture_path.relative_to(ROOT)),
+        ],
+        "constitution_bytes": len(const_text),
+        "architecture_bytes": len(arch_text),
+        "profiles_loaded": list(PROFILE_TEMPLATES.keys()),
+        "status": "LOADED",
+        "timestamp": now(),
+    }
+    ledger.append("GOVERNANCE_LOAD", "prime-agent", payload)
+    return payload
+
 
 
 def now():
@@ -84,9 +117,10 @@ def pytest_summary(res):
 # --------------------------------------------------------------------------
 def generate_speckit_artifacts(ledger: Ledger):
     WORKSPACE.mkdir(parents=True, exist_ok=True)
-    spec_t = (TEMPLATES / "spec-template.md").read_text()
-    plan_t = (TEMPLATES / "plan-template.md").read_text()
-    tasks_t = (TEMPLATES / "tasks-template.md").read_text()
+    spec_t = (TEMPLATES / "spec-template.md").read_text(encoding="utf-8")
+    plan_t = (TEMPLATES / "plan-template.md").read_text(encoding="utf-8")
+    tasks_t = (TEMPLATES / "tasks-template.md").read_text(encoding="utf-8")
+
     date = now()[:10]
     spec = (spec_t
             .replace("[FEATURE NAME]", "Runtime Workflow Integration")
@@ -96,9 +130,10 @@ def generate_speckit_artifacts(ledger: Ledger):
                      "Make the codified Digital State governance workflow the actual "
                      "repository runtime workflow, coordinated by the Hermes Kanban "
                      "Orchestrator without chat-message coordination."))
-    (WORKSPACE / "spec.md").write_text(spec)
-    (WORKSPACE / "plan.md").write_text(plan_t.replace("[FEATURE NAME]", "Runtime Workflow Integration"))
-    (WORKSPACE / "tasks.md").write_text(tasks_t.replace("[FEATURE NAME]", "Runtime Workflow Integration"))
+    (WORKSPACE / "spec.md").write_text(spec, encoding="utf-8")
+    (WORKSPACE / "plan.md").write_text(plan_t.replace("[FEATURE NAME]", "Runtime Workflow Integration"), encoding="utf-8")
+    (WORKSPACE / "tasks.md").write_text(tasks_t.replace("[FEATURE NAME]", "Runtime Workflow Integration"), encoding="utf-8")
+
     ledger.append("SPECKIT", "prime-agent", {
         "artifacts": ["spec.md", "plan.md", "tasks.md"],
         "source": "repo .specify/templates (no external specify binary required)",
@@ -271,26 +306,38 @@ def main():
                "human_decision": "ACCEPT",
                "pytest": pytest_summary(res),
                "constraints": "no new roles/layers; no src/ change; Hermes simulated"}
-        (EV / "decision.json").write_text(json.dumps(dec, indent=2))
+        (EV / "decision.json").write_text(json.dumps(dec, indent=2), encoding="utf-8")
         print("FINALIZED+RELEASED:", dec["status"], "| chain valid:", ledger.valid(),
               "| pytest:", pytest_summary(res))
         return
 
-    if LEDGER.exists() and LEDGER.read_text().strip() and "--fresh" not in args:
+    if LEDGER.exists() and LEDGER.read_text(encoding="utf-8").strip() and "--fresh" not in args:
         print("[refuse] ledger non-empty; pass --reset then re-run")
         sys.exit(2)
 
     ledger = Ledger(LEDGER)
     orch = KanbanOrchestrator(BOARD, ledger)
+
+    # Load and log governance context (constitution, architecture, profiles) per DS-END-TO-END-INSTALL-VALIDATION-001
+    load_governance_context(ledger)
+
+    event_target = EVENT_ID
+    for a in args:
+        if a.startswith("--new="):
+            event_target = a.split("=", 1)[1]
+        elif a.startswith("--event="):
+            event_target = a.split("=", 1)[1]
+
     ledger.append("GOVERNANCE_EVENT", "prime-agent", {
-        "event_id": EVENT_ID, "decision": "ALLOW",
+        "event_id": event_target, "decision": "ALLOW",
         "scope": "Integrate codified workflow as repository runtime; no new roles/layers; Human Final Authority kept."})
 
     # 1. Prime -> SpecKit artifacts (repo-local, no chat, no external binary)
     arts = generate_speckit_artifacts(ledger)
 
     # 2. Prime -> create Hermes Kanban card (board auto-populated)
-    orch.create_card("K001", "Runtime Workflow Integration", "EVENT")
+    orch.create_card("K001", f"Runtime Workflow Integration ({event_target})", "EVENT")
+
 
     # 3-5. Drive the constitutionally-authorized stage transitions.
     # The kernel is the sole authority; chat is purely an input interface.
@@ -312,7 +359,7 @@ def main():
           "selftest_output": st.stdout.strip().splitlines()[-1], "selftest_rc": st.returncode,
           "pytest_summary": pytest_summary(run_pytest()), "ts": now()}
     bsig = ledger.sign("builder", bp)
-    (EV / "builder-evidence.json").write_text(json.dumps({"payload": bp, "signature": bsig}, indent=2))
+    (EV / "builder-evidence.json").write_text(json.dumps({"payload": bp, "signature": bsig}, indent=2), encoding="utf-8")
 
     # Auditor independent verification.
     st2 = subprocess.run([sys.executable, str(SELF_GOV / "006-workflow-kernel" / "engine_selftest.py")],
@@ -323,9 +370,10 @@ def main():
           "independent_selftest_rc": st2.returncode, "builder_sig_valid": sig_valid,
           "veto": veto, "ts": now()}
     asig = ledger.sign("auditor", ap)
-    (EV / "auditor-verification.json").write_text(json.dumps({"payload": ap, "signature": asig}, indent=2))
+    (EV / "auditor-verification.json").write_text(json.dumps({"payload": ap, "signature": asig}, indent=2), encoding="utf-8")
 
-    (EV / "PENDING_PRIME_ACCEPTANCE").write_text(now())
+    (EV / "PENDING_PRIME_ACCEPTANCE").write_text(now(), encoding="utf-8")
+
     print("RUNTIME WORKFLOW RUN COMPLETE — halted at mandatory HUMAN_APPROVAL gate.")
     print("  spec artifacts:", arts)
     print("  selftest:", bp["selftest_output"], "| auditor veto:", veto,
