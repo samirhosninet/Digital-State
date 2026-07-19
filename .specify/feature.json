@@ -1,1 +1,3 @@
-{"feature_directory":"specs\\009-production-trust-hardening"}
+{
+  "feature_directory": "specs/011-multi-tenant-key-server"
+}
