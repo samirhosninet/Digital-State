@@ -102,3 +102,27 @@ class Ledger:
                 return False
             prev = h
         return True
+
+    def verify_chain(self) -> dict:
+        if not self.path.exists():
+            return {"status": "EMPTY", "total_entries": 0, "chain_intact": True}
+        lines = [l for l in self.path.read_text().splitlines() if l.strip()]
+        if not lines:
+            return {"status": "EMPTY", "total_entries": 0, "chain_intact": True}
+
+        prev = GENESIS
+        for idx, line in enumerate(lines, start=1):
+            try:
+                e = json.loads(line)
+                if "prev_hash" not in e and "hash" not in e:
+                    return {"status": "LEGACY_UNCHAINED", "total_entries": len(lines), "chain_intact": True}
+                p = {k: e[k] for k in ("sequence_id", "timestamp", "event_type", "agent_id", "details")}
+                h = hashlib.sha256(bytes.fromhex(e["prev_hash"]) + self._canon(p)).hexdigest()
+                if e["prev_hash"] != prev or e["hash"] != h:
+                    return {"status": "TAMPERED", "corrupted_line": idx, "total_entries": len(lines), "chain_intact": False}
+                prev = h
+            except Exception:
+                return {"status": "CORRUPTED_JSON", "corrupted_line": idx, "total_entries": len(lines), "chain_intact": False}
+
+        return {"status": "VALID", "total_entries": len(lines), "chain_intact": True}
+

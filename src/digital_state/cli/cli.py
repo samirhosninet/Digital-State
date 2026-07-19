@@ -68,7 +68,12 @@ def create_parser() -> argparse.ArgumentParser:
     # 10. repair command
     subparsers.add_parser("repair", help="Repair or recover workspace files, configs, and venv setup.")
 
+    # 11. verify-ledger command
+    vl_parser = subparsers.add_parser("verify-ledger", help="Verify cryptographic hash-chain integrity of governance ledger.")
+    vl_parser.add_argument("--ledger-path", help="Path to ledger.jsonl file.")
+
     return parser
+
 
 
 def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
@@ -82,8 +87,9 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
     try:
         # Only instantiate the kernel if the command requires it
         kernel = None
-        if args.command not in ("init", "doctor", "upgrade", "uninstall", "repair"):
+        if args.command not in ("init", "doctor", "upgrade", "uninstall", "repair", "verify-ledger"):
             kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
+
 
         if args.command == "init":
             specify_dir = os.path.join(workspace_root, ".specify")
@@ -633,7 +639,24 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             print(json.dumps({"status": "Success", "message": "Repair and recovery completed successfully. Workspace directories and state files have been validated/rebuilt."}))
             return 0
 
+        elif args.command == "verify-ledger":
+            import importlib.util
+            from pathlib import Path
+            l_path = Path(args.ledger_path) if args.ledger_path else Path(workspace_root) / "governance" / "self-governance" / "007-runtime-integration" / "ledger.jsonl"
+            if not l_path.exists():
+                l_path = Path(workspace_root) / ".specify" / "memory" / "audit_log.jsonl"
+            ledger_py = Path(workspace_root) / "governance" / "self-governance" / "_lib" / "ledger.py"
+            spec = importlib.util.spec_from_file_location("ledger_lib", ledger_py)
+            ledger_lib = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(ledger_lib)
+            ledger = ledger_lib.Ledger(l_path)
+            res = ledger.verify_chain()
+            print(json.dumps(res, indent=2))
+            return 0 if res.get("chain_intact", True) else 1
+
+
         return 0
+
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
