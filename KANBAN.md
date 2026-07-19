@@ -6,11 +6,13 @@
 - [ ] **DEFECT (DS-END-TO-END-INSTALL-VALIDATION-001): runtime.py is hardcoded to a single event** — `EVENT_ID = "DS-RUNTIME-WORKFLOW-INTEGRATION-001"`; there is no generic "start a new project from zero" entrypoint for a real new user. Phase-4 "new project from scratch, generic sequence" is not satisfied by a fixed-card runtime. Fix: parametrize `EVENT_ID`/feature name via CLI args so `runtime.py --new <feature>` drives the full sequence for an arbitrary project. No new roles/layers.
 
 ## In Progress
-- [/] **DS-END-TO-END-INSTALL-VALIDATION-001**: Runtime Governance Context Loading & Event Parametrization (`load_governance_context()` & CLI `--new <feature>` support in `runtime.py`).
+- (No active cards)
 
 ## Completed
 - [x] Initial Governance Kernel bootstrap (`feat-001`)
-- [x] **DS-RUNTIME-AUTH-004**: Hermes Runtime Authentication & 3-Tier Context Resolution (ADR-013 / Option E). Closed 2026-07-19.
+- [x] **DS-END-TO-END-INSTALL-VALIDATION-001**: Governance Context Loading (`load_governance_context()`) & CLI Event Parametrization (`--new`, `--event`). Released in v1.9.1. Closed 2026-07-19.
+- [x] **DS-RUNTIME-AUTH-004**: Hermes Runtime Authentication & 3-Tier Context Resolution (ADR-013 / Option E). Released in v1.9.1. Closed 2026-07-19.
 - [x] **DS-RUNTIME-INSTALL-VALIDATION-001 — FINAL ACCEPTANCE** (Human ACCEPT). Local runtime validated against repo HEAD `b8df975`; version 1.9.0; 58/58 pytest; no constitutional violation. Closed 2026-07-18.
 - [x] Native Hermes runtime integration (`feat-003`) - Linked to [spec.md](file:///D:/Digital-State/specs/003-hermes-runtime-integration/spec.md)
+
 
