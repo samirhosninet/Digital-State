@@ -76,8 +76,11 @@ def create_parser() -> argparse.ArgumentParser:
     ae_parser = subparsers.add_parser("audit-evidence", help="Audit and validate architectural evidence records.")
     ae_parser.add_argument("--file", help="Path to JSON file containing evidence records.")
     ae_parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Output report format.")
+    ae_parser.add_argument("--check", action="store_true", help="Exit with non-zero status if any unverified evidence records exist.")
+    ae_parser.add_argument("--all", action="store_true", help="Audit local device evidence bundle and platform runtime bridge.")
 
     return parser
+
 
 
 
@@ -662,8 +665,10 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
         elif args.command == "audit-evidence":
             from digital_state.governance.evidence import (
                 EvidenceRecord,
+                EvidenceClassification,
                 EvidenceValidationEngine,
                 EvidenceReportGenerator,
+                DeviceEvidenceValidator,
             )
             engine = EvidenceValidationEngine()
             generator = EvidenceReportGenerator(validation_engine=engine)
@@ -675,11 +680,27 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                         records = [EvidenceRecord.from_dict(item) for item in raw_data]
                     elif isinstance(raw_data, dict) and "records" in raw_data:
                         records = [EvidenceRecord.from_dict(item) for item in raw_data["records"]]
+
+            if getattr(args, "all", False):
+                device_val = DeviceEvidenceValidator()
+                records.extend(device_val.validate_device_bundle())
+
+            validated_records = engine.validate_batch(records)
+
             if getattr(args, "format", "markdown") == "json":
-                print(generator.render_json_manifest(records))
+                print(generator.render_json_manifest(validated_records))
             else:
-                print(generator.render_markdown_table(records))
+                print(generator.render_markdown_table(validated_records))
+
+            if getattr(args, "check", False):
+                has_unverified = any(
+                    r.classification in (EvidenceClassification.UNVERIFIED, EvidenceClassification.NOT_FOUND_IN_CURRENT_OFFICIAL_DOCUMENTATION)
+                    for r in validated_records
+                )
+                return 1 if has_unverified else 0
+
             return 0
+
 
         return 0
 
