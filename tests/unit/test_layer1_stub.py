@@ -15,13 +15,16 @@ def test_install_ps1_stub_dry_run(tmp_path):
     ps_script = repo_root / "install.ps1"
     assert ps_script.exists()
 
+    env = os.environ.copy()
+    env["DS_DRY_RUN"] = "1"
+
     cmd = [
         "powershell",
         "-ExecutionPolicy", "Bypass",
-        "-File", str(ps_script),
-        "-DryRun"
+        "-Command",
+        f"Get-Content '{ps_script}' -Raw | Invoke-Expression"
     ]
 
-    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root))
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root), env=env)
     assert res.returncode == 0
     assert "Layer 2 Installer Engine (DRY RUN MODE)" in res.stdout

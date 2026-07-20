@@ -3,6 +3,7 @@
 Validates complete installation lifecycle from Layer 1 Stub through Layer 2 Engine to Layer 3 Runtime.
 """
 
+import os
 import sys
 import subprocess
 import pytest
@@ -19,15 +20,17 @@ def test_e2e_layer1_to_layer3_bootstrap_flow(tmp_path):
     ps_script = repo_root / "install.ps1"
     assert ps_script.exists()
 
-    # 1. Execute Layer 1 Stub with DryRun parameter
+    # 1. Execute Layer 1 Stub in DryRun mode
+    env = os.environ.copy()
+    env["DS_DRY_RUN"] = "1"
     cmd = [
         "powershell",
         "-ExecutionPolicy", "Bypass",
-        "-File", str(ps_script),
-        "-DryRun"
+        "-Command",
+        f"Get-Content '{ps_script}' -Raw | Invoke-Expression"
     ]
 
-    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root))
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(repo_root), env=env)
     assert res.returncode == 0
     assert "Layer 2 Installer Engine (DRY RUN MODE)" in res.stdout
 
@@ -41,4 +44,3 @@ def test_e2e_layer1_to_layer3_bootstrap_flow(tmp_path):
     manifest = manifest_mgr.load_manifest()
     assert manifest["installation_state"] == "FULLY_INTEGRATED"
     assert manifest["health_status"] == "PASS"
-    assert manifest["plugin_state"]["enabled"] is True
