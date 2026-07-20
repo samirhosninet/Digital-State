@@ -69,4 +69,16 @@ def test_auto_provision_device_evidence_enrollment(tmp_path):
     assert (device_dir / "device-certificate.json").exists()
 
 
+def test_verify_installation_health(tmp_path):
+    device_dir = tmp_path / ".specify" / "device"
+    installer = BootstrapInstaller(workspace_root=tmp_path)
+    installer.auto_provision_device_evidence(device_dir=device_dir)
+
+    res = installer.verify_installation_health(device_dir=device_dir)
+    assert res["health_verified"] is True
+    assert res["doctor_status"] == "PASS"
+    assert res["evidence_records_count"] >= 3
+
+
+
 

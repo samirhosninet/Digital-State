@@ -64,7 +64,10 @@ class BootstrapInstaller:
         # 3. Device Identity Generation & 4-File Evidence Bundle Creation
         device_status = self.auto_provision_device_evidence(device_dir=device_dir)
 
-        # 4. Idempotent integration.json initialization
+        # 4. Post-Installation Verification Check
+        verification_status = self.verify_installation_health(device_dir=device_dir)
+
+        # 5. Idempotent integration.json initialization
         integration_file = specify_dir / "integration.json"
         integration_file.write_text(
             json.dumps({
@@ -74,6 +77,7 @@ class BootstrapInstaller:
                 "hermes_status": hermes_status,
                 "workspace_status": workspace_status,
                 "device_status": device_status,
+                "verification_status": verification_status,
                 "installed_at": "2026-07-20T04:35:00Z"
             }, indent=2),
             encoding="utf-8"
@@ -87,12 +91,33 @@ class BootstrapInstaller:
             "hermes_integration": hermes_status,
             "workspace_initialization": workspace_status,
             "device_provisioning": device_status,
+            "verification_status": verification_status,
             "directories_created": [
                 str(specify_dir),
                 str(memory_dir),
                 str(device_dir)
             ]
         }
+
+    def verify_installation_health(self, device_dir: Path) -> Dict[str, Any]:
+        """Runs post-installation doctor and evidence verification checks."""
+        try:
+            from digital_state.governance.evidence.device_validator import DeviceEvidenceValidator
+            validator = DeviceEvidenceValidator(device_dir=device_dir)
+            records = validator.validate_device_bundle()
+            verified = len(records) > 0 and all(r.classification.value == "VERIFIED" for r in records)
+            return {
+                "health_verified": verified,
+                "evidence_records_count": len(records),
+                "doctor_status": "PASS" if verified else "FAIL"
+            }
+        except Exception as e:
+            return {
+                "health_verified": False,
+                "error": str(e),
+                "doctor_status": "FAIL"
+            }
+
 
     def auto_configure_hermes(self) -> Dict[str, Any]:
         """Auto-detects Hermes root and registers digital_state plugin idempotently."""
