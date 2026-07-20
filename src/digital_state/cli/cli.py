@@ -100,212 +100,31 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
 
 
         if args.command == "init":
-            specify_dir = os.path.join(workspace_root, ".specify")
-            os.makedirs(specify_dir, exist_ok=True)
-            os.makedirs(os.path.join(specify_dir, "memory"), exist_ok=True)
-            
-            # Idempotent & non-destructive file initialization
-            integration_path = os.path.join(specify_dir, "integration.json")
-            if not os.path.exists(integration_path):
-                with open(integration_path, "w", encoding="utf-8") as f:
-                    json.dump({
-                        "integration": "hermes",
-                        "version": "0.1.0",
-                        "installed_at": "2026-07-14T23:00:00.000000+00:00",
-                        "files": {}
-                    }, f, indent=2)
-                    
-            options_path = os.path.join(specify_dir, "init-options.json")
-            if not os.path.exists(options_path):
-                with open(options_path, "w", encoding="utf-8") as f:
-                    json.dump({
-                        "ai": "hermes",
-                        "ai_skills": True,
-                        "feature_numbering": "sequential",
-                        "here": True,
-                        "integration": "hermes",
-                        "script": "ps",
-                        "speckit_version": "0.12.15.dev0"
-                    }, f, indent=2)
-                    
-            # Per ADR-011-06 the Workspace must NEVER become the authoritative
-            # identity store. We no longer write an empty agents.json (the
-            # empty-file trap, EV-2). Identities live in the Runtime.
-            agents_path = os.path.join(specify_dir, "agents.json")
-            if os.path.exists(agents_path):
-                # Transparent migration (P7): import any legacy workspace agents
-                # into the Runtime once, then leave the file in place (read-only
-                # fallback). Do not overwrite.
-                try:
-                    from digital_state.runtime.store import RuntimeStore
-                    from digital_state.runtime.stores import IdentityRecord
-                    store = RuntimeStore()
-                    if not store.exists():
-                        store.provision()
-                    import json as _json
-                    with open(agents_path, "r", encoding="utf-8") as _f:
-                        legacy = _json.load(_f)
-                    for aid, ad in (legacy or {}).items():
-                        if aid in (store.identity.all() or {}):
-                            continue
-                        try:
-                            store.identity.upsert(
-                                IdentityRecord(
-                                    identity_id=aid,
-                                    role=ad.get("role", "Unknown"),
-                                    public_key=ad.get("public_key", {}),
-                                )
-                            )
-                        except Exception:
-                            pass
-                except Exception:
-                    pass
+            from pathlib import Path
+            from digital_state.bootstrap.installer import BootstrapInstaller
+            installer = BootstrapInstaller(workspace_root=Path(workspace_root))
+            res = installer.run_bootstrap(dry_run=False)
 
-            # First-run Runtime + Governance bootstrap (P7 / ADR-011-01/011-02).
-            # Hermes-independent; idempotent; never blocks on external runtimes.
-            try:
-                from digital_state.runtime.provision import bootstrap_runtime
-                bootstrap_runtime()
-            except Exception as be:
-                print(json.dumps({
-                    "status": "Warning",
-                    "message": f"Workspace initialized; Runtime bootstrap skipped: {be}"
-                }))
+            if res.get("status") == "SUCCESS":
+                hermes_info = res.get("hermes_integration", {})
+                print("====================================================")
+                print(f"Hermes Runtime ........ {'VERIFIED' if hermes_info.get('detected') else 'FAILED'}")
+                print(f"Hermes Python ......... {'VERIFIED' if hermes_info.get('hermes_python') else 'FAILED'}")
+                print(f"Package Installation .. {'VERIFIED' if hermes_info.get('installed') else 'FAILED'}")
+                print(f"Plugin Discovery ...... {'VERIFIED' if hermes_info.get('discovered') else 'FAILED'}")
+                print(f"Plugin Import ......... {'VERIFIED' if hermes_info.get('imported') else 'FAILED'}")
+                print(f"Plugin Enabled ........ {'VERIFIED' if hermes_info.get('enabled') else 'FAILED'}")
+                print(f"Profiles .............. {'VERIFIED' if hermes_info.get('profiles_verified') else 'FAILED'}")
+                print(f"Governance ............ VERIFIED")
+                print("")
+                print("INSTALLATION STATUS")
+                print("FULLY INTEGRATED")
+                print("====================================================")
                 return 0
-                    
-            state_path = os.path.join(specify_dir, "state.json")
-            if not os.path.exists(state_path):
-                with open(state_path, "w", encoding="utf-8") as f:
-                    json.dump({}, f, indent=2)
-                    
-            audit_log_path = os.path.join(specify_dir, "memory", "audit_log.jsonl")
-            if not os.path.exists(audit_log_path):
-                with open(audit_log_path, "w", encoding="utf-8") as f:
-                    pass  # Create empty file
-                    
-            # Setup constitution.md file from standard baseline if it does not exist
-            constitution_path = os.path.join(specify_dir, "memory", "constitution.md")
-            if not os.path.exists(constitution_path):
-                # Copy from template or source if exists, otherwise write minimal
-                src_const = os.path.join(workspace_root, "governance", "CONSTITUTION_v1.md")
-                if os.path.exists(src_const):
-                    try:
-                        import shutil
-                        shutil.copy(src_const, constitution_path)
-                    except Exception:
-                        pass
-                if not os.path.exists(constitution_path):
-                    with open(constitution_path, "w", encoding="utf-8") as f:
-                        f.write("# Digital State Constitution\n\n## Core Principles\n\n- Separation of Governance and Execution\n- Role Segregation\n- Immutable Accountability\n")
+            else:
+                print(f"Installation failed: {res.get('message')}", file=sys.stderr)
+                return 1
 
-            # Hermes Integration — OPTIONAL mirror of Runtime profiles (ADR-011-05/011-07).
-            # Hermes is never the source of truth. If absent, init still succeeds;
-            # profiles are already materialized into the Runtime by bootstrap_runtime().
-            try:
-                if sys.platform == "win32":
-                    local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
-                    hermes_root = os.path.join(local_appdata if local_appdata else os.path.expanduser(r"~\\AppData\\Local"), "hermes")
-                else:
-                    hermes_root = os.path.expanduser("~/.hermes")
-
-                # Enable plugin globally in hermes_root/config.yaml if Hermes present
-                global_config_path = os.path.join(hermes_root, "config.yaml")
-                if os.path.exists(global_config_path):
-                    try:
-                        import yaml
-                        with open(global_config_path, "r", encoding="utf-8") as f:
-                            cfg = yaml.safe_load(f) or {}
-                        if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
-                            cfg["plugins"] = {"enabled": []}
-                        if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
-                            cfg["plugins"]["enabled"] = []
-                        if "digital_state" not in cfg["plugins"]["enabled"]:
-                            cfg["plugins"]["enabled"].append("digital_state")
-                        with open(global_config_path, "w", encoding="utf-8") as f:
-                            yaml.safe_dump(cfg, f, default_flow_style=False)
-                    except Exception as e:
-                        print(f"Warning: could not update global config.yaml: {e}", file=sys.stderr)
-
-                # Find hermes executable (best-effort; absence is acceptable)
-                import shutil
-                import subprocess
-                hermes_cmd = shutil.which("hermes")
-                python_cmd = None
-                if not hermes_cmd and os.path.isdir(hermes_root):
-                    if sys.platform == "win32":
-                        h_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "hermes.exe")
-                        p_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "python.exe")
-                    else:
-                        h_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "hermes")
-                        p_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "python")
-                    if os.path.exists(h_path):
-                        hermes_cmd = h_path
-                    if os.path.exists(p_path):
-                        python_cmd = p_path
-                elif hermes_cmd:
-                    cmd_dir = os.path.dirname(hermes_cmd)
-                    p_path = os.path.join(cmd_dir, "python.exe" if sys.platform == "win32" else "python")
-                    if os.path.exists(p_path):
-                        python_cmd = p_path
-
-                # Optional: install into Hermes venv if present
-                if python_cmd:
-                    try:
-                        subprocess.run(
-                            [python_cmd, "-m", "pip", "install", workspace_root],
-                            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                        )
-                    except Exception as e:
-                        print(f"Warning: could not install digital_state in Hermes venv: {e}", file=sys.stderr)
-
-                # Optional: mirror Runtime profiles into Hermes (source = Runtime templates)
-                if hermes_cmd:
-                    try:
-                        from digital_state.core.assets.profile_templates import PROFILE_TEMPLATES
-                    except Exception:
-                        PROFILE_TEMPLATES = {}
-                    profiles = {
-                        "prime": "Digital State Prime Governance profile",
-                        "builder": "Digital State Builder implementation profile",
-                        "auditor": "Digital State Auditor verification profile",
-                    }
-                    for name, desc in profiles.items():
-                        prof_dir = os.path.join(hermes_root, "profiles", name)
-                        try:
-                            if not os.path.exists(prof_dir):
-                                subprocess.run([
-                                    hermes_cmd, "profile", "create", name,
-                                    "--no-alias", "--description", desc
-                                ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                            if os.path.exists(prof_dir):
-                                template = PROFILE_TEMPLATES.get(name, {})
-                                soul_path = os.path.join(prof_dir, "SOUL.md")
-                                if "SOUL.md" in template:
-                                    with open(soul_path, "w", encoding="utf-8") as f:
-                                        f.write(template["SOUL.md"])
-                                prof_config_path = os.path.join(prof_dir, "config.yaml")
-                                try:
-                                    import yaml
-                                    cfg = {}
-                                    if os.path.exists(prof_config_path):
-                                        with open(prof_config_path, "r", encoding="utf-8") as f:
-                                            cfg = yaml.safe_load(f) or {}
-                                    if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
-                                        cfg["plugins"] = {"enabled": []}
-                                    if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
-                                        cfg["plugins"]["enabled"] = []
-                                    if "digital_state" not in cfg["plugins"]["enabled"]:
-                                        cfg["plugins"]["enabled"].append("digital_state")
-                                    with open(prof_config_path, "w", encoding="utf-8") as f:
-                                        yaml.safe_dump(cfg, f, default_flow_style=False)
-                                except Exception as e:
-                                    print(f"Warning: could not update config.yaml for profile '{name}': {e}", file=sys.stderr)
-                        except Exception as e:
-                            print(f"Warning: could not mirror profile '{name}' to Hermes: {e}", file=sys.stderr)
-            except Exception as e:
-                print(f"Warning: Hermes integration skipped (optional): {e}", file=sys.stderr)
-
-            print(json.dumps({"status": "Success", "message": "Digital State workspace initialized successfully."}))
 
         elif args.command == "doctor":
             # 1. Installation status

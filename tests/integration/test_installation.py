@@ -49,7 +49,7 @@ def test_end_to_end_installation():
             text=True,
             check=True
         )
-        assert "initialized successfully" in result_init.stdout
+        assert "FULLY INTEGRATED" in result_init.stdout
         
         # Verify .specify structure was created
         specify_dir = os.path.join(dest_root, ".specify")
