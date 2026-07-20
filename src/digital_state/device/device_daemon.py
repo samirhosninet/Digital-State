@@ -48,10 +48,35 @@ class DeviceDaemon:
         self._running = True
 
         if background:
+            self.check_and_auto_renew_certificate()
             self._thread = threading.Thread(target=self._listen_loop, daemon=True)
             self._thread.start()
         else:
+            self.check_and_auto_renew_certificate()
             self._listen_loop()
+
+    def check_and_auto_renew_certificate(self):
+        """Checks if local certificate expiration is < 14 days and triggers auto-renewal."""
+        try:
+            cert_file = self.device_dir / "device-certificate.json"
+            if not cert_file.exists():
+                return
+            with open(cert_file, "r", encoding="utf-8") as f:
+                cert_data = json.load(f)
+            expires_at_str = cert_data.get("expires_at")
+            if not expires_at_str:
+                return
+            from datetime import datetime, timezone
+            expires_dt = datetime.fromisoformat(expires_at_str)
+            now_dt = datetime.now(timezone.utc)
+            remaining_seconds = (expires_dt - now_dt).total_seconds()
+            if remaining_seconds < (14 * 86400):
+                from digital_state.device.enrollment import EnrollmentProtocol
+                enrollment = EnrollmentProtocol(device_dir=self.device_dir)
+                enrollment.renew_certificate()
+        except Exception:
+            pass
+
 
     def _listen_loop(self):
         """Internal accept loop for local IPC connections."""

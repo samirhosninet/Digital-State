@@ -108,10 +108,29 @@ def resolve_governance_context(
         except Exception:
             pass
 
+    # Verify signed session token if present
+    session_token = None
+    if isinstance(context, dict):
+        session_token = context.get("session_token") or context.get("signed_token")
+    if not session_token:
+        session_token = os.environ.get("DS_SESSION_TOKEN")
+
+    if session_token and isinstance(agent_key, dict):
+        try:
+            from digital_state.core.verifier import CryptoVerifier
+            token_data = json.loads(session_token) if isinstance(session_token, str) else session_token
+            payload = token_data.get("payload")
+            sig = token_data.get("signature")
+            if payload and sig:
+                valid_token = CryptoVerifier.verify(agent_key, payload, sig)
+                if not valid_token:
+                    agent_key = None
+        except Exception:
+            agent_key = None
+
     if feature_id and agent_key:
         if isinstance(agent_key, dict) and "tenant_id" not in agent_key:
             agent_key["tenant_id"] = tenant_id or "default_tenant"
         return feature_id, agent_key
 
     return None, None
-

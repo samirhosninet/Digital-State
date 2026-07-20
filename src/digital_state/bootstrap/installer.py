@@ -45,59 +45,88 @@ class BootstrapInstaller:
                 ]
             }
 
-        # Idempotent directory creation
-        specify_dir.mkdir(parents=True, exist_ok=True)
-        memory_dir.mkdir(parents=True, exist_ok=True)
-        device_dir.mkdir(parents=True, exist_ok=True)
+        from datetime import datetime, timezone
+        created_paths = []
+        try:
+            # Idempotent directory creation
+            for d in (specify_dir, memory_dir, device_dir):
+                if not d.exists():
+                    d.mkdir(parents=True, exist_ok=True)
+                    created_paths.append(d)
 
-        # Idempotent state.json initialization
-        state_file = specify_dir / "state.json"
-        if not state_file.exists() or state_file.stat().st_size == 0:
-            state_file.write_text("{}", encoding="utf-8")
+            # Idempotent state.json initialization
+            state_file = specify_dir / "state.json"
+            if not state_file.exists() or state_file.stat().st_size == 0:
+                state_file.write_text("{}", encoding="utf-8")
+                created_paths.append(state_file)
 
-        # 1. Hermes Integration Auto-Configuration
-        hermes_status = self.auto_configure_hermes()
+            # 1. Hermes Integration Auto-Configuration
+            hermes_status = self.auto_configure_hermes()
 
-        # 2. Automated Workspace Kernel Initialization
-        workspace_status = self.auto_initialize_workspace()
+            # 2. Automated Workspace Kernel Initialization
+            workspace_status = self.auto_initialize_workspace()
 
-        # 3. Device Identity Generation & 4-File Evidence Bundle Creation
-        device_status = self.auto_provision_device_evidence(device_dir=device_dir)
+            # 3. Device Identity Generation & 4-File Evidence Bundle Creation
+            device_status = self.auto_provision_device_evidence(device_dir=device_dir)
 
-        # 4. Post-Installation Verification Check
-        verification_status = self.verify_installation_health(device_dir=device_dir)
+            # Check for subsystem failures to guarantee atomicity
+            if not workspace_status.get("initialized") or not device_status.get("provisioned"):
+                raise RuntimeError(
+                    f"Subsystem bootstrap failed. Workspace: {workspace_status}, Device: {device_status}"
+                )
 
-        # 5. Idempotent integration.json initialization
-        integration_file = specify_dir / "integration.json"
-        integration_file.write_text(
-            json.dumps({
-                "integration": "hermes",
-                "version": "1.14.0-bootstrap",
-                "bootstrap": "zero_touch_complete",
-                "hermes_status": hermes_status,
-                "workspace_status": workspace_status,
-                "device_status": device_status,
+            # 4. Post-Installation Verification Check
+            verification_status = self.verify_installation_health(device_dir=device_dir)
+
+            # 5. Idempotent integration.json initialization
+            integration_file = specify_dir / "integration.json"
+            now_iso = datetime.now(timezone.utc).isoformat()
+            integration_file.write_text(
+                json.dumps({
+                    "integration": "hermes",
+                    "version": "1.16.0-remediation",
+                    "bootstrap": "zero_touch_complete",
+                    "hermes_status": hermes_status,
+                    "workspace_status": workspace_status,
+                    "device_status": device_status,
+                    "verification_status": verification_status,
+                    "installed_at": now_iso
+                }, indent=2),
+                encoding="utf-8"
+            )
+
+            return {
+                "status": "SUCCESS",
+                "message": "Digital State zero-touch installation and bootstrap completed successfully.",
+                "workspace_root": str(self.workspace_root.resolve()),
+                "prerequisites": prereqs,
+                "hermes_integration": hermes_status,
+                "workspace_initialization": workspace_status,
+                "device_provisioning": device_status,
                 "verification_status": verification_status,
-                "installed_at": "2026-07-20T04:35:00Z"
-            }, indent=2),
-            encoding="utf-8"
-        )
-
-        return {
-            "status": "SUCCESS",
-            "message": "Digital State zero-touch installation and bootstrap completed successfully.",
-            "workspace_root": str(self.workspace_root.resolve()),
-            "prerequisites": prereqs,
-            "hermes_integration": hermes_status,
-            "workspace_initialization": workspace_status,
-            "device_provisioning": device_status,
-            "verification_status": verification_status,
-            "directories_created": [
-                str(specify_dir),
-                str(memory_dir),
-                str(device_dir)
-            ]
-        }
+                "directories_created": [
+                    str(specify_dir),
+                    str(memory_dir),
+                    str(device_dir)
+                ]
+            }
+        except Exception as e:
+            # Transactional rollback: remove partially created artifacts
+            import shutil
+            for p in reversed(created_paths):
+                try:
+                    if p.is_file():
+                        p.unlink(missing_ok=True)
+                    elif p.is_dir() and not any(p.iterdir()):
+                        p.rmdir()
+                except Exception:
+                    pass
+            return {
+                "status": "FAILED",
+                "message": f"Bootstrap failed with error: {e}",
+                "workspace_root": str(self.workspace_root.resolve()),
+                "prerequisites": prereqs
+            }
 
     def verify_installation_health(self, device_dir: Path) -> Dict[str, Any]:
         """Runs post-installation doctor and evidence verification checks."""
@@ -120,7 +149,7 @@ class BootstrapInstaller:
 
 
     def auto_configure_hermes(self) -> Dict[str, Any]:
-        """Auto-detects Hermes root and registers digital_state plugin idempotently."""
+        """Auto-detects Hermes root and registers digital_state plugin idempotently with atomic file swaps."""
         if sys.platform == "win32":
             local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
             hermes_root = os.environ.get("HERMES_HOME", "") or os.path.join(
@@ -132,6 +161,7 @@ class BootstrapInstaller:
 
         hermes_path = Path(hermes_root)
         config_path = hermes_path / "config.yaml"
+        tmp_config_path = hermes_path / "config.yaml.tmp"
 
         if not hermes_path.exists():
             return {
@@ -152,10 +182,13 @@ class BootstrapInstaller:
                     cfg["plugins"]["enabled"] = []
                 if "digital_state" not in cfg["plugins"]["enabled"]:
                     cfg["plugins"]["enabled"].append("digital_state")
-                    with open(config_path, "w", encoding="utf-8") as f:
+                    with open(tmp_config_path, "w", encoding="utf-8") as f:
                         yaml.safe_dump(cfg, f, default_flow_style=False)
+                    os.replace(tmp_config_path, config_path)
                 enabled_plugin = True
             except Exception as e:
+                if tmp_config_path.exists():
+                    tmp_config_path.unlink(missing_ok=True)
                 return {
                     "detected": True,
                     "hermes_root": str(hermes_path),
@@ -163,27 +196,31 @@ class BootstrapInstaller:
                     "error": str(e)
                 }
 
-        # Seed profiles & profile manifests
+        # Seed profiles & profile manifests atomically
         profiles = ["prime", "builder", "auditor"]
         seeded_manifests = []
         for p in profiles:
             p_dir = hermes_path / "profiles" / p
             p_dir.mkdir(parents=True, exist_ok=True)
             p_manifest = p_dir / "profile.yaml"
+            tmp_p_manifest = p_dir / "profile.yaml.tmp"
             if not p_manifest.exists():
                 p_data = {
                     "name": f"Digital State {p.capitalize()} Profile",
                     "role": p,
-                    "version": "1.14.0-bootstrap",
+                    "version": "1.16.0-remediation",
                     "permissions": ["evidence_read", "governance_audit"] if p == "auditor" else ["all"]
                 }
                 try:
                     import yaml
-                    with open(p_manifest, "w", encoding="utf-8") as f:
+                    with open(tmp_p_manifest, "w", encoding="utf-8") as f:
                         yaml.safe_dump(p_data, f)
+                    os.replace(tmp_p_manifest, p_manifest)
                     seeded_manifests.append(str(p_manifest))
                 except Exception:
-                    pass
+                    if tmp_p_manifest.exists():
+                        tmp_p_manifest.unlink(missing_ok=True)
+
 
         return {
             "detected": True,

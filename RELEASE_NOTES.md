@@ -1,4 +1,32 @@
+# Official Release Notes: Digital State v1.16.0
+
+We are pleased to announce the official release of **Digital State v1.16.0** (PREMORTEM Engineering Remediation & Security Hardening). This major release systematically closes all 18 technical risks, architectural gaps, and security vulnerabilities identified in the baseline PREMORTEM review while achieving 100% test pass rate across 112 automated unit, integration, and negative test cases.
+
+---
+
+## Key Capabilities & Hardening Introduced in v1.16.0
+
+1. **FIPS-Compliant Keystore & AES-256-GCM Encryption**:
+   - Replaced legacy XOR fallback in `DeviceKeystore` with FIPS-compliant AES-256-GCM encryption using PBKDF2 (100,000 iterations) key derivation and OS Keyring API integration.
+2. **ECDSA P-256 Certificate Authority Signatures**:
+   - Replaced pseudo-random hex strings in `EnrollmentProtocol` with authentic ECDSA P-256 Authority signatures over canonical certificate JSON.
+3. **Certificate Auto-Renewal & Management**:
+   - Added `digitalstate-device renew-cert` CLI subcommand and daemon auto-renewal when certificate expiration is `< 14 days`.
+4. **Cross-Process FileLock Protection**:
+   - Added `msvcrt` / `fcntl` cross-process file lock protection around `device_ledger.jsonl` appends to prevent ledger hash-chain corruption under high concurrency.
+5. **Strict Fail-Closed Federation & Evidence Audit**:
+   - `FederatedEvidenceManager` enforces strict Default-Deny (`is_valid = False`, `UNVERIFIED`) on un-attested device bundles. `DeviceEvidenceValidator` performs deep JSON schema and certificate signature verification.
+6. **Hardened Hermes Runtime & Signed Session Tokens**:
+   - Mandatory fail-closed session abort on unresolvable governance context in `DigitalStatePlugin` and cryptographically signed session token verification in `adapter.py`.
+7. **Standardized CLI Exit Codes & Admin Commands**:
+   - Standardized CLI return codes (`0`: success, `1`: rejection, `2`: args error, `3`: I/O error), removed deprecated `--key` parameter, and fully implemented `repair`, `upgrade`, and `uninstall` command handlers.
+8. **Negative Security Test Suite & Blocking CI Gates**:
+   - Created `tests/unit/test_negative_crypto.py` and containerized live-Hermes workflow `.github/workflows/e2e-hermes.yml`, enforcing `digitalstate audit-evidence --check --all --federated` as a mandatory blocking gate in CI pipelines.
+
+---
+
 # Official Release Notes: Digital State v1.15.0
+
 
 We are pleased to announce the official release of **Digital State v1.15.0** (Multi-Tenant Evidence Federation & Remote Attestation Protocol). This release introduces the `FederatedEvidenceManager` and `RemoteAttestationVerifier` to aggregate 4-file evidence bundles across multi-device host nodes into unified tenant manifests (`v2.0`) while cryptographically verifying ECDSA P-256 challenge-response attestations and preserving 100% frozen baseline compatibility with `v1.14.0-bootstrap` (`aa9088c`).
 

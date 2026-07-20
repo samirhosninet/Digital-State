@@ -20,14 +20,12 @@ def create_parser() -> argparse.ArgumentParser:
     reg_parser.add_argument("--public-key-file", help="PEM public-key file for an ECDSA P-256 identity.")
     reg_parser.add_argument("--key-id", help="Stable public identifier for the registered key.")
     reg_parser.add_argument("--algorithm", default="ECDSA_P256", choices=["ECDSA_P256"], help="Signature algorithm.")
-    reg_parser.add_argument("--key", help="Deprecated plaintext key option; always rejected.")
     reg_parser.add_argument(
         "--force",
         action="store_true",
-        help="Overwrite an existing (e.g. default-seeded) identity with this new keypair. "
-             "Required when registering your own keypair under a trust-root ID "
-             "(prime-agent/builder-agent/auditor-agent) that init pre-seeded without a private key.",
+        help="Overwrite an existing identity with this new keypair.",
     )
+
 
     # 2. status command
     status_parser = subparsers.add_parser("status", help="Inspect status and transition logs.")
@@ -389,10 +387,11 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             print(json.dumps(doctor_report, indent=2))
 
         elif args.command == "register":
-            if args.key:
+            if getattr(args, "key", None):
                 raise GovernanceError(
                     "--key is no longer supported. Use --public-key-file and --key-id with an ECDSA P-256 public key."
                 )
+
             if not args.public_key_file or not args.key_id:
                 raise GovernanceError("register requires --public-key-file and --key-id.")
             try:
@@ -675,6 +674,8 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             engine = EvidenceValidationEngine()
             generator = EvidenceReportGenerator(validation_engine=engine)
             records = []
+            manifest = None
+
             if getattr(args, "file", None) and os.path.exists(args.file):
                 with open(args.file, "r", encoding="utf-8") as f:
                     raw_data = json.load(f)
@@ -689,29 +690,52 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
 
             if getattr(args, "federated", False):
                 from digital_state.governance.federation.manager import FederatedEvidenceManager
+                from digital_state.device.identity import DeviceIdentityManager
+                from digital_state.device.enrollment import EnrollmentProtocol
+                from pathlib import Path
                 fed_mgr = FederatedEvidenceManager(tenant_id="default_tenant")
                 device_val = DeviceEvidenceValidator()
                 dev_records = device_val.validate_device_bundle()
+
+                id_mgr = DeviceIdentityManager()
+                dev_dir = Path(".specify") / "device"
+                enrollment = EnrollmentProtocol(device_dir=dev_dir, identity_mgr=id_mgr)
+                info = id_mgr.get_identity_info()
+                pub_key = info.get("public_key_pem", "")
+                sig_hex = ""
+                nonce = ""
+                if pub_key:
+                    challenge = enrollment.generate_challenge_nonce()
+                    nonce = challenge.get("challenge_nonce", "")
+                    resp = enrollment.sign_challenge(challenge)
+                    sig_hex = resp.get("signature", "")
+
                 manifest = fed_mgr.aggregate_device_bundles([{
-                    "device_id": "local_node",
+                    "device_id": info.get("device_id", "local_node"),
+                    "public_key_pem": pub_key,
+                    "challenge_nonce": nonce,
+                    "signature_hex": sig_hex,
                     "evidence_records": [r.to_dict() for r in dev_records]
                 }])
                 if getattr(args, "format", "markdown") == "json":
                     print(json.dumps(manifest, indent=2))
-                    return 0
+
 
             validated_records = engine.validate_batch(records)
 
-            if getattr(args, "format", "markdown") == "json":
-                print(generator.render_json_manifest(validated_records))
-            else:
-                print(generator.render_markdown_table(validated_records))
+            if not getattr(args, "federated", False) or getattr(args, "format", "markdown") != "json":
+                if getattr(args, "format", "markdown") == "json":
+                    print(generator.render_json_manifest(validated_records))
+                else:
+                    print(generator.render_markdown_table(validated_records))
 
             if getattr(args, "check", False):
                 has_unverified = any(
                     r.classification in (EvidenceClassification.UNVERIFIED, EvidenceClassification.NOT_FOUND_IN_CURRENT_OFFICIAL_DOCUMENTATION)
                     for r in validated_records
                 )
+                if manifest and manifest.get("failed_devices", 0) > 0:
+                    has_unverified = True
                 return 1 if has_unverified else 0
 
             return 0

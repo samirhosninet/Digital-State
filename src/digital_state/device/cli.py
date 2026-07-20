@@ -35,6 +35,9 @@ def main(args_list=None):
     # verify-ledger
     subparsers.add_parser("verify-ledger", help="Verify local device audit ledger hash chain")
 
+    # renew-cert
+    subparsers.add_parser("renew-cert", help="Renew local device certificate with CA signature")
+
     parsed = parser.parse_args(args_list)
 
     if not parsed.command:
@@ -64,6 +67,17 @@ def main(args_list=None):
             "bundle": bundle
         }, indent=2))
         return 0
+
+    elif parsed.command == "renew-cert":
+        from digital_state.device.enrollment import EnrollmentProtocol
+        enrollment = EnrollmentProtocol(identity_mgr=identity_mgr)
+        success, cert_data = enrollment.renew_certificate()
+        print(json.dumps({
+            "status": "RENEWED" if success else "FAILED",
+            "certificate": cert_data
+        }, indent=2))
+        return 0 if success else 1
+
 
     elif parsed.command == "verify":
         info = identity_mgr.get_identity_info()

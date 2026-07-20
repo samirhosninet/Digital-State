@@ -41,11 +41,12 @@ class FederatedEvidenceManager:
             nonce = dev.get("challenge_nonce", "")
             sig = dev.get("signature_hex", "")
 
-            # Perform attestation check if signature data provided
-            is_valid = True
-            msg = "Attestation omitted."
+            # Perform strict attestation check (Fail-Closed Default-Deny)
             if pub_key and nonce and sig:
                 is_valid, msg = self.verifier.verify_device_attestation(pub_key, nonce, sig)
+            else:
+                is_valid = False
+                msg = "Attestation omitted or missing cryptographic signature fields."
 
             if is_valid:
                 verified_devices += 1
@@ -58,12 +59,15 @@ class FederatedEvidenceManager:
                 r_copy["tenant_id"] = self.tenant_id
                 r_copy["device_id"] = device_id
                 r_copy["attestation_valid"] = is_valid
+                if not is_valid:
+                    r_copy["classification"] = "UNVERIFIED"
+                    r_copy["attestation_error"] = msg
                 aggregated_records.append(r_copy)
 
         manifest = {
             "tenant_id": self.tenant_id,
             "manifest_type": "FEDERATED_EVIDENCE_MANIFEST",
-            "schema_version": "v2.0",
+            "schema_version": "v2.1-authenticated",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_devices": len(device_bundles),
             "verified_devices": verified_devices,
@@ -71,5 +75,6 @@ class FederatedEvidenceManager:
             "total_records": len(aggregated_records),
             "records": aggregated_records
         }
+
 
         return manifest

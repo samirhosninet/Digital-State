@@ -54,23 +54,54 @@ class DeviceEvidenceValidator:
             )
         )
 
-        # 2. Runtime Attestation
-        all_files_present = all(
-            (self.device_dir / f).exists() for f in ["device-status.json", "identity-proof.json", "runtime-attestation.json", "policy-state.json"]
-        )
+        # 2. Runtime Attestation & Deep Bundle Integrity
+        bundle_files = ["device-status.json", "identity-proof.json", "runtime-attestation.json", "policy-state.json"]
+        valid_bundle = True
+        bundle_reason = "All 4 device evidence files exist with valid JSON structure."
+
+        for f in bundle_files:
+            file_path = self.device_dir / f
+            if not file_path.exists() or file_path.stat().st_size == 0:
+                valid_bundle = False
+                bundle_reason = f"Missing or zero-byte evidence file: {f}"
+                break
+            try:
+                content = json.loads(file_path.read_text(encoding="utf-8"))
+                if not isinstance(content, dict) or not content:
+                    valid_bundle = False
+                    bundle_reason = f"Empty or non-dict JSON structure in: {f}"
+                    break
+            except Exception as e:
+                valid_bundle = False
+                bundle_reason = f"Malformed JSON in evidence file {f}: {e}"
+                break
+
+        cert_file = self.device_dir / "device-certificate.json"
+        if cert_file.exists() and cert_file.stat().st_size > 0:
+            try:
+                cert_data = json.loads(cert_file.read_text(encoding="utf-8"))
+                from digital_state.device.enrollment import EnrollmentProtocol
+                if not EnrollmentProtocol.verify_certificate(cert_data):
+                    valid_bundle = False
+                    bundle_reason = "Invalid ECDSA CA certificate signature on device-certificate.json"
+            except Exception:
+                valid_bundle = False
+                bundle_reason = "Corrupted device-certificate.json file"
+
         records.append(
             self.engine.validate_record(
                 EvidenceRecord(
-                    statement="Device Runtime 4-File Evidence Bundle Completeness",
+                    statement="Device Runtime 4-File Evidence Bundle Completeness & Integrity",
                     evidence_type=EvidenceType.REPOSITORY_IMPLEMENTATION,
                     boundary=EvidenceBoundary.DIGITAL_STATE_REPOSITORY,
                     source="src/digital_state/device/evidence.py",
-                    classification=EvidenceClassification.VERIFIED if all_files_present else EvidenceClassification.UNVERIFIED,
-                    justification="All 4 device evidence files exist in .specify/device/." if all_files_present else "Incomplete evidence bundle.",
+                    classification=EvidenceClassification.VERIFIED if valid_bundle else EvidenceClassification.UNVERIFIED,
+                    justification=bundle_reason if valid_bundle else f"Integrity check failed: {bundle_reason}",
                     repo_path="src/digital_state/device/evidence.py",
                 )
             )
         )
+
 
 
         # 3. Local Policy State

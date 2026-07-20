@@ -91,12 +91,25 @@ class DigitalStatePlugin:
         logger.info("Digital State Plugin successfully Loaded.")
         return True
 
+    def _log_audit_error(self, event_type: str, details: Dict[str, Any]):
+        """Logs structured exception / failure event to DeviceLedger."""
+        try:
+            from digital_state.device.device_ledger import DeviceLedger
+            ledger = DeviceLedger()
+            ledger.append(
+                trace_id=details.get("trace_id", "ERROR_TRACE"),
+                decision={"event_type": event_type, "details": details},
+                policy_version="v1.16.0-remediation"
+            )
+        except Exception:
+            pass
+
     def on_session_start_handler(self, *args, **kwargs) -> bool:
         """Invoked when a Hermes session starts."""
         if not self.is_loaded:
+            self._log_audit_error("SESSION_START_BLOCKED", {"reason": "Plugin not loaded."})
             return False
-        
-        # Log dispatcher environment variables for runtime evidence
+
         env_vars = {
             "HERMES_KANBAN_TASK": os.environ.get("HERMES_KANBAN_TASK"),
             "HERMES_KANBAN_BOARD": os.environ.get("HERMES_KANBAN_BOARD"),
@@ -104,18 +117,20 @@ class DigitalStatePlugin:
             "HERMES_KANBAN_RUN_ID": os.environ.get("HERMES_KANBAN_RUN_ID"),
         }
         print(f"--- [Digital State Worker Log] Env Vars: {json.dumps(env_vars)}", flush=True)
-        
+
         context = args[0] if args else (kwargs.get("context") or kwargs)
-        feature_id, _ = self._governed_context(context)
-        if not feature_id:
-            logger.warning("Missing validated feature ID metadata on session start.")
+        feature_id, agent_key = self._governed_context(context)
+        if not feature_id or not agent_key:
+            logger.error("Missing validated feature ID or agent key metadata on session start. Fail-Closed Abort triggered.")
+            self._log_audit_error("SESSION_START_BLOCKED", {"reason": "Missing validated feature ID or agent key metadata."})
             return False
-                
+
         try:
             status = check_governance_status(feature_id, workspace_root=self._workspace_root)
             return status is not None
         except Exception as e:
             logger.error(f"Error checking status on session start: {e}")
+            self._log_audit_error("SESSION_START_ERROR", {"error": str(e)})
             return False
 
     def pre_llm_call_handler(self, *args, **kwargs) -> Any:
@@ -132,6 +147,7 @@ class DigitalStatePlugin:
                 return f"[Digital State Governance Context] Active Feature: {feature_id}, Current Phase: {status.get('state', 'Unknown')}"
         except Exception as e:
             logger.error(f"Error getting status for pre_llm_call: {e}")
+            self._log_audit_error("PRE_LLM_CALL_ERROR", {"error": str(e)})
         return None
 
     def post_llm_call_handler(self, *args, **kwargs) -> None:
@@ -148,27 +164,30 @@ class DigitalStatePlugin:
         """Intercepts tool executions and queries the SDK for authorization."""
         if not self.is_loaded:
             logger.error("Digital State Plugin is not loaded. Fail-Safe Deny triggered.")
+            self._log_audit_error("PRE_TOOL_CALL_BLOCKED", {"reason": "Digital State Plugin is not loaded."})
             return {
                 "action": "block",
                 "message": "Digital State Plugin is not loaded. Fail-Safe Deny triggered."
             }
-            
+
         tool_name = args[0] if args else kwargs.get("tool_name")
         arguments = args[1] if len(args) > 1 else (kwargs.get("args") or kwargs.get("arguments") or {})
         context = args[2] if len(args) > 2 else (kwargs.get("context") or kwargs)
-        
+
         feature_id, agent_key = self._governed_context(context)
         if not agent_key or not feature_id:
             logger.warning("Missing signed agent key or feature ID metadata. Fail-Safe Deny triggered.")
+            self._log_audit_error("PRE_TOOL_CALL_BLOCKED", {"tool": tool_name, "reason": "Missing signed agent key or feature ID metadata."})
             return {
                 "action": "block",
                 "message": "Missing signed agent key or feature ID metadata. Fail-Safe Deny triggered."
             }
-            
+
         try:
             authorized = validate_gate_approval(feature_id, agent_key, workspace_root=self._workspace_root)
             if not authorized:
                 logger.warning(f"Authorization denied for action '{tool_name}' on feature '{feature_id}'.")
+                self._log_audit_error("PRE_TOOL_CALL_BLOCKED", {"tool": tool_name, "feature_id": feature_id, "reason": "Authorization denied."})
                 return {
                     "action": "block",
                     "message": f"Authorization denied for action '{tool_name}' on feature '{feature_id}' due to governance constraints."
@@ -176,6 +195,7 @@ class DigitalStatePlugin:
             return {"action": "approve"}
         except Exception as e:
             logger.error(f"Error validating gate approval for tool call: {e}")
+            self._log_audit_error("PRE_TOOL_CALL_ERROR", {"tool": tool_name, "error": str(e)})
             return {
                 "action": "block",
                 "message": f"Error validating gate approval for tool call: {e}"
@@ -186,7 +206,6 @@ class DigitalStatePlugin:
         if not self.is_loaded:
             return
         try:
-            # positional arguments: tool_name, tool_args, result, task_id, duration_ms
             tool_name = args[0] if len(args) > 0 else kwargs.get("tool_name")
             tool_args = args[1] if len(args) > 1 else kwargs.get("args")
             result = args[2] if len(args) > 2 else kwargs.get("result")
@@ -198,6 +217,8 @@ class DigitalStatePlugin:
                 logger.info("Tool result observed for feature '%s'; evidence requires a signed payload.", feature_id)
         except Exception as e:
             logger.warning(f"Failed in post_tool_call_handler: {e}")
+            self._log_audit_error("POST_TOOL_CALL_ERROR", {"error": str(e)})
+
 
     def on_session_end_handler(self, *args, **kwargs) -> None:
         """Invoked when a Hermes session ends."""

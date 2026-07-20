@@ -27,7 +27,10 @@ $pyVersionStr = & $pythonCmd.Source --version 2>&1
 Write-Host "[+] Detected: $pyVersionStr" -ForegroundColor Green
 
 # 2. Execute Bootstrap Dry-Run or Full Install via Python Module
-$env:PYTHONPATH = "src"
+$scriptDir = $PSScriptRoot
+if (-not $scriptDir) { $scriptDir = Get-Location }
+$env:PYTHONPATH = "$scriptDir\src;$env:PYTHONPATH"
+
 
 if ($DryRun) {
     Write-Host "[*] Executing Dry-Run Verification..." -ForegroundColor Yellow
