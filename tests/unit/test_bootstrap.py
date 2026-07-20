@@ -35,7 +35,10 @@ def test_bootstrap_installer_execution(tmp_path):
     assert (tmp_path / ".specify").exists()
     assert (tmp_path / ".specify" / "state.json").exists()
     assert (tmp_path / ".specify" / "integration.json").exists()
+    assert res["workspace_initialization"]["initialized"] is True
+    assert res["device_provisioning"]["provisioned"] is True
 
     # Verify idempotency by executing a second time
     res2 = installer.run_bootstrap(dry_run=False)
     assert res2["status"] == "SUCCESS"
+

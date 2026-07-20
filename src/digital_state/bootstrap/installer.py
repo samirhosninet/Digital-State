@@ -55,27 +55,150 @@ class BootstrapInstaller:
         if not state_file.exists() or state_file.stat().st_size == 0:
             state_file.write_text("{}", encoding="utf-8")
 
-        # Idempotent integration.json initialization
+        # 1. Hermes Integration Auto-Configuration
+        hermes_status = self.auto_configure_hermes()
+
+        # 2. Automated Workspace Kernel Initialization
+        workspace_status = self.auto_initialize_workspace()
+
+        # 3. Device Identity Generation & 4-File Evidence Bundle Creation
+        device_status = self.auto_provision_device_evidence(device_dir=device_dir)
+
+        # 4. Idempotent integration.json initialization
         integration_file = specify_dir / "integration.json"
-        if not integration_file.exists():
-            integration_file.write_text(
-                json.dumps({
-                    "integration": "hermes",
-                    "version": "1.14.0",
-                    "bootstrap": "idempotent",
-                    "files": {}
-                }, indent=2),
-                encoding="utf-8"
-            )
+        integration_file.write_text(
+            json.dumps({
+                "integration": "hermes",
+                "version": "1.14.0-bootstrap",
+                "bootstrap": "zero_touch_complete",
+                "hermes_status": hermes_status,
+                "workspace_status": workspace_status,
+                "device_status": device_status,
+                "installed_at": "2026-07-20T04:35:00Z"
+            }, indent=2),
+            encoding="utf-8"
+        )
 
         return {
             "status": "SUCCESS",
-            "message": "Digital State workspace bootstrapped successfully.",
+            "message": "Digital State zero-touch installation and bootstrap completed successfully.",
             "workspace_root": str(self.workspace_root.resolve()),
             "prerequisites": prereqs,
+            "hermes_integration": hermes_status,
+            "workspace_initialization": workspace_status,
+            "device_provisioning": device_status,
             "directories_created": [
                 str(specify_dir),
                 str(memory_dir),
                 str(device_dir)
             ]
         }
+
+    def auto_configure_hermes(self) -> Dict[str, Any]:
+        """Auto-detects Hermes root and registers digital_state plugin idempotently."""
+        if sys.platform == "win32":
+            local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+            hermes_root = os.environ.get("HERMES_HOME", "") or os.path.join(
+                local_appdata if local_appdata else os.path.expanduser(r"~\AppData\Local"),
+                "hermes"
+            )
+        else:
+            hermes_root = os.environ.get("HERMES_HOME", "") or os.path.expanduser("~/.hermes")
+
+        hermes_path = Path(hermes_root)
+        config_path = hermes_path / "config.yaml"
+
+        if not hermes_path.exists():
+            return {
+                "detected": False,
+                "hermes_root": str(hermes_path),
+                "message": "Hermes root directory not found; plugin registration deferred."
+            }
+
+        enabled_plugin = False
+        if config_path.exists():
+            try:
+                import yaml
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = yaml.safe_load(f) or {}
+                if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
+                    cfg["plugins"] = {"enabled": []}
+                if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
+                    cfg["plugins"]["enabled"] = []
+                if "digital_state" not in cfg["plugins"]["enabled"]:
+                    cfg["plugins"]["enabled"].append("digital_state")
+                    with open(config_path, "w", encoding="utf-8") as f:
+                        yaml.safe_dump(cfg, f, default_flow_style=False)
+                enabled_plugin = True
+            except Exception as e:
+                return {
+                    "detected": True,
+                    "hermes_root": str(hermes_path),
+                    "enabled": False,
+                    "error": str(e)
+                }
+
+        # Seed profiles
+        profiles = ["prime", "builder", "auditor"]
+        for p in profiles:
+            (hermes_path / "profiles" / p).mkdir(parents=True, exist_ok=True)
+
+        return {
+            "detected": True,
+            "hermes_root": str(hermes_path),
+            "enabled": enabled_plugin,
+            "profiles_seeded": profiles
+        }
+
+    def auto_initialize_workspace(self) -> Dict[str, Any]:
+        """Initializes GovernanceKernel agent identities and initial state idempotently."""
+        try:
+            from digital_state.core.engine import GovernanceKernel
+            kernel = GovernanceKernel(str(self.workspace_root), run_bootstrap=False)
+            agents = kernel.registry.agents
+            return {
+                "initialized": True,
+                "agent_count": len(agents),
+                "agents": list(agents.keys())
+            }
+        except Exception as e:
+            return {
+                "initialized": False,
+                "error": str(e)
+            }
+
+
+    def auto_provision_device_evidence(self, device_dir: Path) -> Dict[str, Any]:
+        """Provisions ECDSA P-256 identity keypair and initial 4-file evidence bundle."""
+        try:
+            from digital_state.device.keystore import DeviceKeystore
+            from digital_state.device.identity import DeviceIdentityManager
+            from digital_state.device.evidence import EvidenceBundleManager
+            from digital_state.governance.evidence.device_validator import DeviceEvidenceValidator
+
+            keystore = DeviceKeystore(storage_dir=device_dir)
+            identity_mgr = DeviceIdentityManager(keystore=keystore)
+            identity_info = identity_mgr.get_identity_info()
+            if not identity_info.get("has_key"):
+                device_id, pub_pem, priv_pem = identity_mgr.generate_device_identity()
+                identity_info = identity_mgr.get_identity_info()
+
+            evidence_mgr = EvidenceBundleManager(device_dir=device_dir, identity_mgr=identity_mgr)
+            bundle = evidence_mgr.generate_bundle()
+
+            validator = DeviceEvidenceValidator(device_dir=device_dir)
+            records = validator.validate_device_bundle(evidence_mgr=evidence_mgr)
+
+            return {
+                "provisioned": True,
+                "device_id": identity_info.get("device_id", "uninitialized"),
+                "bundle_files": list(bundle.keys()),
+                "verified_records": len(records)
+            }
+        except Exception as e:
+            return {
+                "provisioned": False,
+                "error": str(e)
+            }
+
+
