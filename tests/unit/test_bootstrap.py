@@ -1,55 +1,41 @@
-import os
-import tempfile
+"""Unit Tests for Phase 1 Bootstrap Subsystem (v1.14.0-bootstrap).
+
+Validates prerequisite checks, dry-run mode, and idempotent workspace installation.
+"""
+
 import pytest
-from unittest.mock import patch, MagicMock
-
-from digital_state.core.bootstrap import BootstrapValidator
-from digital_state.core.exceptions import GovernanceError
-
-
-def test_bootstrap_validator_success():
-    """Verify bootstrap process succeeds under fully valid environment mocks."""
-    validator = BootstrapValidator(workspace_root="/mock/root")
-
-    with patch.object(validator, "verify_workspace_readiness", return_value=True), \
-         patch.object(validator, "verify_hermes_availability", return_value=True), \
-         patch.object(validator, "verify_speckit_availability", return_value=True), \
-         patch.object(validator, "verify_runtime_adapter_readiness", return_value=True):
-        
-        # Must execute without raising error
-        validator.run_bootstrap()
+from pathlib import Path
+from digital_state.bootstrap.prereqs import PrerequisiteChecker
+from digital_state.bootstrap.installer import BootstrapInstaller
 
 
-def test_bootstrap_validator_failures():
-    """Verify bootstrap validator aborts early with GovernanceError if checks fail."""
-    validator = BootstrapValidator(workspace_root="/mock/root")
+def test_prerequisite_checker():
+    checker = PrerequisiteChecker()
+    res = checker.run_all_checks()
 
-    # 1. Fail Workspace
-    with patch.object(validator, "verify_workspace_readiness", return_value=False):
-        with pytest.raises(GovernanceError) as exc:
-            validator.run_bootstrap()
-        assert "Workspace not initialized" in str(exc.value)
+    assert "is_healthy" in res
+    assert res["python"]["is_supported"] is True
+    assert res["tools"]["has_pip"] is True
 
-    # 2. Fail Hermes
-    with patch.object(validator, "verify_workspace_readiness", return_value=True), \
-         patch.object(validator, "verify_hermes_availability", return_value=False):
-        with pytest.raises(GovernanceError) as exc:
-            validator.run_bootstrap()
-        assert "Hermes Agent runtime is unavailable" in str(exc.value)
 
-    # 3. Fail SpecKit
-    with patch.object(validator, "verify_workspace_readiness", return_value=True), \
-         patch.object(validator, "verify_hermes_availability", return_value=True), \
-         patch.object(validator, "verify_speckit_availability", return_value=False):
-        with pytest.raises(GovernanceError) as exc:
-            validator.run_bootstrap()
-        assert "SpecKit CLI execution path not found" in str(exc.value)
+def test_bootstrap_installer_dry_run(tmp_path):
+    installer = BootstrapInstaller(workspace_root=tmp_path)
+    res = installer.run_bootstrap(dry_run=True)
 
-    # 4. Fail Adapter
-    with patch.object(validator, "verify_workspace_readiness", return_value=True), \
-         patch.object(validator, "verify_hermes_availability", return_value=True), \
-         patch.object(validator, "verify_speckit_availability", return_value=True), \
-         patch.object(validator, "verify_runtime_adapter_readiness", return_value=False):
-        with pytest.raises(GovernanceError) as exc:
-            validator.run_bootstrap()
-        assert "Hermes runtime adapter initialization failed" in str(exc.value)
+    assert res["status"] == "DRY_RUN_SUCCESS"
+    assert "planned_directories" in res
+    assert not (tmp_path / ".specify").exists()
+
+
+def test_bootstrap_installer_execution(tmp_path):
+    installer = BootstrapInstaller(workspace_root=tmp_path)
+    res = installer.run_bootstrap(dry_run=False)
+
+    assert res["status"] == "SUCCESS"
+    assert (tmp_path / ".specify").exists()
+    assert (tmp_path / ".specify" / "state.json").exists()
+    assert (tmp_path / ".specify" / "integration.json").exists()
+
+    # Verify idempotency by executing a second time
+    res2 = installer.run_bootstrap(dry_run=False)
+    assert res2["status"] == "SUCCESS"

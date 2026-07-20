@@ -1,76 +1,45 @@
-# Digital State Windows Installer Script (install.ps1)
-# Verifies environment, installs dependencies, and runs workspace bootstrap.
+# Digital State Idempotent PowerShell Installer (v1.14.0-bootstrap)
+# Usage: powershell -ExecutionPolicy Bypass -File install.ps1 [-DryRun]
+
+[CmdletBinding()]
+param (
+    [switch]$DryRun
+)
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host "  Digital State Governance Installer (Windows)" -ForegroundColor Cyan
-Write-Host "=============================================" -ForegroundColor Cyan
+Write-Host "=====================================================" -ForegroundColor Cyan
+Write-Host " Digital State Zero-Touch Installer (v1.14.0-bootstrap)" -ForegroundColor Cyan
+Write-Host "=====================================================" -ForegroundColor Cyan
 
-# 1. Validate Python >= 3.11 prerequisite
-Write-Host "[1/3] Checking Python prerequisite..." -ForegroundColor Yellow
-try {
-    $pyVersionRaw = & python --version 2>&1
-    $pyVersionStr = ($pyVersionRaw | Out-String).Trim()
-    
-    if ($pyVersionStr -match "Python (\d+)\.(\d+)\.(\d+)") {
-        $major = [int]$Matches[1]
-        $minor = [int]$Matches[2]
-        Write-Host "Found Python version: $pyVersionStr" -ForegroundColor Gray
-        
-        if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 11)) {
-            Write-Error "Python 3.11 or higher is required. Found version: $pyVersionStr"
-        }
-    } else {
-        Write-Error "Could not parse Python version from: $pyVersionStr"
-    }
-} catch {
-    Write-Error "Python is not installed or not available in system PATH. Please install Python 3.11+."
+# 1. Verify Python Version
+$pythonCmd = Get-Command "python" -ErrorAction SilentlyContinue
+if (-not $pythonCmd) {
+    $pythonCmd = Get-Command "python3" -ErrorAction SilentlyContinue
 }
 
-# 2. Install Project Dependencies
-Write-Host "[2/3] Installing Digital State package dependencies..." -ForegroundColor Yellow
+if (-not $pythonCmd) {
+    Write-Error "Python is not installed or not available in PATH. Python 3.11+ required."
+    exit 1
+}
 
-$hasUv = $null -ne (Get-Command uv -ErrorAction SilentlyContinue)
-if ($hasUv) {
-    Write-Host "Found 'uv' package manager. Installing with uv..." -ForegroundColor Gray
-    & uv pip install -e .
+$pyVersionStr = & $pythonCmd.Source --version 2>&1
+Write-Host "[+] Detected: $pyVersionStr" -ForegroundColor Green
+
+# 2. Execute Bootstrap Dry-Run or Full Install via Python Module
+$env:PYTHONPATH = "src"
+
+if ($DryRun) {
+    Write-Host "[*] Executing Dry-Run Verification..." -ForegroundColor Yellow
+    & $pythonCmd.Source -c "import sys; sys.path.insert(0, 'src'); from digital_state.bootstrap.installer import BootstrapInstaller; res = BootstrapInstaller().run_bootstrap(dry_run=True); print(res); sys.exit(0 if res.get('status') == 'DRY_RUN_SUCCESS' else 1)"
 } else {
-    Write-Host "'uv' not found. Installing with pip..." -ForegroundColor Gray
-    & pip install -e .
+    Write-Host "[*] Executing Idempotent Workspace Installation..." -ForegroundColor Yellow
+    & $pythonCmd.Source -c "import sys; sys.path.insert(0, 'src'); from digital_state.bootstrap.installer import BootstrapInstaller; res = BootstrapInstaller().run_bootstrap(dry_run=False); print(res); sys.exit(0 if res.get('status') == 'SUCCESS' else 1)"
 }
 
-# 3. Initialize workspace
-Write-Host "[3/3] Bootstrapping workspace state..." -ForegroundColor Yellow
-
-$localBinPath = Join-Path $PSScriptRoot ".specify\..\.venv\Scripts\digitalstate.exe"
-$localPythonPath = Join-Path $PSScriptRoot ".specify\..\.venv\Scripts\python.exe"
-
-if (Test-Path $localBinPath) {
-    Write-Host "Running bootstrap via local virtualenv CLI..." -ForegroundColor Gray
-    & $localBinPath init
-} elseif (Test-Path $localPythonPath) {
-    Write-Host "Running bootstrap via local virtualenv Python..." -ForegroundColor Gray
-    $env:PYTHONPATH = "src"
-    & $localPythonPath -m digital_state.cli.cli init
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[+] Digital State Installation Completed Successfully." -ForegroundColor Green
 } else {
-    Write-Host "Running bootstrap via system Python..." -ForegroundColor Gray
-    & python -m digital_state.cli.cli init
+    Write-Host "[-] Installation failed." -ForegroundColor Red
+    exit 1
 }
-
-Write-Host ""
-Write-Host "=============================================" -ForegroundColor Green
-Write-Host "  Digital State Installed Successfully!" -ForegroundColor Green
-Write-Host "=============================================" -ForegroundColor Green
-Write-Host "To verify installation, run:" -ForegroundColor Gray
-
-if (Test-Path $localBinPath) {
-    Write-Host "  .venv\Scripts\digitalstate doctor" -ForegroundColor White
-} elseif (Test-Path $localPythonPath) {
-    Write-Host "  $localPythonPath -m digital_state.cli.cli doctor" -ForegroundColor White
-} else {
-    Write-Host "  digitalstate doctor" -ForegroundColor White
-}
-Write-Host ""
-
-
