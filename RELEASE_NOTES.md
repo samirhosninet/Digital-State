@@ -1,4 +1,26 @@
+# Official Release Notes: Digital State v1.14.0-bootstrap
+
+We are pleased to announce the official release of **Digital State v1.14.0-bootstrap** (End-to-End Installation & First-Run Bootstrap Protocol). This release resolves the remaining end-user onboarding gap by providing single-command zero-touch installers (`install.ps1`, `install.sh`), automated Hermes Desktop integration, idempotent workspace initialization, ECDSA P-256 device identity generation, cryptographic challenge-response enrollment, and post-installation health verification while preserving 100% frozen baseline compatibility with `v1.13.0-platform` (`43f8963`).
+
+---
+
+## Key Capabilities Introduced in v1.14.0-bootstrap
+
+1. **Single-Command Zero-Touch Installers**:
+   - `install.ps1` (Windows PowerShell) and `install.sh` (POSIX Shell) with native `--dry-run` support.
+2. **Automated Hermes Desktop Integration**:
+   - Auto-detects Hermes installation root, registers `digital_state` plugin in `config.yaml`, and seeds `prime`, `builder`, and `auditor` profiles.
+3. **Cryptographic Identity Enrollment**:
+   - Generates ECDSA P-256 keypair in OS keystore (`DeviceKeystore`) and executes `EnrollmentProtocol` challenge-response handshake to issue `.specify/device/device-certificate.json`.
+4. **Automated Post-Install Verification**:
+   - Runs `verify_installation_health` to validate doctor status and 4-file evidence bundles programmatically.
+5. **End-User Onboarding Documentation**:
+   - Complete installation guide in `docs/USER_INSTALLATION_GUIDE.md`.
+
+---
+
 # Official Release Notes: Digital State v1.13.0-platform
+
 
 We are pleased to announce the official release of **Digital State v1.13.0-platform** (Platform Evidence Integration & Governance Expansion). This release integrates the Evidence Governance Subsystem across all platform domains, introducing the `KernelEvidenceBridge`, `DeviceEvidenceValidator`, enhanced `digitalstate audit-evidence` CLI options (`--check`, `--all`), and automated CI/CD evidence verification workflows while preserving 100% frozen baseline compatibility with `v1.12.0-evidence` (`10635c6`).
 

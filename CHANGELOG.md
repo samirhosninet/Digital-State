@@ -5,7 +5,22 @@ All notable changes to the Digital State project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0-bootstrap] - 2026-07-20
+
+### Added
+- Zero-touch installation & first-run bootstrap protocol (`v1.14.0-bootstrap`).
+- Official cross-platform installers `install.ps1` (Windows PowerShell) and `install.sh` (POSIX Shell) with `--dry-run` pre-flight support.
+- `BootstrapSubsystem` (`digital_state.bootstrap`) containing `PrerequisiteChecker` and `BootstrapInstaller`.
+- Hermes Desktop integration auto-detection, `config.yaml` plugin registration, and profile seeding (`prime`, `builder`, `auditor`).
+- Cryptographic `EnrollmentProtocol` challenge-response handshake execution during bootstrap.
+- Automated `verify_installation_health` hook logging doctor and evidence verification status in `.specify/integration.json`.
+- End-user onboarding documentation `docs/USER_INSTALLATION_GUIDE.md`.
+
+### Changed
+- Incremented package version in `pyproject.toml` to `1.14.0`.
+
 ## [1.13.0-platform] - 2026-07-20
+
 
 ### Added
 - Integrated Evidence Governance Subsystem across all platform subsystems (`v1.13.0-platform`).
