@@ -101,29 +101,9 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
 
         if args.command == "init":
             from pathlib import Path
-            from digital_state.bootstrap.installer import BootstrapInstaller
-            installer = BootstrapInstaller(workspace_root=Path(workspace_root))
-            res = installer.run_bootstrap(dry_run=False)
+            from digital_state.bootstrap.engine.orchestrator import run_engine_cli
+            return run_engine_cli("install", dry_run=False, workspace_root=Path(workspace_root))
 
-            if res.get("status") == "SUCCESS":
-                hermes_info = res.get("hermes_integration", {})
-                print("====================================================")
-                print(f"Hermes Runtime ........ {'VERIFIED' if hermes_info.get('detected') else 'FAILED'}")
-                print(f"Hermes Python ......... {'VERIFIED' if hermes_info.get('hermes_python') else 'FAILED'}")
-                print(f"Package Installation .. {'VERIFIED' if hermes_info.get('installed') else 'FAILED'}")
-                print(f"Plugin Discovery ...... {'VERIFIED' if hermes_info.get('discovered') else 'FAILED'}")
-                print(f"Plugin Import ......... {'VERIFIED' if hermes_info.get('imported') else 'FAILED'}")
-                print(f"Plugin Enabled ........ {'VERIFIED' if hermes_info.get('enabled') else 'FAILED'}")
-                print(f"Profiles .............. {'VERIFIED' if hermes_info.get('profiles_verified') else 'FAILED'}")
-                print(f"Governance ............ VERIFIED")
-                print("")
-                print("INSTALLATION STATUS")
-                print("FULLY INTEGRATED")
-                print("====================================================")
-                return 0
-            else:
-                print(f"Installation failed: {res.get('message')}", file=sys.stderr)
-                return 1
 
 
         elif args.command == "doctor":

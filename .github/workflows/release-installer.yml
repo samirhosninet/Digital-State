@@ -1,0 +1,38 @@
+name: Layer 2 Installer Engine Release Packaging
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package-installer-engine:
+    name: Package & Sign Layer 2 Installer Engine
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build Installer Engine Payload
+        run: |
+          mkdir dist
+          Compress-Archive -Path src/digital_state/bootstrap/engine/* -DestinationPath dist/ds-installer-engine-win-x64.zip
+          Get-FileHash -Path dist/ds-installer-engine-win-x64.zip -Algorithm SHA256 | Select-Object -ExpandProperty Hash > dist/SHA256SUMS
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/ds-installer-engine-win-x64.zip
+            dist/SHA256SUMS
+            install.ps1
