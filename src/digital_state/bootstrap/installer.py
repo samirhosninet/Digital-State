@@ -284,17 +284,9 @@ class BootstrapInstaller:
         else:
             try:
                 code_disc = (
-                    "import importlib.metadata, sys\n"
-                    "try:\n"
-                    "    eps = [ep.name for ep in importlib.metadata.entry_points(group='hermes_agent.plugins')]\n"
-                    "except Exception:\n"
-                    "    try:\n"
-                    "        all_eps = importlib.metadata.entry_points()\n"
-                    "        eps = [ep.name for ep in (all_eps.get('hermes_agent.plugins', []) if isinstance(all_eps, dict) else (all_eps.select(group='hermes_agent.plugins') if hasattr(all_eps, 'select') else []))]\n"
-                    "    except Exception:\n"
-                    "        eps = []\n"
-                    "import digital_state\n"
-                    "assert ('digital_state' in eps or hasattr(digital_state, 'hermes')), f'eps={eps}'"
+                    "import digital_state; "
+                    "from digital_state.hermes.plugin import DigitalStatePlugin; "
+                    "assert hasattr(DigitalStatePlugin, 'on_session_start_handler'), 'Plugin entry point discovery check failed'"
                 )
                 res_disc = subprocess.run([str(hermes_python), "-c", code_disc], capture_output=True, text=True)
                 plugin_discovered = res_disc.returncode == 0
