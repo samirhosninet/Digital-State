@@ -78,8 +78,10 @@ def create_parser() -> argparse.ArgumentParser:
     ae_parser.add_argument("--format", choices=["markdown", "json"], default="markdown", help="Output report format.")
     ae_parser.add_argument("--check", action="store_true", help="Exit with non-zero status if any unverified evidence records exist.")
     ae_parser.add_argument("--all", action="store_true", help="Audit local device evidence bundle and platform runtime bridge.")
+    ae_parser.add_argument("--federated", action="store_true", help="Audit multi-tenant federated evidence manifest across device nodes.")
 
     return parser
+
 
 
 
@@ -685,6 +687,19 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                 device_val = DeviceEvidenceValidator()
                 records.extend(device_val.validate_device_bundle())
 
+            if getattr(args, "federated", False):
+                from digital_state.governance.federation.manager import FederatedEvidenceManager
+                fed_mgr = FederatedEvidenceManager(tenant_id="default_tenant")
+                device_val = DeviceEvidenceValidator()
+                dev_records = device_val.validate_device_bundle()
+                manifest = fed_mgr.aggregate_device_bundles([{
+                    "device_id": "local_node",
+                    "evidence_records": [r.to_dict() for r in dev_records]
+                }])
+                if getattr(args, "format", "markdown") == "json":
+                    print(json.dumps(manifest, indent=2))
+                    return 0
+
             validated_records = engine.validate_batch(records)
 
             if getattr(args, "format", "markdown") == "json":
@@ -700,6 +715,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                 return 1 if has_unverified else 0
 
             return 0
+
 
 
         return 0
