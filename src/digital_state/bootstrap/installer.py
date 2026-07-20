@@ -188,11 +188,12 @@ class BootstrapInstaller:
 
 
     def auto_provision_device_evidence(self, device_dir: Path) -> Dict[str, Any]:
-        """Provisions ECDSA P-256 identity keypair and initial 4-file evidence bundle."""
+        """Provisions ECDSA P-256 identity keypair, enrollment certificate, and initial 4-file evidence bundle."""
         try:
             from digital_state.device.keystore import DeviceKeystore
             from digital_state.device.identity import DeviceIdentityManager
             from digital_state.device.evidence import EvidenceBundleManager
+            from digital_state.device.enrollment import EnrollmentProtocol
             from digital_state.governance.evidence.device_validator import DeviceEvidenceValidator
 
             keystore = DeviceKeystore(storage_dir=device_dir)
@@ -202,6 +203,13 @@ class BootstrapInstaller:
                 device_id, pub_pem, priv_pem = identity_mgr.generate_device_identity()
                 identity_info = identity_mgr.get_identity_info()
 
+            # Execute cryptographic EnrollmentProtocol challenge-response handshake
+            enrollment = EnrollmentProtocol(device_dir=device_dir, identity_mgr=identity_mgr)
+            req = enrollment.create_enrollment_request()
+            challenge = enrollment.generate_challenge_nonce()
+            resp = enrollment.sign_challenge(challenge)
+            enrolled, cert = enrollment.verify_and_enroll(challenge, resp)
+
             evidence_mgr = EvidenceBundleManager(device_dir=device_dir, identity_mgr=identity_mgr)
             bundle = evidence_mgr.generate_bundle()
 
@@ -210,7 +218,9 @@ class BootstrapInstaller:
 
             return {
                 "provisioned": True,
+                "enrolled": enrolled,
                 "device_id": identity_info.get("device_id", "uninitialized"),
+                "certificate_id": cert.get("certificate_id", ""),
                 "bundle_files": list(bundle.keys()),
                 "verified_records": len(records)
             }
@@ -219,5 +229,6 @@ class BootstrapInstaller:
                 "provisioned": False,
                 "error": str(e)
             }
+
 
 

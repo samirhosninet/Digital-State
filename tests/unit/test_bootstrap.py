@@ -58,3 +58,15 @@ def test_auto_configure_hermes_manifest_seeding(tmp_path, monkeypatch):
     assert (hermes_dir / "profiles" / "auditor" / "profile.yaml").exists()
 
 
+def test_auto_provision_device_evidence_enrollment(tmp_path):
+    device_dir = tmp_path / ".specify" / "device"
+    installer = BootstrapInstaller(workspace_root=tmp_path)
+    res = installer.auto_provision_device_evidence(device_dir=device_dir)
+
+    assert res["provisioned"] is True
+    assert res["enrolled"] is True
+    assert "certificate_id" in res
+    assert (device_dir / "device-certificate.json").exists()
+
+
+
