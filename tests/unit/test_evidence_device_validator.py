@@ -20,10 +20,21 @@ def test_device_evidence_validator_uninitialized(tmp_path):
     dev_dir = tmp_path / ".specify" / "device"
     validator = DeviceEvidenceValidator(device_dir=dev_dir)
 
-    records = validator.validate_device_bundle()
+    # Mock evidence manager with empty identity proof
+    class UninitializedEvidenceMgr:
+        def generate_bundle(self):
+            return {
+                "device_status": {},
+                "identity_proof": {"public_key_pem": ""},
+                "runtime_attestation": {},
+                "policy_state": {"offline_state": "DEFAULT_DENY"}
+            }
+
+    records = validator.validate_device_bundle(evidence_mgr=UninitializedEvidenceMgr())
     assert len(records) == 3
-    # Uninitialized keystore and missing files should result in UNVERIFIED records
+    # Uninitialized identity proof results in UNVERIFIED classification
     assert any(r.classification == EvidenceClassification.UNVERIFIED for r in records)
+
 
 
 def test_device_evidence_validator_initialized(tmp_path):
