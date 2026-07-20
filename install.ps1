@@ -45,7 +45,7 @@ if (-not $PythonCmd) {
     exit 1
 }
 
-# 3. Create Isolated Temp Workspace & Fetch Installer Engine Payload
+# 3. Create Isolated Temp Workspace & Fetch Package Payload
 $TempWorkspace = Join-Path $env:TEMP "ds-bootstrap-$([guid]::NewGuid().ToString('N'))"
 $EngineDir = Join-Path $TempWorkspace "engine"
 New-Item -ItemType Directory -Path $EngineDir -Force | Out-Null
@@ -58,23 +58,26 @@ try {
     Invoke-WebRequest -Uri $ZipUrl -OutFile $ZipPath -UseBasicParsing
     Expand-Archive -Path $ZipPath -DestinationPath $TempWorkspace -Force
     
-    # Locate extracted src directory
-    $ExtractedSrc = Get-ChildItem -Path $TempWorkspace -Filter "src" -Recurse | Select-Object -First 1
-    if ($ExtractedSrc) {
-        $EnginePath = $ExtractedSrc.FullName
+    # Locate extracted package root containing pyproject.toml
+    $ExtractedRoot = Get-ChildItem -Path $TempWorkspace -Filter "pyproject.toml" -Recurse | Select-Object -First 1
+    if ($ExtractedRoot) {
+        $PackageRoot = $ExtractedRoot.DirectoryName
     } else {
-        $EnginePath = $EngineDir
+        $PackageRoot = $EngineDir
     }
 } catch {
     # Fallback to local script directory if offline
     $ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Get-Location }
-    $EnginePath = Join-Path $ScriptDir "src"
+    $PackageRoot = $ScriptDir
 }
 
-# 4. Launch Layer 2 Installer Engine Process
-$env:PYTHONPATH = "$EnginePath;$env:PYTHONPATH"
+# 4. Install digital_state package permanently into Python runtime
+try {
+    & $PythonCmd.Source -m pip install --quiet $PackageRoot 2>$null
+} catch {}
 
-$EngineScript = "import sys; sys.path.insert(0, r'$EnginePath'); from digital_state.bootstrap.engine.orchestrator import run_engine_cli; sys.exit(run_engine_cli('$Action', dry_run=$DryRunBool))"
+# 5. Launch Layer 2 Installer Engine Process via installed module or fallback
+$EngineScript = "import sys; from digital_state.bootstrap.engine.orchestrator import run_engine_cli; sys.exit(run_engine_cli('$Action', dry_run=$DryRunBool))"
 
 try {
     & $PythonCmd.Source -c $EngineScript

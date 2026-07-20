@@ -222,26 +222,55 @@ class BootstrapInstaller:
                 p_path = cmd_dir / ("python.exe" if sys.platform == "win32" else "python")
                 if p_path.exists():
                     hermes_python = p_path
+            
             if not hermes_python.exists():
-                hermes_python = Path(sys.executable)
+                venv_dir = hermes_path / "hermes-agent" / "venv"
+                try:
+                    subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], capture_output=True, check=False)
+                    target_p = venv_dir / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+                    if target_p.exists():
+                        hermes_python = target_p
+                    else:
+                        hermes_python = Path(sys.executable)
+                except Exception:
+                    hermes_python = Path(sys.executable)
 
         # Detect synthetic test mock environment (e.g. pytest monkeypatch HERMES_HOME)
         is_mock_test = "pytest" in sys.modules and "HERMES_HOME" in os.environ
 
-        # 1. Install digital-state package into Hermes runtime virtualenv
+        # 1. Install digital-state package into Hermes runtime virtualenv permanently (NON-EDITABLE)
         package_installed = False
+        pip_error = ""
         if is_mock_test:
             package_installed = True
         else:
             try:
+                # Search upward for pyproject.toml root
+                curr = Path(__file__).resolve()
+                for p in [curr] + list(curr.parents):
+                    if (p / "pyproject.toml").exists():
+                        target_package_root = p
+                        break
+
                 res_inst = subprocess.run(
-                    [str(hermes_python), "-m", "pip", "install", "-e", str(target_package_root)],
+                    [str(hermes_python), "-m", "pip", "install", "--no-build-isolation", str(target_package_root)],
                     capture_output=True,
                     text=True
                 )
                 package_installed = res_inst.returncode == 0
-            except Exception:
+                if not package_installed:
+                    # Retry standard pip install
+                    res_inst = subprocess.run(
+                        [str(hermes_python), "-m", "pip", "install", str(target_package_root)],
+                        capture_output=True,
+                        text=True
+                    )
+                    package_installed = res_inst.returncode == 0
+                    if not package_installed:
+                        pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
+            except Exception as e:
                 package_installed = False
+                pip_error = str(e)
 
         if not package_installed:
             return {
@@ -252,7 +281,7 @@ class BootstrapInstaller:
                 "discovered": False,
                 "imported": False,
                 "enabled": False,
-                "error": "Failed to install digital-state package into Hermes runtime venv."
+                "error": f"Failed to install digital-state package into Hermes runtime venv: {pip_error}"
             }
 
         # 2. Verify setuptools entry point discovery in Hermes runtime
