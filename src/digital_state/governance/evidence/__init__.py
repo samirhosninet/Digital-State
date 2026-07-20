@@ -14,6 +14,7 @@ from digital_state.governance.evidence.boundary import resolve_repository_root
 from digital_state.governance.evidence.engine import EvidenceValidationEngine
 from digital_state.governance.evidence.report import EvidenceReportGenerator
 from digital_state.governance.evidence.kernel_bridge import KernelEvidenceBridge
+from digital_state.governance.evidence.device_validator import DeviceEvidenceValidator
 
 __version__ = "1.13.0"
 
@@ -26,5 +27,7 @@ __all__ = [
     "EvidenceValidationEngine",
     "EvidenceReportGenerator",
     "KernelEvidenceBridge",
+    "DeviceEvidenceValidator",
 ]
+
 
