@@ -33,7 +33,8 @@ class DeviceEvidenceValidator:
     def validate_device_bundle(self, evidence_mgr: Optional[EvidenceBundleManager] = None) -> List[EvidenceRecord]:
         """Reads local device evidence files and converts them to validated EvidenceRecord instances."""
         mgr = evidence_mgr or EvidenceBundleManager(device_dir=self.device_dir)
-        raw_bundle = mgr.get_bundle()
+        raw_bundle = mgr.generate_bundle()
+
 
         records = []
 

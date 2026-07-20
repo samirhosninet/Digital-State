@@ -28,8 +28,9 @@ def test_device_evidence_validator_uninitialized(tmp_path):
 
 def test_device_evidence_validator_initialized(tmp_path):
     dev_dir = tmp_path / ".specify" / "device"
-    keystore = DeviceKeystore(keystore_path=tmp_path / "mock_keys.json")
+    keystore = DeviceKeystore(storage_dir=dev_dir)
     identity_mgr = DeviceIdentityManager(keystore=keystore)
+
     identity_mgr.generate_device_identity()
 
     evidence_mgr = EvidenceBundleManager(device_dir=dev_dir, identity_mgr=identity_mgr)
