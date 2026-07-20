@@ -138,17 +138,36 @@ class BootstrapInstaller:
                     "error": str(e)
                 }
 
-        # Seed profiles
+        # Seed profiles & profile manifests
         profiles = ["prime", "builder", "auditor"]
+        seeded_manifests = []
         for p in profiles:
-            (hermes_path / "profiles" / p).mkdir(parents=True, exist_ok=True)
+            p_dir = hermes_path / "profiles" / p
+            p_dir.mkdir(parents=True, exist_ok=True)
+            p_manifest = p_dir / "profile.yaml"
+            if not p_manifest.exists():
+                p_data = {
+                    "name": f"Digital State {p.capitalize()} Profile",
+                    "role": p,
+                    "version": "1.14.0-bootstrap",
+                    "permissions": ["evidence_read", "governance_audit"] if p == "auditor" else ["all"]
+                }
+                try:
+                    import yaml
+                    with open(p_manifest, "w", encoding="utf-8") as f:
+                        yaml.safe_dump(p_data, f)
+                    seeded_manifests.append(str(p_manifest))
+                except Exception:
+                    pass
 
         return {
             "detected": True,
             "hermes_root": str(hermes_path),
             "enabled": enabled_plugin,
-            "profiles_seeded": profiles
+            "profiles_seeded": profiles,
+            "profile_manifests": seeded_manifests
         }
+
 
     def auto_initialize_workspace(self) -> Dict[str, Any]:
         """Initializes GovernanceKernel agent identities and initial state idempotently."""

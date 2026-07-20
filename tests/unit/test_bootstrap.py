@@ -42,3 +42,19 @@ def test_bootstrap_installer_execution(tmp_path):
     res2 = installer.run_bootstrap(dry_run=False)
     assert res2["status"] == "SUCCESS"
 
+
+def test_auto_configure_hermes_manifest_seeding(tmp_path, monkeypatch):
+    hermes_dir = tmp_path / "hermes"
+    hermes_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("HERMES_HOME", str(hermes_dir))
+
+    installer = BootstrapInstaller(workspace_root=tmp_path)
+    res = installer.auto_configure_hermes()
+
+    assert res["detected"] is True
+    assert res["profiles_seeded"] == ["prime", "builder", "auditor"]
+    assert (hermes_dir / "profiles" / "prime" / "profile.yaml").exists()
+    assert (hermes_dir / "profiles" / "builder" / "profile.yaml").exists()
+    assert (hermes_dir / "profiles" / "auditor" / "profile.yaml").exists()
+
+
