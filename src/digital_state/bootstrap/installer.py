@@ -238,7 +238,7 @@ class BootstrapInstaller:
         # Detect synthetic test mock environment (e.g. pytest monkeypatch HERMES_HOME)
         is_mock_test = "pytest" in sys.modules and "HERMES_HOME" in os.environ
 
-        # 1. Install digital-state package into Hermes runtime virtualenv permanently (NON-EDITABLE)
+        # 1. Install digital-state package into Hermes runtime virtualenv permanently
         package_installed = False
         pip_error = ""
         if is_mock_test:
@@ -253,21 +253,13 @@ class BootstrapInstaller:
                         break
 
                 res_inst = subprocess.run(
-                    [str(hermes_python), "-m", "pip", "install", "--no-build-isolation", str(target_package_root)],
+                    [str(hermes_python), "-m", "pip", "install", str(target_package_root)],
                     capture_output=True,
                     text=True
                 )
                 package_installed = res_inst.returncode == 0
                 if not package_installed:
-                    # Retry standard pip install
-                    res_inst = subprocess.run(
-                        [str(hermes_python), "-m", "pip", "install", str(target_package_root)],
-                        capture_output=True,
-                        text=True
-                    )
-                    package_installed = res_inst.returncode == 0
-                    if not package_installed:
-                        pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
+                    pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
             except Exception as e:
                 package_installed = False
                 pip_error = str(e)
@@ -292,16 +284,16 @@ class BootstrapInstaller:
         else:
             try:
                 code_disc = (
-                    "import importlib.metadata; "
+                    "import importlib.metadata, sys; "
                     "try:\n"
                     "    eps = [ep.name for ep in importlib.metadata.entry_points(group='hermes_agent.plugins')]\n"
-                    "except (TypeError, Exception):\n"
+                    "except Exception:\n"
                     "    try:\n"
                     "        all_eps = importlib.metadata.entry_points()\n"
-                    "        eps = [ep.name for ep in (all_eps.get('hermes_agent.plugins', []) if isinstance(all_eps, dict) else all_eps.select(group='hermes_agent.plugins'))]\n"
+                    "        eps = [ep.name for ep in (all_eps.get('hermes_agent.plugins', []) if isinstance(all_eps, dict) else (all_eps.select(group='hermes_agent.plugins') if hasattr(all_eps, 'select') else []))]\n"
                     "    except Exception:\n"
-                    "        eps = ['digital_state']\n"
-                    "import digital_state; assert 'digital_state' in eps or hasattr(digital_state, 'hermes')"
+                    "        eps = []\n"
+                    "import digital_state; assert ('digital_state' in eps or hasattr(digital_state, 'hermes')), f'eps={eps}'"
                 )
                 res_disc = subprocess.run([str(hermes_python), "-c", code_disc], capture_output=True, text=True)
                 plugin_discovered = res_disc.returncode == 0
