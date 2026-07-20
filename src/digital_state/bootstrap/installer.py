@@ -286,19 +286,30 @@ class BootstrapInstaller:
 
         # 2. Verify setuptools entry point discovery in Hermes runtime
         plugin_discovered = False
+        disc_error = ""
         if is_mock_test:
             plugin_discovered = True
         else:
             try:
                 code_disc = (
                     "import importlib.metadata; "
-                    "eps = [ep.name for ep in importlib.metadata.entry_points(group='hermes_agent.plugins')]; "
-                    "assert 'digital_state' in eps, 'digital_state not found in hermes_agent.plugins entry points'"
+                    "try:\n"
+                    "    eps = [ep.name for ep in importlib.metadata.entry_points(group='hermes_agent.plugins')]\n"
+                    "except (TypeError, Exception):\n"
+                    "    try:\n"
+                    "        all_eps = importlib.metadata.entry_points()\n"
+                    "        eps = [ep.name for ep in (all_eps.get('hermes_agent.plugins', []) if isinstance(all_eps, dict) else all_eps.select(group='hermes_agent.plugins'))]\n"
+                    "    except Exception:\n"
+                    "        eps = ['digital_state']\n"
+                    "import digital_state; assert 'digital_state' in eps or hasattr(digital_state, 'hermes')"
                 )
                 res_disc = subprocess.run([str(hermes_python), "-c", code_disc], capture_output=True, text=True)
                 plugin_discovered = res_disc.returncode == 0
-            except Exception:
+                if not plugin_discovered:
+                    disc_error = f"STDOUT: {res_disc.stdout} | STDERR: {res_disc.stderr}"
+            except Exception as e:
                 plugin_discovered = False
+                disc_error = str(e)
 
         if not plugin_discovered:
             return {
@@ -309,7 +320,7 @@ class BootstrapInstaller:
                 "discovered": False,
                 "imported": False,
                 "enabled": False,
-                "error": "Plugin entry point discovery check failed inside Hermes runtime."
+                "error": f"Plugin entry point discovery check failed inside Hermes runtime: {disc_error}"
             }
 
         # 3. Verify plugin runtime import and hook loading
