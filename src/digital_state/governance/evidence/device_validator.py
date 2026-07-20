@@ -39,7 +39,7 @@ class DeviceEvidenceValidator:
         records = []
 
         # 1. Device Identity Proof
-        has_identity = raw_bundle.get("identity_proof", {}).get("has_key", False)
+        has_identity = bool(raw_bundle.get("identity_proof", {}).get("public_key_pem"))
         records.append(
             self.engine.validate_record(
                 EvidenceRecord(
@@ -55,8 +55,9 @@ class DeviceEvidenceValidator:
         )
 
         # 2. Runtime Attestation
-        attestation = raw_bundle.get("runtime_attestation", {})
-        all_files_present = attestation.get("all_files_present", False)
+        all_files_present = all(
+            (self.device_dir / f).exists() for f in ["device-status.json", "identity-proof.json", "runtime-attestation.json", "policy-state.json"]
+        )
         records.append(
             self.engine.validate_record(
                 EvidenceRecord(
@@ -70,6 +71,7 @@ class DeviceEvidenceValidator:
                 )
             )
         )
+
 
         # 3. Local Policy State
         offline_state = raw_bundle.get("policy_state", {}).get("offline_state", "UNKNOWN")
