@@ -46,3 +46,13 @@ scratch/
 
 # Runtime agent registry (generated at boot, contains no secrets)
 .specify/agents.json
+
+# Repository-local temporary audit & workspace directories
+.audit-clean/
+.audit-venv/
+.venv-install/
+.gemini/
+.specify/device/
+
+.gemini/
+

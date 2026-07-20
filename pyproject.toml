@@ -1,7 +1,9 @@
 [project]
 name = "digital-state"
-version = "1.10.0"
-description = "Governance layer for Hermes Agent"
+version = "1.13.0"
+description = "Digital State - Evidence-Gated Agentic Governance & Distributed Device Runtime System"
+
+
 
 
 requires-python = ">=3.11"
@@ -13,6 +15,8 @@ dependencies = [
 [project.scripts]
 digitalstate = "digital_state.cli.cli:main"
 digital-state = "digital_state.cli.cli:main"
+digitalstate-device = "digital_state.device.cli:main"
+
 
 [project.entry-points."hermes_agent.plugins"]
 digital_state = "digital_state.hermes"
