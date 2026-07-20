@@ -29,7 +29,13 @@ class EvidenceBundleManager:
     def __init__(self, device_dir: Optional[Path] = None, identity_mgr: Optional[DeviceIdentityManager] = None):
         self.device_dir = device_dir or Path(".specify") / "device"
         self.device_dir.mkdir(parents=True, exist_ok=True)
-        self.identity_mgr = identity_mgr or DeviceIdentityManager()
+        if identity_mgr:
+            self.identity_mgr = identity_mgr
+        else:
+            from digital_state.device.keystore import DeviceKeystore
+            keystore = DeviceKeystore(storage_dir=self.device_dir)
+            self.identity_mgr = DeviceIdentityManager(keystore=keystore)
+
 
     def get_offline_state(self, last_sync_timestamp: float) -> str:
         """Evaluates 3-state offline lifecycle state based on last successful central sync.

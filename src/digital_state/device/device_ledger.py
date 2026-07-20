@@ -40,27 +40,58 @@ class DeviceLedger:
             return "0" * 64
 
     def append(self, trace_id: str, decision: Dict[str, Any], policy_version: str = "v1.11.0-p1") -> Dict[str, Any]:
-        """Appends a new hash-chained event to device_ledger.jsonl."""
-        prev_hash = self.get_last_hash()
-        timestamp = datetime.now(timezone.utc).isoformat()
+        """Appends a new hash-chained event to device_ledger.jsonl with cross-process file lock."""
+        lock_file = self.ledger_path.with_suffix(self.ledger_path.suffix + ".lock")
+        import sys, contextlib
+        with open(lock_file, "a+", encoding="utf-8") as lock_f:
+            if sys.platform == "win32":
+                import msvcrt
+                try:
+                    msvcrt.locking(lock_f.fileno(), msvcrt.LK_LOCK, 1)
+                except Exception:
+                    pass
+            else:
+                import fcntl
+                try:
+                    fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX)
+                except Exception:
+                    pass
 
-        payload = {
-            "trace_id": trace_id,
-            "timestamp": timestamp,
-            "decision": decision,
-            "policy_version": policy_version,
-            "previous_hash": prev_hash
-        }
+            try:
+                prev_hash = self.get_last_hash()
+                timestamp = datetime.now(timezone.utc).isoformat()
 
-        # Calculate current_hash = SHA256(previous_hash + canonical_payload)
-        to_hash = (prev_hash + self._canon(payload)).encode("utf-8")
-        current_hash = hashlib.sha256(to_hash).hexdigest()
-        payload["current_hash"] = current_hash
+                payload = {
+                    "trace_id": trace_id,
+                    "timestamp": timestamp,
+                    "decision": decision,
+                    "policy_version": policy_version,
+                    "previous_hash": prev_hash
+                }
 
-        with open(self.ledger_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload) + "\n")
+                # Calculate current_hash = SHA256(previous_hash + canonical_payload)
+                to_hash = (prev_hash + self._canon(payload)).encode("utf-8")
+                current_hash = hashlib.sha256(to_hash).hexdigest()
+                payload["current_hash"] = current_hash
 
-        return payload
+                with open(self.ledger_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(payload) + "\n")
+
+                return payload
+            finally:
+                if sys.platform == "win32":
+                    import msvcrt
+                    try:
+                        msvcrt.locking(lock_f.fileno(), msvcrt.LK_UNLCK, 1)
+                    except Exception:
+                        pass
+                else:
+                    import fcntl
+                    try:
+                        fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
+                    except Exception:
+                        pass
+
 
     def verify_chain(self) -> Dict[str, Any]:
         """Verifies line-by-line SHA-256 hash chain continuity of device_ledger.jsonl."""

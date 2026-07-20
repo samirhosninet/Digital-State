@@ -1,45 +1,67 @@
-# Digital State Idempotent PowerShell Installer (v1.14.0-bootstrap)
-# Usage: powershell -ExecutionPolicy Bypass -File install.ps1 [-DryRun]
+# Digital State Layer 1 Immutable Bootstrap Stub (v1.16.0)
+# Usage: powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/samirhosninet/Digital-State/main/install.ps1 | iex"
 
 [CmdletBinding()]
 param (
+    [string]$Channel = "stable",
+    [string]$Version = "",
+    [switch]$Repair,
+    [switch]$Uninstall,
     [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
 
-Write-Host "=====================================================" -ForegroundColor Cyan
-Write-Host " Digital State Zero-Touch Installer (v1.14.0-bootstrap)" -ForegroundColor Cyan
-Write-Host "=====================================================" -ForegroundColor Cyan
+$RepoOwner = "samirhosninet"
+$RepoName = "Digital-State"
+$BaseApiUrl = "https://api.github.com/repos/$RepoOwner/$RepoName"
 
-# 1. Verify Python Version
-$pythonCmd = Get-Command "python" -ErrorAction SilentlyContinue
-if (-not $pythonCmd) {
-    $pythonCmd = Get-Command "python3" -ErrorAction SilentlyContinue
+# 1. Resolve Target Release Tag & Download URLs
+try {
+    if ($Version) {
+        $ReleaseUrl = "$BaseApiUrl/releases/tags/$Version"
+    } else {
+        $ReleaseUrl = "$BaseApiUrl/releases/latest"
+    }
+    
+    # Allow fallback if offline or GitHub API rate-limited during local execution
+    $ReleaseInfo = Try { Invoke-RestMethod -Uri $ReleaseUrl -Headers @{ "User-Agent" = "DigitalState-Installer" } } Catch { $null }
+    $TargetTag = if ($ReleaseInfo -and $ReleaseInfo.tag_name) { $ReleaseInfo.tag_name } else { "v1.16.0" }
+} catch {
+    $TargetTag = "v1.16.0"
 }
 
-if (-not $pythonCmd) {
-    Write-Error "Python is not installed or not available in PATH. Python 3.11+ required."
+# 2. Locate or Provision Local Python Runtime for Layer 2 Execution
+$PythonCmd = Get-Command "python" -ErrorAction SilentlyContinue
+if (-not $PythonCmd) {
+    $PythonCmd = Get-Command "python3" -ErrorAction SilentlyContinue
+}
+
+if (-not $PythonCmd) {
+    Write-Host "[*] Python 3.10+ missing. Attempting Winget auto-provisioning..." -ForegroundColor Yellow
+    try {
+        winget install Python.Python.3.11 --silent --accept-package-agreements --accept-source-agreements
+        $PythonCmd = Get-Command "python" -ErrorAction SilentlyContinue
+    } catch {}
+}
+
+if (-not $PythonCmd) {
+    Write-Error "[-] Python 3.10+ is required to execute Digital State Installer Engine. Installation aborted."
     exit 1
 }
 
-$pyVersionStr = & $pythonCmd.Source --version 2>&1
-Write-Host "[+] Detected: $pyVersionStr" -ForegroundColor Green
+# 3. Launch Layer 2 Installer Engine Process
+$ScriptDir = $PSScriptRoot
+if (-not $ScriptDir) { $ScriptDir = Get-Location }
+$env:PYTHONPATH = "$ScriptDir\src;$env:PYTHONPATH"
 
-# 2. Execute Bootstrap Dry-Run or Full Install via Python Module
-$env:PYTHONPATH = "src"
+$Action = "install"
+if ($Repair) { $Action = "repair" }
+if ($Uninstall) { $Action = "uninstall" }
 
-if ($DryRun) {
-    Write-Host "[*] Executing Dry-Run Verification..." -ForegroundColor Yellow
-    & $pythonCmd.Source -c "import sys; sys.path.insert(0, 'src'); from digital_state.bootstrap.installer import BootstrapInstaller; res = BootstrapInstaller().run_bootstrap(dry_run=True); print(res); sys.exit(0 if res.get('status') == 'DRY_RUN_SUCCESS' else 1)"
-} else {
-    Write-Host "[*] Executing Idempotent Workspace Installation..." -ForegroundColor Yellow
-    & $pythonCmd.Source -c "import sys; sys.path.insert(0, 'src'); from digital_state.bootstrap.installer import BootstrapInstaller; res = BootstrapInstaller().run_bootstrap(dry_run=False); print(res); sys.exit(0 if res.get('status') == 'SUCCESS' else 1)"
-}
+$DryRunBool = if ($DryRun) { "True" } else { "False" }
+$EngineScript = "import sys; sys.path.insert(0, 'src'); from digital_state.bootstrap.engine.orchestrator import run_engine_cli; sys.exit(run_engine_cli('$Action', dry_run=$DryRunBool))"
 
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "[+] Digital State Installation Completed Successfully." -ForegroundColor Green
-} else {
-    Write-Host "[-] Installation failed." -ForegroundColor Red
-    exit 1
-}
+& $PythonCmd.Source -c $EngineScript
+exit $LASTEXITCODE

@@ -28,7 +28,9 @@ fi
 PY_VERSION=$("$PYTHON_BIN" --version 2>&1)
 echo "[+] Detected: $PY_VERSION"
 
-export PYTHONPATH="src:${PYTHONPATH:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH:-}"
+
 
 if [ "$DRY_RUN" = true ]; then
     echo "[*] Executing Dry-Run Verification..."

@@ -5,7 +5,48 @@ All notable changes to the Digital State project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0] - 2026-07-20
+
+### Added
+- Complete PREMORTEM engineering remediation release (`v1.16.0`).
+- FIPS-compliant AES-256-GCM authenticated key encryption with PBKDF2 (100,000 iterations) key derivation in `DeviceKeystore`.
+- Authentic ECDSA P-256 Certificate Authority (CA) signature generation & verification (`verify_certificate()`, `renew_certificate()`).
+- Added `digitalstate-device renew-cert` CLI command and background daemon auto-renewal when certificate expiration is `< 14 days`.
+- Cross-process `FileLock` (`msvcrt` / `fcntl`) protection for `device_ledger.jsonl` appends.
+- Fail-Closed Default-Deny attestation policy in `FederatedEvidenceManager` and deep JSON schema/signature validation in `DeviceEvidenceValidator`.
+- Cryptographically signed session token verification in `adapter.py` and fail-closed session abort in `DigitalStatePlugin`.
+- Standardized CLI return codes (`0`: success, `1`: rejection, `2`: args, `3`: I/O) and implemented `repair`, `upgrade`, and `uninstall` command handlers.
+- Negative cryptographic test suite `tests/unit/test_negative_crypto.py` and containerized live-Hermes workflow `.github/workflows/e2e-hermes.yml`.
+
+## [1.15.0] - 2026-07-20
+
+
+### Added
+- Multi-Tenant Evidence Federation & Remote Attestation Protocol (`v1.15.0`).
+- Additive module `digital_state.governance.federation` providing `FederatedEvidenceManager` and `RemoteAttestationVerifier`.
+- Cryptographic remote attestation verification using device ECDSA P-256 identity keypair challenge-response nonces.
+- CLI subcommand `digitalstate audit-evidence` enhancement adding `--federated` option for rendering multi-tenant JSON manifests.
+
+### Changed
+- Incremented package version in `pyproject.toml` to `1.15.0`.
+
+## [1.14.0-bootstrap] - 2026-07-20
+
+
+### Added
+- Zero-touch installation & first-run bootstrap protocol (`v1.14.0-bootstrap`).
+- Official cross-platform installers `install.ps1` (Windows PowerShell) and `install.sh` (POSIX Shell) with `--dry-run` pre-flight support.
+- `BootstrapSubsystem` (`digital_state.bootstrap`) containing `PrerequisiteChecker` and `BootstrapInstaller`.
+- Hermes Desktop integration auto-detection, `config.yaml` plugin registration, and profile seeding (`prime`, `builder`, `auditor`).
+- Cryptographic `EnrollmentProtocol` challenge-response handshake execution during bootstrap.
+- Automated `verify_installation_health` hook logging doctor and evidence verification status in `.specify/integration.json`.
+- End-user onboarding documentation `docs/USER_INSTALLATION_GUIDE.md`.
+
+### Changed
+- Incremented package version in `pyproject.toml` to `1.14.0`.
+
 ## [1.13.0-platform] - 2026-07-20
+
 
 ### Added
 - Integrated Evidence Governance Subsystem across all platform subsystems (`v1.13.0-platform`).

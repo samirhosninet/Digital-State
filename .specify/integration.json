@@ -1,15 +1,53 @@
 {
-  "version": "0.12.15.dev0",
-  "integration_state_schema": 1,
-  "installed_integrations": [
-    "hermes"
-  ],
-  "integration_settings": {
-    "hermes": {
-      "script": "ps",
-      "invoke_separator": "-"
-    }
-  },
   "integration": "hermes",
-  "default_integration": "hermes"
+  "version": "1.16.0-remediation",
+  "bootstrap": "zero_touch_complete",
+  "hermes_status": {
+    "detected": true,
+    "hermes_root": "C:\\Users\\I-Master\\AppData\\Local\\hermes",
+    "hermes_python": "C:\\Users\\I-Master\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+    "installed": true,
+    "discovered": true,
+    "imported": true,
+    "enabled": true,
+    "profiles_seeded": [
+      "prime",
+      "builder",
+      "auditor"
+    ],
+    "profile_manifests": [
+      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime\\profile.yaml",
+      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\builder\\profile.yaml",
+      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\auditor\\profile.yaml"
+    ],
+    "profiles_verified": true
+  },
+  "workspace_status": {
+    "initialized": true,
+    "agent_count": 3,
+    "agents": [
+      "prime-agent",
+      "builder-agent",
+      "auditor-agent"
+    ]
+  },
+  "device_status": {
+    "provisioned": true,
+    "enrolled": true,
+    "device_id": "dev_sha256_2f2dd1ba9b53be9a34faeaa5f6f518eb6725115c3d16a008d1f2f0286bc1c380",
+    "certificate_id": "",
+    "bundle_files": [
+      "device_status",
+      "identity_proof",
+      "runtime_attestation",
+      "policy_state"
+    ],
+    "verified_records": 3
+  },
+  "verification_status": {
+    "health_verified": true,
+    "evidence_records_count": 3,
+    "doctor_status": "PASS"
+  },
+  "installed_at": "2026-07-20T18:15:46.367060+00:00"
 }

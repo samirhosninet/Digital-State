@@ -28,7 +28,13 @@ class EnrollmentProtocol:
     def __init__(self, device_dir: Optional[Path] = None, identity_mgr: Optional[DeviceIdentityManager] = None):
         self.device_dir = device_dir or Path(".specify") / "device"
         self.device_dir.mkdir(parents=True, exist_ok=True)
-        self.identity_mgr = identity_mgr or DeviceIdentityManager()
+        if identity_mgr:
+            self.identity_mgr = identity_mgr
+        else:
+            from digital_state.device.keystore import DeviceKeystore
+            keystore = DeviceKeystore(storage_dir=self.device_dir)
+            self.identity_mgr = DeviceIdentityManager(keystore=keystore)
+
 
     def create_enrollment_request(self) -> Dict[str, Any]:
         """Creates initial device enrollment request payload."""
@@ -110,18 +116,77 @@ class EnrollmentProtocol:
         except Exception as e:
             return False, {"status": "REJECTED", "reason": f"Invalid signature over challenge nonce ({e})."}
 
-        # 4. Issue and store device-certificate.json
+        # 4. Issue and store device-certificate.json with authentic ECDSA CA signature
+        ca_priv_file = self.device_dir / "ca_key.pem"
+        if not ca_priv_file.exists():
+            ca_priv = ec.generate_private_key(ec.SECP256R1())
+            ca_pem = ca_priv.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+            ca_priv_file.write_bytes(ca_pem)
+        else:
+            ca_priv = serialization.load_pem_private_key(ca_priv_file.read_bytes(), password=None)
+
+        ca_pub_pem = ca_priv.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode("utf-8")
+
+        issued_at_str = datetime.now(timezone.utc).isoformat()
+        expires_at_str = datetime.fromtimestamp(now_ts + 7776000, tz=timezone.utc).isoformat()
+
+        payload_to_sign = f"{info['device_id']}:{pub_pem_str}:{issued_at_str}:{expires_at_str}".encode("utf-8")
+        cert_sig_bytes = ca_priv.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
+
         cert_data = {
             "status": "ENROLLED",
             "device_id": info["device_id"],
             "public_key_pem": pub_pem_str,
             "issuer": "RuntimeStore Authority (ADR-011)",
-            "issued_at": datetime.now(timezone.utc).isoformat(),
-            "expires_at": datetime.fromtimestamp(now_ts + 7776000, tz=timezone.utc).isoformat(),  # 90 days
-            "certificate_signature": secrets.token_hex(64)
+            "ca_public_key_pem": ca_pub_pem,
+            "issued_at": issued_at_str,
+            "expires_at": expires_at_str,
+            "certificate_signature": cert_sig_bytes.hex()
         }
 
         cert_file = self.device_dir / "device-certificate.json"
         cert_file.write_text(json.dumps(cert_data, indent=2), encoding="utf-8")
 
         return True, cert_data
+
+    @staticmethod
+    def verify_certificate(cert_data: Dict[str, Any]) -> bool:
+        """Cryptographically verifies device certificate signature against CA public key."""
+        try:
+            ca_pub_pem = cert_data.get("ca_public_key_pem")
+            sig_hex = cert_data.get("certificate_signature")
+            if not ca_pub_pem or not sig_hex:
+                return False
+
+            ca_pub = serialization.load_pem_public_key(ca_pub_pem.encode("utf-8"))
+            sig_bytes = bytes.fromhex(sig_hex)
+
+            device_id = cert_data.get("device_id", "")
+            pub_pem_str = cert_data.get("public_key_pem", "")
+            issued_at = cert_data.get("issued_at", "")
+            expires_at = cert_data.get("expires_at", "")
+
+            payload = f"{device_id}:{pub_pem_str}:{issued_at}:{expires_at}".encode("utf-8")
+            ca_pub.verify(sig_bytes, payload, ec.ECDSA(hashes.SHA256()))
+            return True
+        except Exception:
+            return False
+
+    def renew_certificate(self, ttl_days: int = 90) -> Tuple[bool, Dict[str, Any]]:
+        """Renews existing device certificate with authentic CA signature."""
+        cert_file = self.device_dir / "device-certificate.json"
+        info = self.identity_mgr.get_identity_info()
+        if not info.get("has_key"):
+            return False, {"status": "FAILED", "reason": "No device key available for renewal."}
+
+        challenge = self.generate_challenge_nonce()
+        response = self.sign_challenge(challenge)
+        return self.verify_and_enroll(challenge, response)
+

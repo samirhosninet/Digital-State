@@ -1,0 +1,43 @@
+name: E2E Live Hermes Runtime Integration
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+      - 'release/*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e-hermes-runtime:
+    name: E2E Live Hermes Runtime Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Digital State & Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install pytest
+
+      - name: Execute E2E Integration Suite
+        run: |
+          pytest tests/integration/test_hermes_flow.py -v
+
+      - name: Execute Zero-Touch Installation & Verification
+        run: |
+          chmod +x ./install.sh
+          ./install.sh --dry-run
+          python -m digital_state.cli.cli init
+          python -m digital_state.cli.cli doctor
+          python -m digital_state.cli.cli audit-evidence --check --all --federated

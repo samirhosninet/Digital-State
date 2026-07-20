@@ -40,7 +40,8 @@ jobs:
 
       - name: Execute Automated Evidence Governance Check
         run: |
-          digitalstate audit-evidence --check --all --format json > evidence_manifest_ci.json
+          digitalstate audit-evidence --check --all --federated --format json > evidence_manifest_ci.json
+
 
       - name: Upload Evidence Manifest Artifact
         uses: actions/upload-artifact@v4
