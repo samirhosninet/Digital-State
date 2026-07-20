@@ -1,4 +1,22 @@
+# Official Release Notes: Digital State v1.15.0
+
+We are pleased to announce the official release of **Digital State v1.15.0** (Multi-Tenant Evidence Federation & Remote Attestation Protocol). This release introduces the `FederatedEvidenceManager` and `RemoteAttestationVerifier` to aggregate 4-file evidence bundles across multi-device host nodes into unified tenant manifests (`v2.0`) while cryptographically verifying ECDSA P-256 challenge-response attestations and preserving 100% frozen baseline compatibility with `v1.14.0-bootstrap` (`aa9088c`).
+
+---
+
+## Key Capabilities Introduced in v1.15.0
+
+1. **Multi-Tenant Evidence Aggregation**:
+   - `FederatedEvidenceManager` aggregates multi-device evidence bundles into tenant-isolated federated evidence manifests (`v2.0`).
+2. **Remote Attestation Verification**:
+   - `RemoteAttestationVerifier` verifies ECDSA P-256 cryptographic signatures over challenge nonces for remote host device attestations.
+3. **CLI Federation Subcommand**:
+   - `digitalstate audit-evidence` supports `--federated` option for auditing multi-node evidence manifests.
+
+---
+
 # Official Release Notes: Digital State v1.14.0-bootstrap
+
 
 We are pleased to announce the official release of **Digital State v1.14.0-bootstrap** (End-to-End Installation & First-Run Bootstrap Protocol). This release resolves the remaining end-user onboarding gap by providing single-command zero-touch installers (`install.ps1`, `install.sh`), automated Hermes Desktop integration, idempotent workspace initialization, ECDSA P-256 device identity generation, cryptographic challenge-response enrollment, and post-installation health verification while preserving 100% frozen baseline compatibility with `v1.13.0-platform` (`43f8963`).
 

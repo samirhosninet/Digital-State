@@ -5,7 +5,19 @@ All notable changes to the Digital State project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2026-07-20
+
+### Added
+- Multi-Tenant Evidence Federation & Remote Attestation Protocol (`v1.15.0`).
+- Additive module `digital_state.governance.federation` providing `FederatedEvidenceManager` and `RemoteAttestationVerifier`.
+- Cryptographic remote attestation verification using device ECDSA P-256 identity keypair challenge-response nonces.
+- CLI subcommand `digitalstate audit-evidence` enhancement adding `--federated` option for rendering multi-tenant JSON manifests.
+
+### Changed
+- Incremented package version in `pyproject.toml` to `1.15.0`.
+
 ## [1.14.0-bootstrap] - 2026-07-20
+
 
 ### Added
 - Zero-touch installation & first-run bootstrap protocol (`v1.14.0-bootstrap`).
