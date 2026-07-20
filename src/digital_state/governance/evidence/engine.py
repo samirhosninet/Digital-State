@@ -3,7 +3,7 @@
 Programmatically validates evidence records against mandatory governance rules:
     - Rule 1: VERIFIED_ABSENCE requires spec/code proof; doc silence downgrades to NOT_FOUND...
     - Rule 2: External platform behavior without direct evidence becomes UNVERIFIED.
-    - Rule 3: REPOSITORY_IMPLEMENTATION evidence validates path existence in workspace.
+    - Rule 3: REPOSITORY_IMPLEMENTATION evidence validates path existence in workspace or installed package.
     - Rule 4: Mandatory non-empty record fields.
 """
 
@@ -63,9 +63,23 @@ class EvidenceValidationEngine:
         if record.evidence_type == EvidenceType.REPOSITORY_IMPLEMENTATION and record.repo_path:
             target_path = self.workspace_root / record.repo_path
             if not target_path.exists():
-                raise EvidenceValidationError(
-                    f"Repository implementation path '{record.repo_path}' does not exist in workspace '{self.workspace_root}'."
-                )
+                # Check installed package location fallback for clean machines without repository checkout
+                pkg_path = None
+                try:
+                    import digital_state
+                    pkg_root = Path(digital_state.__file__).resolve().parent
+                    rel_parts = Path(record.repo_path).parts
+                    if "digital_state" in rel_parts:
+                        idx = rel_parts.index("digital_state")
+                        sub_path = Path(*rel_parts[idx+1:])
+                        pkg_path = pkg_root / sub_path
+                except Exception:
+                    pkg_path = None
+
+                if not (pkg_path and pkg_path.exists()):
+                    raise EvidenceValidationError(
+                        f"Repository implementation path '{record.repo_path}' does not exist in workspace '{self.workspace_root}'."
+                    )
 
         # Return validated normalized record
         if final_classification != record.classification:
