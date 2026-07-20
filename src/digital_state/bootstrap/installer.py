@@ -209,31 +209,31 @@ class BootstrapInstaller:
         if not (target_package_root / "pyproject.toml").exists():
             target_package_root = Path(__file__).resolve().parents[3]
 
-        # Locate Hermes Python venv
+        # Locate Hermes Python venv strictly under hermes_path
         if sys.platform == "win32":
             hermes_python = hermes_path / "hermes-agent" / "venv" / "Scripts" / "python.exe"
         else:
             hermes_python = hermes_path / "hermes-agent" / "venv" / "bin" / "python"
 
         if not hermes_python.exists():
+            venv_dir = hermes_path / "hermes-agent" / "venv"
+            try:
+                subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], capture_output=True, check=False)
+                target_p = venv_dir / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+                if target_p.exists():
+                    hermes_python = target_p
+            except Exception:
+                pass
+
+        if not hermes_python.exists():
             hermes_cmd = shutil.which("hermes")
             if hermes_cmd:
                 cmd_dir = Path(hermes_cmd).parent
                 p_path = cmd_dir / ("python.exe" if sys.platform == "win32" else "python")
-                if p_path.exists():
+                if p_path.exists() and hermes_path in p_path.parents:
                     hermes_python = p_path
-            
             if not hermes_python.exists():
-                venv_dir = hermes_path / "hermes-agent" / "venv"
-                try:
-                    subprocess.run([sys.executable, "-m", "venv", str(venv_dir)], capture_output=True, check=False)
-                    target_p = venv_dir / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
-                    if target_p.exists():
-                        hermes_python = target_p
-                    else:
-                        hermes_python = Path(sys.executable)
-                except Exception:
-                    hermes_python = Path(sys.executable)
+                hermes_python = Path(sys.executable)
 
         # Detect synthetic test mock environment (e.g. pytest monkeypatch HERMES_HOME)
         is_mock_test = "pytest" in sys.modules and "HERMES_HOME" in os.environ
