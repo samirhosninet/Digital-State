@@ -1,7 +1,8 @@
 [project]
 name = "digital-state"
-version = "1.12.0"
+version = "1.13.0"
 description = "Digital State - Evidence-Gated Agentic Governance & Distributed Device Runtime System"
+
 
 
 

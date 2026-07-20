@@ -1,4 +1,24 @@
+# Official Release Notes: Digital State v1.13.0-platform
+
+We are pleased to announce the official release of **Digital State v1.13.0-platform** (Platform Evidence Integration & Governance Expansion). This release integrates the Evidence Governance Subsystem across all platform domains, introducing the `KernelEvidenceBridge`, `DeviceEvidenceValidator`, enhanced `digitalstate audit-evidence` CLI options (`--check`, `--all`), and automated CI/CD evidence verification workflows while preserving 100% frozen baseline compatibility with `v1.12.0-evidence` (`10635c6`).
+
+---
+
+## Key Capabilities Introduced in v1.13.0-platform
+
+1. **Kernel Evidence Binding Bridge**:
+   - `KernelEvidenceBridge` connects `EvidenceValidationEngine` to `WorkflowKernel` gate decisions and runtime provisioning.
+2. **Device Runtime Evidence Validation**:
+   - `DeviceEvidenceValidator` programmatically evaluates `.specify/device/` 4-file evidence bundles and outputs JSON manifests.
+3. **Enhanced CLI Verification Subcommand**:
+   - `digitalstate audit-evidence` supports `--check` (strict exit-code enforcement) and `--all` (platform-wide audit).
+4. **Automated CI/CD Workflow Pipeline**:
+   - GitHub Actions workflow `.github/workflows/evidence-audit.yml` automates evidence verification across Python 3.10-3.12 matrix on Ubuntu and Windows.
+
+---
+
 # Official Release Notes: Digital State v1.12.0-evidence
+
 
 We are pleased to announce the official release of **Digital State v1.12.0-evidence** (Evidence Governance Framework Integration). This additive release introduces reusable evidence governance infrastructure to enforce evidence classification, boundary isolation, and negative-evidence rules across all future architectural reviews and audits while preserving 100% frozen baseline compatibility with `v1.11.0-device-verified` (`0abc5a8`).
 
