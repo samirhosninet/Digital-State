@@ -14,6 +14,9 @@ from digital_state.sdk import (
     verify_audit_log,
 )
 
+from digital_state.core.orchestrator import PrimeRuntimeController
+from digital_state.hermes.dispatcher import HermesDispatcher
+
 logger = logging.getLogger(__name__)
 
 class DigitalStatePlugin:
@@ -30,6 +33,8 @@ class DigitalStatePlugin:
             or os.environ.get("HERMES_WORKSPACE")
             or os.getcwd()
         )
+        self.orchestrator = PrimeRuntimeController(self._workspace_root)
+        self.dispatcher = HermesDispatcher(self._workspace_root)
 
     def _governed_context(self_or_ctx: Any, context: Any = None) -> tuple[str | None, Any]:
         """Resolves runtime governance context via 3-tier lookup pipeline (ADR-013 / Option E)."""

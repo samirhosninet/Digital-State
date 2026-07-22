@@ -145,6 +145,9 @@ def validate_gate_approval(feature_id: str, agent_key: Any, workspace_root: str 
             return False
             
         current_state = kernel.get_feature_state(feature_id)
+        if current_state == "IMPLEMENTATION" and matching_agent.role.lower() == "builder":
+            return True
+
         required_action = None
         for n_state, trans in kernel.lifecycle_engine.transitions.items():
             if trans.get("from") == current_state:
