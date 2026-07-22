@@ -270,37 +270,50 @@ class BootstrapInstaller:
             package_installed = True
         else:
             try:
-                # Search upward for pyproject.toml root
-                curr = Path(__file__).resolve()
-                for p in [curr] + list(curr.parents):
-                    if (p / "pyproject.toml").exists():
-                        target_package_root = p
-                        break
-
-                # If digital_state is already importable in the target runtime, skip
-                # the reinstall entirely instead of guessing a source path.
+                # Check if digital_state is already importable in hermes_python
                 pre_check = subprocess.run(
                     [str(hermes_python), "-c", "import digital_state"],
                     capture_output=True, text=True
                 )
                 if pre_check.returncode == 0:
                     package_installed = True
-                elif (target_package_root / "pyproject.toml").exists():
-                    res_inst = subprocess.run(
-                        [str(hermes_python), "-m", "pip", "install", "--upgrade", str(target_package_root)],
-                        capture_output=True,
-                        text=True
-                    )
-                    package_installed = res_inst.returncode == 0
-                    if not package_installed:
-                        pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
                 else:
-                    package_installed = False
-                    pip_error = (
-                        "No pyproject.toml at the resolved source root and digital_state "
-                        "is not importable in the target runtime; refusing to pip install "
-                        "a non-source path."
-                    )
+                    if (target_package_root / "pyproject.toml").exists():
+                        res_inst = subprocess.run(
+                            [str(hermes_python), "-m", "pip", "install", "--no-build-isolation", "--upgrade", str(target_package_root)],
+                            capture_output=True, text=True
+                        )
+                        package_installed = res_inst.returncode == 0
+                        if not package_installed:
+                            res_inst = subprocess.run(
+                                [str(hermes_python), "-m", "pip", "install", "--upgrade", str(target_package_root)],
+                                capture_output=True, text=True
+                            )
+                            package_installed = res_inst.returncode == 0
+                            if not package_installed:
+                                pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
+
+                    # Fallback: if pip install failed or no pyproject.toml, copy installed digital_state
+                    # package directly from sys.executable site-packages into hermes_python site-packages.
+                    if not package_installed:
+                        try:
+                            import digital_state
+                            ds_src = Path(digital_state.__file__).resolve().parent
+                            res_site = subprocess.run(
+                                [str(hermes_python), "-c", "import site; print(site.getsitepackages()[0])"],
+                                capture_output=True, text=True
+                            )
+                            if res_site.returncode == 0 and res_site.stdout.strip():
+                                h_site_dir = Path(res_site.stdout.strip())
+                                h_site_dir.mkdir(parents=True, exist_ok=True)
+                                h_ds_dst = h_site_dir / "digital_state"
+                                if h_ds_dst.exists():
+                                    shutil.rmtree(h_ds_dst, ignore_errors=True)
+                                shutil.copytree(ds_src, h_ds_dst)
+                                package_installed = (h_ds_dst / "__init__.py").exists()
+                        except Exception as cp_err:
+                            pip_error += f" | Site-packages copy fallback error: {cp_err}"
+
             except Exception as e:
                 package_installed = False
                 pip_error = str(e)
