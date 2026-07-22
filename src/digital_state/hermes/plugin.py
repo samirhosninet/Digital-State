@@ -8,6 +8,7 @@ from typing import Dict, Any
 from digital_state.sdk import (
     is_compatible,
     validate_gate_approval,
+    validate_builder_execution_gate,
     submit_evidence,
     check_governance_status,
     verify_audit_log,
@@ -181,6 +182,16 @@ class DigitalStatePlugin:
             return {
                 "action": "block",
                 "message": "Missing signed agent key or feature ID metadata. Fail-Safe Deny triggered."
+            }
+
+        # Execution Authorization Gate (ORCHESTRATION-001 Remediation)
+        gate_passed, gate_reason = validate_builder_execution_gate(feature_id, agent_key, workspace_root=self._workspace_root)
+        if not gate_passed:
+            logger.warning(f"Builder execution gate blocked action '{tool_name}' on feature '{feature_id}': {gate_reason}")
+            self._log_audit_error("BUILDER_EXECUTION_GATE_BLOCKED", {"tool": tool_name, "feature_id": feature_id, "reason": gate_reason})
+            return {
+                "action": "block",
+                "message": f"Builder execution gate blocked: {gate_reason}"
             }
 
         try:
