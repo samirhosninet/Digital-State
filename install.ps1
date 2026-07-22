@@ -140,7 +140,8 @@ try {
 #    Pass the extracted source root so Layer 2 can install into a *different* target
 #    runtime (e.g. a Hermes venv) without re-discovering a bogus path.
 $env:DS_PACKAGE_ROOT = $PackageRoot
-$EngineScript = "import sys; from digital_state.bootstrap.engine.orchestrator import run_engine_cli; sys.exit(run_engine_cli('$Action', dry_run=$DryRunBool))"
+$SrcDir = (Join-Path $PackageRoot "src").Replace('\', '/')
+$EngineScript = "import sys; sys.path.insert(0, '$SrcDir'); from digital_state.bootstrap.engine.orchestrator import run_engine_cli; sys.exit(run_engine_cli('$Action', dry_run=$DryRunBool))"
 
 try {
     & $PythonCmd -c $EngineScript
