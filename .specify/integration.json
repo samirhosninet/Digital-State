@@ -4,8 +4,8 @@
   "bootstrap": "zero_touch_complete",
   "hermes_status": {
     "detected": true,
-    "hermes_root": "C:\\Users\\I-Master\\AppData\\Local\\hermes",
-    "hermes_python": "C:\\Users\\I-Master\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+    "hermes_root": "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime",
+    "hermes_python": "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime\\hermes-agent\\venv\\Scripts\\python.exe",
     "installed": true,
     "discovered": true,
     "imported": true,
@@ -16,9 +16,9 @@
       "auditor"
     ],
     "profile_manifests": [
-      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime\\profile.yaml",
-      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\builder\\profile.yaml",
-      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\auditor\\profile.yaml"
+      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime\\profiles\\prime\\profile.yaml",
+      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime\\profiles\\builder\\profile.yaml",
+      "C:\\Users\\I-Master\\AppData\\Local\\hermes\\profiles\\prime\\profiles\\auditor\\profile.yaml"
     ],
     "profiles_verified": true
   },
@@ -49,5 +49,5 @@
     "evidence_records_count": 3,
     "doctor_status": "PASS"
   },
-  "installed_at": "2026-07-20T18:15:46.367060+00:00"
+  "installed_at": "2026-07-21T22:04:43.911560+00:00"
 }

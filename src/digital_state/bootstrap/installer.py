@@ -183,6 +183,28 @@ class BootstrapInstaller:
                 "doctor_status": "FAIL"
             }
 
+    def _resolve_package_root(self) -> Path:
+        """Resolves the source root that contains pyproject.toml.
+
+        Returns a Path only when it actually contains pyproject.toml; otherwise
+        falls back to the workspace root (which the caller validates before use).
+        This never returns a path like .../Lib/site-packages that would silently
+        produce a bogus `pip install` target.
+        """
+        # 1. Explicit source root provided by the installer (Layer 1 sets DS_PACKAGE_ROOT).
+        env_root = os.environ.get("DS_PACKAGE_ROOT", "").strip()
+        if env_root and (Path(env_root) / "pyproject.toml").exists():
+            return Path(env_root).resolve()
+
+        # 2. Search upward from this module file for the real source tree.
+        curr = Path(__file__).resolve()
+        for p in [curr] + list(curr.parents):
+            if (p / "pyproject.toml").exists():
+                return p
+
+        # 3. Last resort: current working directory (caller must validate).
+        return self.workspace_root.resolve()
+
     def auto_configure_hermes(self) -> Dict[str, Any]:
         """Auto-detects Hermes root, installs package into Hermes venv, registers plugin, seeds profiles, and verifies discovery/import."""
         import subprocess
@@ -204,10 +226,13 @@ class BootstrapInstaller:
         if not hermes_path.exists():
             hermes_path.mkdir(parents=True, exist_ok=True)
 
-        # Determine target package root containing pyproject.toml
-        target_package_root = self.workspace_root.resolve()
-        if not (target_package_root / "pyproject.toml").exists():
-            target_package_root = Path(__file__).resolve().parents[3]
+        # Determine target package root containing pyproject.toml.
+        # DO NOT assume cwd points at the repo, and DO NOT use parents[3] of an
+        # installed wheel (that resolves to .../Lib, which has no pyproject.toml).
+        # Priority: DS_PACKAGE_ROOT env (set by Layer 1), then an upward search from
+        # this file, then cwd as a last resort. Whatever we pick MUST contain
+        # pyproject.toml before it is ever handed to `pip install`.
+        target_package_root = self._resolve_package_root()
 
         # Locate Hermes Python venv strictly under hermes_path
         if sys.platform == "win32":
@@ -252,14 +277,30 @@ class BootstrapInstaller:
                         target_package_root = p
                         break
 
-                res_inst = subprocess.run(
-                    [str(hermes_python), "-m", "pip", "install", str(target_package_root)],
-                    capture_output=True,
-                    text=True
+                # If digital_state is already importable in the target runtime, skip
+                # the reinstall entirely instead of guessing a source path.
+                pre_check = subprocess.run(
+                    [str(hermes_python), "-c", "import digital_state"],
+                    capture_output=True, text=True
                 )
-                package_installed = res_inst.returncode == 0
-                if not package_installed:
-                    pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
+                if pre_check.returncode == 0:
+                    package_installed = True
+                elif (target_package_root / "pyproject.toml").exists():
+                    res_inst = subprocess.run(
+                        [str(hermes_python), "-m", "pip", "install", "--upgrade", str(target_package_root)],
+                        capture_output=True,
+                        text=True
+                    )
+                    package_installed = res_inst.returncode == 0
+                    if not package_installed:
+                        pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
+                else:
+                    package_installed = False
+                    pip_error = (
+                        "No pyproject.toml at the resolved source root and digital_state "
+                        "is not importable in the target runtime; refusing to pip install "
+                        "a non-source path."
+                    )
             except Exception as e:
                 package_installed = False
                 pip_error = str(e)

@@ -1,0 +1,33 @@
+{
+  "cards": {
+    "ADAPTER-FIX-014": {
+      "id": "ADAPTER-FIX-014",
+      "title": "Runtime Adapter Decoupling & Verification under ADR-0001",
+      "gate": "VERIFICATION",
+      "state": "READY_FOR_AUDIT",
+      "assignee": "auditor-agent",
+      "comments": [
+        "ADR-0001 Accepted.",
+        "Builder implementation complete (130/130 passed).",
+        "Awaiting independent auditor verification under provisioned Runtime Context."
+      ]
+    }
+  },
+  "history": [
+    {
+      "ts": "2026-07-22T03:19:00.000000+00:00",
+      "action": "create_card",
+      "by": "prime-agent",
+      "card": "ADAPTER-FIX-014",
+      "title": "Runtime Adapter Decoupling & Verification under ADR-0001",
+      "gate": "VERIFICATION"
+    },
+    {
+      "ts": "2026-07-22T03:19:01.000000+00:00",
+      "action": "transition",
+      "by": "prime-agent",
+      "card": "ADAPTER-FIX-014",
+      "to": "READY_FOR_AUDIT"
+    }
+  ]
+}

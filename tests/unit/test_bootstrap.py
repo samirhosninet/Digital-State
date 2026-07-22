@@ -1,12 +1,34 @@
 """Unit Tests for Phase 1 Bootstrap Subsystem (v1.14.0-bootstrap).
 
-Validates prerequisite checks, dry-run mode, and idempotent workspace installation.
+Validates prerequisite checks, dry-run mode, idempotent workspace installation,
+and the package-root resolver that guards against bogus `pip install` targets.
 """
 
+import os
 import pytest
 from pathlib import Path
 from digital_state.bootstrap.prereqs import PrerequisiteChecker
 from digital_state.bootstrap.installer import BootstrapInstaller
+
+
+def test_resolve_package_root_uses_ds_package_root(tmp_path, monkeypatch):
+    """_resolve_package_root must honor DS_PACKAGE_ROOT when it contains pyproject.toml."""
+    (tmp_path / "pyproject.toml").write_text("[project]\nname='x'\n")
+    monkeypatch.setenv("DS_PACKAGE_ROOT", str(tmp_path))
+    inst = BootstrapInstaller(workspace_root=Path("/nonexistent-cwd"))
+    assert inst._resolve_package_root() == tmp_path.resolve()
+
+
+def test_resolve_package_root_rejects_bogus_env(monkeypatch, tmp_path):
+    """When DS_PACKAGE_ROOT points at a non-source dir, it must NOT be returned."""
+    monkeypatch.setenv("DS_PACKAGE_ROOT", str(tmp_path))  # no pyproject.toml here
+    inst = BootstrapInstaller(workspace_root=tmp_path)
+    resolved = inst._resolve_package_root()
+    # The bogus env dir must never be returned...
+    assert resolved != tmp_path
+    # ...and the result must point at a real source tree containing pyproject.toml
+    # (here the repo root D:/Digital-State, discovered by the upward search).
+    assert (resolved / "pyproject.toml").exists()
 
 
 def test_prerequisite_checker():

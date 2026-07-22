@@ -16,14 +16,21 @@ class SpeckitProvisioner:
         self.hermes_python = hermes_python
 
     def provision_speckit(self) -> Dict[str, Any]:
-        """Verifies or installs SpecKit CLI suite."""
+        """Verifies or installs SpecKit CLI suite.
+
+        SpecKit is an optional, non-blocking component. Report its real status
+        rather than always claiming success, so the manifest reflects reality.
+        """
         try:
-            res = subprocess.run([str(self.hermes_python), "-c", "import speckit"], capture_output=True, text=True)
+            res = subprocess.run([str(self.hermes_python), "-c", "import speckit; import importlib.metadata as m; print(m.version('speckit'))"], capture_output=True, text=True)
             installed = res.returncode == 0
+            version = res.stdout.strip() if installed else "0.0.0"
         except Exception:
             installed = False
+            version = "0.0.0"
 
         return {
-            "installed": installed or True,  # Non-blocking provisioner guarantee
-            "version": "0.12.15.dev0"
+            "installed": installed,
+            "version": version,
+            "blocking": False
         }

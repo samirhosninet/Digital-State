@@ -60,18 +60,31 @@ def resolve_governance_context(
     ws_root = workspace_root or os.environ.get("HERMES_WORKSPACE") or os.getcwd()
 
     # Tier 3a: Feature ID from Workspace State
+    # Schema contract (core/lifecycle.py:55,69-72): the persisted state file is
+    #   {"feature_states": {feature_id: state}, "gate_validations": {feature_id: {...}}}
+    # The feature ID lives INSIDE "feature_states", never as a top-level key.
+    # Workspace Context (ws_root) is the ONLY source for .specify/state.json.
     if not feature_id:
         state_file = os.path.join(ws_root, ".specify", "state.json")
         if os.path.exists(state_file):
             try:
                 with open(state_file, "r", encoding="utf-8") as f:
                     state_data = json.load(f)
-                if isinstance(state_data, dict) and state_data:
-                    feature_id = next(iter(state_data.keys()))
+                if isinstance(state_data, dict):
+                    feature_states = state_data.get("feature_states", {})
+                    if isinstance(feature_states, dict) and feature_states:
+                        feature_id = next(iter(feature_states.keys()))
             except Exception:
                 pass
 
     # Tier 3b: Agent Key from RuntimeStore Identity Authorities
+    # Runtime Context contract (ADR-011-01 / ADR-011-04): the authoritative
+    # identity store lives at the RUNTIME root (resolve_runtime_root() =>
+    # DIGITAL_STATE_HOME or LOCALAPPDATA/digital-state), which is INDEPENDENT of
+    # the Workspace Context root (ws_root). Coupling ws_root into RuntimeStore
+    # (DS-GOV-BOOTSTRAP-001 defect) made store.exists() False for every session
+    # whose CWD was not the Runtime root, so agent_key stayed None and the
+    # plugin correctly denied. We resolve the Runtime from its own canonical root.
     if not agent_key:
         profile_candidate = (
             os.environ.get("HERMES_PROFILE")
@@ -81,7 +94,7 @@ def resolve_governance_context(
 
         try:
             from digital_state.runtime.store import RuntimeStore
-            store = RuntimeStore(root=ws_root)
+            store = RuntimeStore()
             if store.exists():
 
                 identities = store.identity.all_for_tenant(tenant_id)
