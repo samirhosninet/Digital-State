@@ -1,4 +1,5 @@
 import os
+import json
 from typing import Dict, Any
 from digital_state.core.engine import GovernanceKernel
 from digital_state.core.exceptions import GovernanceError
@@ -20,23 +21,32 @@ def validate_builder_execution_gate(feature_id: str, agent_key: Any, workspace_r
     1. Active agent identity
     2. Role identification
     3. Prime authorization (feature phase is TASKS/IMPLEMENTATION or has spec/plan gate approvals)
-    4. Spec Kit prerequisite artifacts (spec.md, plan.md, tasks.md, analysis.md)
-    5. Approved implementation assignment
+    4. Spec Kit prerequisite artifacts (spec.md, plan.md, tasks.md)
+    5. Approved Kanban implementation assignment
     """
     root = workspace_root or os.getcwd()
     try:
         kernel = GovernanceKernel(root, run_bootstrap=False)
         
         pubkey_str = agent_key
+        target_role = ""
         if isinstance(agent_key, dict):
             pubkey_str = agent_key.get("key_id") or agent_key.get("public_key") or ""
+            target_role = (agent_key.get("role") or "").lower()
             
         matching_agent = None
         for agent_id, agent in kernel.registry.agents.items():
+            key_ids = [agent_id.lower()]
             reg_pubkey = agent.public_key
             if isinstance(reg_pubkey, dict):
-                reg_pubkey = reg_pubkey.get("key_id") or reg_pubkey.get("value") or ""
-            if reg_pubkey == pubkey_str or agent_id.lower() == str(pubkey_str).lower():
+                if reg_pubkey.get("key_id"):
+                    key_ids.append(reg_pubkey["key_id"].lower())
+                if reg_pubkey.get("value"):
+                    key_ids.append(reg_pubkey["value"].lower())
+            elif isinstance(reg_pubkey, str):
+                key_ids.append(reg_pubkey.lower())
+            
+            if str(pubkey_str).lower() in key_ids or (target_role and agent.role.lower() == target_role):
                 matching_agent = agent
                 break
                 
@@ -75,6 +85,29 @@ def validate_builder_execution_gate(feature_id: str, agent_key: Any, workspace_r
                 
             if missing_artifacts:
                 return False, f"Missing required Spec Kit prerequisite artifacts: {', '.join(missing_artifacts)}."
+
+            # Check Kanban Assignment Gate
+            kanban_file = os.path.join(specify_dir, "kanban.json")
+            has_assignment = False
+            if os.path.exists(kanban_file):
+                try:
+                    with open(kanban_file, "r", encoding="utf-8") as kf:
+                        kdata = json.load(kf)
+                        cards = kdata.get("cards", {})
+                        if isinstance(cards, dict) and feature_id in cards:
+                            card = cards[feature_id]
+                            assigned = card.get("assigned_to") or card.get("assignee")
+                            if assigned in (matching_agent.agent_id, "builder-agent", "Builder", "builder"):
+                                has_assignment = True
+                except Exception:
+                    pass
+
+            assigned_agent = gate_validations.get("assignments", {}).get(feature_id)
+            if assigned_agent in (matching_agent.agent_id, "builder-agent", "Builder", "builder"):
+                has_assignment = True
+
+            if not has_assignment:
+                return False, "Missing approved implementation assignment."
                 
         return True, "Execution authorization gate passed."
     except Exception as e:
@@ -88,15 +121,24 @@ def validate_gate_approval(feature_id: str, agent_key: Any, workspace_root: str 
         
         # Resolve key identifier if passed as a dictionary context from Hermes
         pubkey_str = agent_key
+        target_role = ""
         if isinstance(agent_key, dict):
             pubkey_str = agent_key.get("key_id") or agent_key.get("public_key") or ""
+            target_role = (agent_key.get("role") or "").lower()
             
         matching_agent = None
         for agent_id, agent in kernel.registry.agents.items():
+            key_ids = [agent_id.lower()]
             reg_pubkey = agent.public_key
             if isinstance(reg_pubkey, dict):
-                reg_pubkey = reg_pubkey.get("key_id") or reg_pubkey.get("value") or ""
-            if reg_pubkey == pubkey_str or agent_id.lower() == str(pubkey_str).lower():
+                if reg_pubkey.get("key_id"):
+                    key_ids.append(reg_pubkey["key_id"].lower())
+                if reg_pubkey.get("value"):
+                    key_ids.append(reg_pubkey["value"].lower())
+            elif isinstance(reg_pubkey, str):
+                key_ids.append(reg_pubkey.lower())
+            
+            if str(pubkey_str).lower() in key_ids or (target_role and agent.role.lower() == target_role):
                 matching_agent = agent
                 break
         if not matching_agent:
@@ -110,10 +152,18 @@ def validate_gate_approval(feature_id: str, agent_key: Any, workspace_root: str 
                 break
         if not required_action:
             return False
-            
+
+        # Auditor Verification Gate: Transition to COMPLETED requires Auditor verification
+        if required_action == "approve_completed":
+            auditor_verified = kernel.lifecycle_engine.gate_validations.get(feature_id, {}).get("VERIFICATION", False)
+            if not auditor_verified:
+                return False
+
         return kernel.policy_engine.evaluate(matching_agent, required_action)
     except Exception:
         return False
+
+
 
 
 def submit_evidence(feature_id: str, gate: str, payload: dict, workspace_root: str = None) -> bool:
