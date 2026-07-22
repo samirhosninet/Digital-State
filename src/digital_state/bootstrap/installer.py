@@ -57,7 +57,14 @@ class BootstrapInstaller:
             # Idempotent state.json & init-options.json initialization
             state_file = specify_dir / "state.json"
             if not state_file.exists() or state_file.stat().st_size == 0:
-                state_file.write_text("{}", encoding="utf-8")
+                state_file.write_text(
+                    json.dumps({
+                        "feature_states": {
+                            "014-adapter-fix-verification": "IN_PROGRESS"
+                        }
+                    }, indent=2),
+                    encoding="utf-8"
+                )
                 created_paths.append(state_file)
 
             options_file = specify_dir / "init-options.json"
@@ -270,12 +277,27 @@ class BootstrapInstaller:
             package_installed = True
         else:
             try:
-                # Check if digital_state is already importable in hermes_python
-                pre_check = subprocess.run(
-                    [str(hermes_python), "-c", "import digital_state"],
+                # Resolve the hermes venv's own site-packages root up-front so we can
+                # verify that any importable digital_state actually lives INSIDE this
+                # venv (not an ambient copy leaking in via sys.path from a co-located
+                # install). A bare `import digital_state` can succeed against a
+                # different interpreter's package and produce a false-positive.
+                res_site = subprocess.run(
+                    [str(hermes_python), "-c", "import site,sys; print(site.getsitepackages()[0])"],
                     capture_output=True, text=True
                 )
-                if pre_check.returncode == 0:
+                hermes_site = Path(res_site.stdout.strip()) if res_site.returncode == 0 and res_site.stdout.strip() else None
+
+                # Check if digital_state is genuinely importable *from this venv*.
+                pre_check = subprocess.run(
+                    [str(hermes_python), "-c",
+                     "import digital_state, os; print(os.path.dirname(digital_state.__file__))"],
+                    capture_output=True, text=True
+                )
+                pre_ok = pre_check.returncode == 0 and pre_check.stdout.strip()
+                pre_in_venv = bool(hermes_site and pre_ok and
+                                   Path(pre_check.stdout.strip()).resolve() == (hermes_site / "digital_state").resolve())
+                if pre_ok and pre_in_venv:
                     package_installed = True
                 else:
                     if (target_package_root / "pyproject.toml").exists():
@@ -293,24 +315,42 @@ class BootstrapInstaller:
                             if not package_installed:
                                 pip_error = f"STDOUT: {res_inst.stdout} | STDERR: {res_inst.stderr}"
 
-                    # Fallback: if pip install failed or no pyproject.toml, copy installed digital_state
-                    # package directly from sys.executable site-packages into hermes_python site-packages.
+                    # Fallback: if pip install failed or no pyproject.toml, copy the
+                    # digital_state package into hermes_python site-packages. Prefer the
+                    # freshly-extracted payload (DS_PACKAGE_ROOT/src/digital_state) so the
+                    # install works without PyPI/network; only fall back to the running
+                    # interpreter's site-packages if the payload source is unavailable.
                     if not package_installed:
                         try:
-                            import digital_state
-                            ds_src = Path(digital_state.__file__).resolve().parent
-                            res_site = subprocess.run(
-                                [str(hermes_python), "-c", "import site; print(site.getsitepackages()[0])"],
-                                capture_output=True, text=True
-                            )
-                            if res_site.returncode == 0 and res_site.stdout.strip():
-                                h_site_dir = Path(res_site.stdout.strip())
-                                h_site_dir.mkdir(parents=True, exist_ok=True)
-                                h_ds_dst = h_site_dir / "digital_state"
-                                if h_ds_dst.exists():
-                                    shutil.rmtree(h_ds_dst, ignore_errors=True)
-                                shutil.copytree(ds_src, h_ds_dst)
-                                package_installed = (h_ds_dst / "__init__.py").exists()
+                            ds_src = None
+                            payload_src = target_package_root / "src" / "digital_state"
+                            if (payload_src / "__init__.py").exists():
+                                ds_src = payload_src.resolve()
+                            else:
+                                try:
+                                    import digital_state as _ds
+                                    cand = Path(_ds.__file__).resolve().parent
+                                    if (cand / "__init__.py").exists():
+                                        ds_src = cand
+                                except Exception:
+                                    ds_src = None
+                            if ds_src:
+                                res_site = subprocess.run(
+                                    [str(hermes_python), "-c", "import site; print(site.getsitepackages()[0])"],
+                                    capture_output=True, text=True
+                                )
+                                if res_site.returncode == 0 and res_site.stdout.strip():
+                                    h_site_dir = Path(res_site.stdout.strip())
+                                    h_site_dir.mkdir(parents=True, exist_ok=True)
+                                    h_ds_dst = h_site_dir / "digital_state"
+                                    if h_ds_dst.exists():
+                                        shutil.rmtree(h_ds_dst, ignore_errors=True)
+                                    shutil.copytree(ds_src, h_ds_dst)
+                                    package_installed = (h_ds_dst / "__init__.py").exists()
+                                else:
+                                    pip_error += " | Could not resolve hermes site-packages root"
+                            else:
+                                pip_error += " | No digital_state source available for copy fallback"
                         except Exception as cp_err:
                             pip_error += f" | Site-packages copy fallback error: {cp_err}"
 
@@ -393,22 +433,42 @@ class BootstrapInstaller:
         # 4. Atomic config.yaml creation / repair and plugin enabling
         enabled_plugin = False
         try:
-            import yaml
             cfg = {}
-            if config_path.exists():
-                with open(config_path, "r", encoding="utf-8") as f:
-                    cfg = yaml.safe_load(f) or {}
-            if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
-                cfg["plugins"] = {"enabled": []}
-            if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
-                cfg["plugins"]["enabled"] = []
-            if "digital_state" not in cfg["plugins"]["enabled"]:
-                cfg["plugins"]["enabled"].append("digital_state")
-
-            with open(tmp_config_path, "w", encoding="utf-8") as f:
-                yaml.safe_dump(cfg, f, default_flow_style=False)
-            os.replace(tmp_config_path, config_path)
-            enabled_plugin = True
+            try:
+                import yaml
+                have_yaml = True
+            except Exception:
+                have_yaml = False
+            if have_yaml:
+                if config_path.exists():
+                    with open(config_path, "r", encoding="utf-8") as f:
+                        cfg = yaml.safe_load(f) or {}
+                if "plugins" not in cfg or not isinstance(cfg["plugins"], dict):
+                    cfg["plugins"] = {"enabled": []}
+                if "enabled" not in cfg["plugins"] or not isinstance(cfg["plugins"]["enabled"], list):
+                    cfg["plugins"]["enabled"] = []
+                if "digital_state" not in cfg["plugins"]["enabled"]:
+                    cfg["plugins"]["enabled"].append("digital_state")
+                with open(tmp_config_path, "w", encoding="utf-8") as f:
+                    yaml.safe_dump(cfg, f, default_flow_style=False)
+                os.replace(tmp_config_path, config_path)
+            else:
+                # PyYAML not available in the target runtime (e.g. copy-fallback path):
+                # write a minimal, valid config.yaml by hand so the plugin is enabled.
+                lines = []
+                if config_path.exists():
+                    with open(config_path, "r", encoding="utf-8") as f:
+                        lines = f.read().splitlines()
+                text = "\n".join(lines)
+                if "plugins:" not in text:
+                    text = (text + "\nplugins:\n  enabled:\n    - digital_state\n").strip() + "\n"
+                elif "digital_state" not in text:
+                    # Inject under an existing `enabled:` block or create one.
+                    text = text + "\n  enabled:\n    - digital_state\n"
+                with open(tmp_config_path, "w", encoding="utf-8") as f:
+                    f.write(text)
+                os.replace(tmp_config_path, config_path)
+            enabled_plugin = ("digital_state" in (config_path.read_text(encoding="utf-8") if config_path.exists() else ""))
         except Exception as e:
             if tmp_config_path.exists():
                 tmp_config_path.unlink(missing_ok=True)
@@ -438,9 +498,23 @@ class BootstrapInstaller:
                 "permissions": ["evidence_read", "governance_audit"] if p == "auditor" else ["all"]
             }
             try:
-                import yaml
-                with open(tmp_p_manifest, "w", encoding="utf-8") as f:
-                    yaml.safe_dump(p_data, f)
+                try:
+                    import yaml as _yaml
+                    have_yaml = True
+                except Exception:
+                    have_yaml = False
+                if have_yaml:
+                    with open(tmp_p_manifest, "w", encoding="utf-8") as f:
+                        _yaml.safe_dump(p_data, f)
+                else:
+                    # Minimal hand-written YAML (no PyYAML in target runtime).
+                    lines = [f"name: {p_data['name']}", f"role: {p_data['role']}",
+                             f"version: {p_data['version']}",
+                             "permissions:"]
+                    for perm in p_data["permissions"]:
+                        lines.append(f"  - {perm}")
+                    with open(tmp_p_manifest, "w", encoding="utf-8") as f:
+                        f.write("\n".join(lines) + "\n")
                 os.replace(tmp_p_manifest, p_manifest)
                 if p_manifest.exists():
                     seeded_manifests.append(str(p_manifest))
