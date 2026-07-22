@@ -127,11 +127,14 @@ def test_prime_to_builder_approved_workflow_succeeds(env_setup):
     specify_dir = workspace_dir / ".specify"
     specify_dir.mkdir(parents=True, exist_ok=True)
 
-    # Prime creates required Spec Kit artifacts
+    # Prime creates required Spec Kit artifacts & Kanban assignment
     (specify_dir / "spec.md").write_text("# Feature Specification", encoding="utf-8")
     (specify_dir / "plan.md").write_text("# Implementation Plan", encoding="utf-8")
     (specify_dir / "tasks.md").write_text("# Task List", encoding="utf-8")
     (specify_dir / "analysis.md").write_text("# Consistency Analysis", encoding="utf-8")
+    (specify_dir / "kanban.json").write_text(json.dumps({
+        "cards": {"014-adapter-fix-verification": {"assigned_to": "builder-agent", "status": "IN_PROGRESS"}}
+    }), encoding="utf-8")
 
     # Prime & Auditor approve SPECIFICATION, PLANNING, and TASKS gates
     state_file = specify_dir / "state.json"
