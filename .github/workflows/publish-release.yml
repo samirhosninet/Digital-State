@@ -1,0 +1,132 @@
+name: Automated Release & PyPI Publication
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-and-verify:
+    name: Build & Verify Production Package Artifacts
+    runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract Release Version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building Digital State version ${VERSION}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Build Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build hatchling cryptography PyYAML pytest
+
+      - name: Build Wheel & Source Distribution
+        run: |
+          python -m build
+
+      - name: Verify Artifact Creation
+        run: |
+          ls -la dist/
+          test -f dist/*.whl
+          test -f dist/*.tar.gz
+
+      - name: Clean Environment Artifact Verification (Wheel & Sdist)
+        run: |
+          # 1. Verify Wheel Package in Clean Venv
+          python -m venv .clean_wheel_venv
+          .clean_wheel_venv/bin/pip install dist/*.whl
+          .clean_wheel_venv/bin/python -m digital_state.cli.cli version
+          .clean_wheel_venv/bin/python -m digital_state.cli.cli install
+          .clean_wheel_venv/bin/python -m digital_state.cli.cli doctor
+
+          # 2. Verify Source Distribution in Clean Venv
+          python -m venv .clean_sdist_venv
+          .clean_sdist_venv/bin/pip install dist/*.tar.gz
+          .clean_sdist_venv/bin/python -m digital_state.cli.cli version
+          .clean_sdist_venv/bin/python -m digital_state.cli.cli install
+          .clean_sdist_venv/bin/python -m digital_state.cli.cli doctor
+
+      - name: Run Test Suite
+        run: |
+          python -m pip install -e .
+          pytest tests/ -v
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dist-${{ steps.get_version.outputs.version }}
+          path: dist/
+
+  publish-github-release:
+    name: Publish GitHub Release
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist-${{ needs.build-and-verify.outputs.release_version }}
+          path: dist/
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Digital State v${{ needs.build-and-verify.outputs.release_version }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/SHA256SUMS.txt
+            README.md
+            docs/INSTALLATION_GUIDE.md
+            RELEASE_NOTES.md
+            RELEASE_CERTIFICATION_REPORT.md
+
+  publish-pypi:
+    name: Publish Package to PyPI
+    needs: [build-and-verify, publish-github-release]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/digital-state
+    permissions:
+      id-token: write
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist-${{ needs.build-and-verify.outputs.release_version }}
+          path: dist/
+
+      - name: Publish Package to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
