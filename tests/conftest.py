@@ -63,6 +63,11 @@ def _ensure_test_keys():
             with open(path, "wb") as f:
                 f.write(pem_content.encode("utf-8"))
 
+    agents_file = os.path.join(_REPO_ROOT, ".specify", "agents.json")
+    if not os.path.exists(agents_file):
+        from digital_state.bootstrap.installer import BootstrapInstaller
+        BootstrapInstaller(workspace_root=_REPO_ROOT).run_bootstrap()
+
 
 @pytest.fixture(scope="session", autouse=True)
 def _auto_setup_test_keys():
