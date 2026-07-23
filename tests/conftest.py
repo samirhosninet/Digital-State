@@ -9,12 +9,17 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     PublicFormat,
+    PrivateFormat,
+    NoEncryption,
     load_pem_private_key,
 )
 
+from pathlib import Path
+
 # Private keys live under .specify/keys/ which is gitignored (never committed).
 # These are used ONLY by the test-suite to produce real ECDSA P-256 signatures
-# that satisfy the production-grade CryptoVerifier enforced by spec 009.
+# matching the canonical trust_roots.json public keys.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
 _KEYS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", ".specify", "keys")
 )
@@ -25,8 +30,47 @@ _ROLE_KEY_FILE = {
     "auditor": "auditor_private.pem",
 }
 
+_CANONICAL_TEST_KEYS = {
+    "prime_private.pem": (
+        "-----BEGIN PRIVATE KEY-----\n"
+        "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgL7UYgf1C0RySM+H2\n"
+        "ekgCebGQBKIljdE4u/hKoWlca1WhRANCAATzAfPXLXRbHTwagLFudAgzwBY0oikW\n"
+        "OU+kDG35blSgTXCHpjg5PBZwc+w3ERW/lQrKKopA1g1jass7syoHy80J\n"
+        "-----END PRIVATE KEY-----\n"
+    ),
+    "builder_private.pem": (
+        "-----BEGIN PRIVATE KEY-----\n"
+        "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgUU+ZrFzBg+Jjf92g\n"
+        "qKpR3QUzFkLsPZ2gLdMmxE57C1qhRANCAARTpjTVtmueucz7Qwgsgd3yVNaLxe3T\n"
+        "uGvC2K5Bmd+uCYR4b8UbAunWdumLQmlDO8R3ih7WvP6vdSo1Yxz7ZAd2\n"
+        "-----END PRIVATE KEY-----\n"
+    ),
+    "auditor_private.pem": (
+        "-----BEGIN PRIVATE KEY-----\n"
+        "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgBjk+hArxofND6kD7\n"
+        "MmAOvdvA7aANt6QAhVwSTH7d7gShRANCAAQI/F/N1pponSKyvsx+rL8vbPO6fBvi\n"
+        "yr7xwD9tsnASjqWPkzaIgBV/LL4Ce1TXx7it8/9CWK8gwH6Uc5FqH6aJ\n"
+        "-----END PRIVATE KEY-----\n"
+    ),
+}
+
+
+def _ensure_test_keys():
+    os.makedirs(_KEYS_DIR, exist_ok=True)
+    for filename, pem_content in _CANONICAL_TEST_KEYS.items():
+        path = os.path.join(_KEYS_DIR, filename)
+        if not os.path.exists(path) or os.path.getsize(path) == 0:
+            with open(path, "wb") as f:
+                f.write(pem_content.encode("utf-8"))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _auto_setup_test_keys():
+    _ensure_test_keys()
+
 
 def _load_private_key(role: str):
+    _ensure_test_keys()
     path = os.path.join(_KEYS_DIR, _ROLE_KEY_FILE[role])
     with open(path, "rb") as f:
         return load_pem_private_key(f.read(), password=None)
