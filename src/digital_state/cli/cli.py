@@ -78,10 +78,12 @@ def create_parser() -> argparse.ArgumentParser:
     ae_parser.add_argument("--all", action="store_true", help="Audit local device evidence bundle and platform runtime bridge.")
     ae_parser.add_argument("--federated", action="store_true", help="Audit multi-tenant federated evidence manifest across device nodes.")
 
+    # 13. install command
+    inst_parser = subparsers.add_parser("install", help="Single-command automated installation experience for Digital State.")
+    inst_parser.add_argument("--dry-run", action="store_true", help="Perform pre-flight checks without writing files.")
+    inst_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output report format.")
+
     return parser
-
-
-
 
 
 def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
@@ -95,11 +97,20 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
     try:
         # Only instantiate the kernel if the command requires it
         kernel = None
-        if args.command not in ("init", "doctor", "upgrade", "uninstall", "repair", "verify-ledger"):
+        if args.command not in ("init", "doctor", "install", "upgrade", "uninstall", "repair", "verify-ledger"):
             kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
 
+        if args.command == "install":
+            from digital_state.cli.installer import UserInstaller
+            installer = UserInstaller(workspace_root=workspace_root)
+            report = installer.run_installation(dry_run=getattr(args, "dry_run", False))
+            if getattr(args, "format", "text") == "json":
+                print(json.dumps(report, indent=2))
+            else:
+                installer.render_report_text(report)
+            return 0 if report.get("doctor") == "PASS" else 1
 
-        if args.command == "init":
+        elif args.command == "init":
             from pathlib import Path
             from digital_state.bootstrap.engine.orchestrator import run_engine_cli
             return run_engine_cli("install", dry_run=False, workspace_root=Path(workspace_root))
