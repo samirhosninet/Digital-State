@@ -83,6 +83,18 @@ def create_parser() -> argparse.ArgumentParser:
     inst_parser.add_argument("--dry-run", action="store_true", help="Perform pre-flight checks without writing files.")
     inst_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output report format.")
 
+    # 14. update command
+    upd_parser = subparsers.add_parser("update", help="Official Update Lifecycle experience for Digital State.")
+    upd_parser.add_argument("--check", action="store_true", help="Check for available updates without applying.")
+    upd_parser.add_argument("--force", action="store_true", help="Force update re-application even if up to date.")
+    upd_parser.add_argument("--target-version", help="Override target version for upgrade migration.")
+    upd_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output report format.")
+    upd_parser.add_argument("--simulate-failure", action="store_true", help=argparse.SUPPRESS)
+
+    # 15. version command
+    ver_parser = subparsers.add_parser("version", help="Display Digital State version information.")
+    ver_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+
     return parser
 
 
@@ -97,7 +109,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
     try:
         # Only instantiate the kernel if the command requires it
         kernel = None
-        if args.command not in ("init", "doctor", "install", "upgrade", "uninstall", "repair", "verify-ledger"):
+        if args.command not in ("init", "doctor", "install", "update", "version", "upgrade", "uninstall", "repair", "verify-ledger"):
             kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
 
         if args.command == "install":
@@ -109,6 +121,29 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             else:
                 installer.render_report_text(report)
             return 0 if report.get("doctor") == "PASS" else 1
+
+        elif args.command == "update":
+            from digital_state.cli.updater import UserUpdater
+            updater = UserUpdater(workspace_root=workspace_root)
+            report = updater.run_update(
+                check_only=getattr(args, "check", False),
+                force=getattr(args, "force", False),
+                target_version=getattr(args, "target_version", None),
+                simulate_failure=getattr(args, "simulate_failure", False),
+            )
+            if getattr(args, "format", "text") == "json":
+                print(json.dumps(report, indent=2))
+            else:
+                updater.render_report_text(report)
+            return 0 if report.get("doctor_status") == "PASS" or report.get("migration_status") in ("CHECK_ONLY", "NO_UPDATE_REQUIRED") else 1
+
+        elif args.command == "version":
+            from digital_state import __version__
+            if getattr(args, "format", "text") == "json":
+                print(json.dumps({"version": __version__}, indent=2))
+            else:
+                print(f"digitalstate version {__version__}")
+            return 0
 
         elif args.command == "init":
             from pathlib import Path

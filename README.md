@@ -72,6 +72,15 @@ pip install git+https://github.com/samirhosninet/Digital-State.git
 
 ---
 
+### Core Lifecycle Commands Overview
+
+- **`digitalstate install`**: Single-command zero-touch installation and workspace initialization.
+- **`digitalstate update`**: Official Update Lifecycle command for non-destructive upgrades and state migration with automatic rollback protection (generates `.specify/update_report.json`).
+- **`digitalstate doctor`**: 4-pillar system health inspection (Installation, Configuration, Governance, Hermes).
+- **`digitalstate version`**: Display installed Digital State version information.
+
+---
+
 ### Path B: Developer Repository Installation (Local Clone)
 
 This path is intended for development, local modifications, and self-hosted environments.

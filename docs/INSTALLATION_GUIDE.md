@@ -90,6 +90,43 @@ The installer materializes an installation evidence file at `.specify/installati
 
 ---
 
+## 🔄 Official Lifecycle Commands
+
+Digital State provides 4 core first-class lifecycle CLI commands:
+
+### 1. `digitalstate install`
+Executes zero-touch installation, runtime bootstrap, workspace initialization, Hermes integration check, and doctor validation. Generates `.specify/installation_report.json`.
+
+### 2. `digitalstate update`
+Executes the Official Update Lifecycle to upgrade an existing installation safely without reinstallation:
+```bash
+digitalstate update
+```
+- **Check for available updates without applying:**
+  ```bash
+  digitalstate update --check
+  ```
+- **Force re-application of update:**
+  ```bash
+  digitalstate update --force
+  ```
+- **Generates evidence report:** `.specify/update_report.json`
+- **Safety guarantee:** Non-destructive migration preserving `.specify/` workspace files, `.specify/memory/audit_log.jsonl` evidence, `RuntimeStore` identities, and Hermes configuration. Automatic rollback if migration fails.
+
+### 3. `digitalstate doctor`
+Runs the 4-pillar system health inspection (Installation, Configuration, Governance, Hermes):
+```bash
+digitalstate doctor
+```
+
+### 4. `digitalstate version`
+Displays current Digital State version information:
+```bash
+digitalstate version
+```
+
+---
+
 ## 🔧 Useful Command Options
 
 - **Dry-Run Inspection (no file mutations):**
