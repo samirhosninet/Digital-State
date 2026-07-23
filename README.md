@@ -44,21 +44,18 @@ You can install and initialize Digital State using either the primary remote pac
 
 ---
 
-### Path A: Primary User Installation (GitHub Remote Package)
+### Path A: Single-Command Zero-Touch Installation (Recommended)
 
-This is the recommended path for users consuming Digital State directly as a dependency.
+This is the primary one-command installation path for Digital State users:
 
 ```text
 pip install git+https://github.com/samirhosninet/Digital-State.git
                        │
                        ▼
-               digitalstate init
+              digitalstate install
                        │
                        ▼
-             digitalstate doctor
-                       │
-                       ▼
-                  Ready State
+            Ready State (Evidence Generated)
 ```
 
 #### Steps:
@@ -66,16 +63,12 @@ pip install git+https://github.com/samirhosninet/Digital-State.git
    ```bash
    pip install git+https://github.com/samirhosninet/Digital-State.git
    ```
-2. **Initialize Workspace:**
-   Run the initialization command in your target project directory:
+2. **Execute Single Installation Command:**
+   Run the single-command zero-touch installer in your workspace:
    ```bash
-   digitalstate init
+   digitalstate install
    ```
-3. **Verify Setup:**
-   Confirm system readiness:
-   ```bash
-   digitalstate doctor
-   ```
+   *This single command automatically validates the environment, verifies dependencies, bootstraps the runtime, initializes workspace state, verifies Hermes integration, checks governance readiness, and generates `.specify/installation_report.json`.*
 
 ---
 
