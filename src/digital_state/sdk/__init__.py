@@ -1,4 +1,5 @@
 from digital_state.sdk.kanban import KanbanManager
+from digital_state.observability import AuditLogProjector, CLISearch
 from digital_state.sdk.api import (
     is_compatible,
     validate_gate_approval,
