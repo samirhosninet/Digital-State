@@ -2,7 +2,7 @@ import json
 import os
 import hashlib
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from digital_state.core.exceptions import EvidenceError
 
@@ -167,5 +167,45 @@ class AuditLogger:
             for line in f:
                 line = line.strip()
                 if line:
-                    entries.append(json.loads(line))
+                    try:
+                        entries.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        pass
         return entries
+
+    def rotate_log(self, max_bytes: int = 1_000_000) -> Optional[str]:
+        """Rotates log file if size exceeds max_bytes, archiving to audit_log.<timestamp>.archive."""
+        if not os.path.exists(self.log_path):
+            return None
+        if os.path.getsize(self.log_path) < max_bytes:
+            return None
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        archive_path = f"{self.log_path}.{timestamp}.archive"
+        os.rename(self.log_path, archive_path)
+        self._ensure_log_exists()
+        return archive_path
+
+    def create_merkle_snapshot(self) -> Dict[str, Any]:
+        """Computes Merkle root hash of all current log entries for immutable snapshot verification."""
+        entries = self.read_entries()
+        hashes = [e.get("hash", "") for e in entries if e.get("hash")]
+        if not hashes:
+            return {"merkle_root": "0" * 64, "total_entries": 0}
+
+        current_layer = hashes
+        while len(current_layer) > 1:
+            if len(current_layer) % 2 != 0:
+                current_layer.append(current_layer[-1])
+            next_layer = []
+            for i in range(0, len(current_layer), 2):
+                h = hashlib.sha256((current_layer[i] + current_layer[i + 1]).encode("utf-8")).hexdigest()
+                next_layer.append(h)
+            current_layer = next_layer
+
+        merkle_root = current_layer[0]
+        return {
+            "merkle_root": merkle_root,
+            "total_entries": len(entries),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
