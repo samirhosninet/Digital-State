@@ -109,6 +109,10 @@ def test_prime_orchestrator_lifecycle_and_resume(tmp_path):
     assert res["phase_3"]["status"] == "PASS"
     assert len(res["processed_cards"]) > 0
 
+    # Verify WorktreeManager and EventBroadcaster integration
+    assert orchestrator.worktree_manager is not None
+    assert orchestrator.event_broadcaster is not None
+
     # Test resume_from_checkpoint
     resume_res = orchestrator.resume_from_checkpoint()
     assert resume_res["status"] == "COMPLETED"

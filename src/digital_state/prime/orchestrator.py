@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from digital_state.prime.kanban_engine import KanbanEngine, KanbanCard
 from digital_state.prime.speckit_runner import SpecKitRunner
 from digital_state.prime.agent_dispatcher import BuilderDispatcher, AuditorVerifier
+from digital_state.prime.worktree_manager import WorktreeManager
+from digital_state.prime.event_broadcaster import EventBroadcaster
 
 
 class LifecycleState(str, Enum):
@@ -50,6 +52,8 @@ class PrimeOrchestrator:
         self.speckit_runner = SpecKitRunner(self.workspace_root)
         self.builder_dispatcher = BuilderDispatcher(self.workspace_root)
         self.auditor_verifier = AuditorVerifier(self.workspace_root)
+        self.worktree_manager = WorktreeManager(self.workspace_root)
+        self.event_broadcaster = EventBroadcaster()
         self.state_file = self.specify_dir / "state.json"
         self.checkpoint_file = self.specify_dir / "resume_checkpoint.json"
         self.current_state = LifecycleState.IDLE
@@ -156,10 +160,12 @@ class PrimeOrchestrator:
     # Phase 5 — Builder Dispatch
     # -------------------------------------------------------------------------
     def phase_5_builder_dispatch(self) -> Optional[KanbanCard]:
-        """Dispatches exactly one unblocked TODO card to Builder."""
+        """Dispatches exactly one unblocked TODO card to Builder inside a Git worktree sandbox."""
         self.current_state = LifecycleState.BUILDER_DISPATCH
         card = self.kanban_engine.get_next_dispatchable_card()
         if card:
+            self.event_broadcaster.publish("CARD_DISPATCHED", {"card_id": card.card_id, "title": card.title})
+            wt_path = self.worktree_manager.create_worktree(card.card_id)
             self.kanban_engine.update_card_status(card.card_id, "IN_PROGRESS")
             # Programmatically dispatch card execution
             self.builder_dispatcher.execute_card(card)
@@ -173,8 +179,9 @@ class PrimeOrchestrator:
     def phase_6_auditor_verification(
         self, card: KanbanCard
     ) -> Dict[str, Any]:
-        """Verifies an IN_REVIEW card and transitions to DONE or back to TODO."""
+        """Verifies an IN_REVIEW card, cleans up worktree sandbox, and transitions to DONE or back to TODO."""
         self.current_state = LifecycleState.AUDITOR_VERIFICATION
+        self.event_broadcaster.publish("AUDITOR_VERIFICATION", {"card_id": card.card_id})
         audit_res = self.auditor_verifier.verify_card(card)
         passed = audit_res.get("status") == "PASS"
         evidence_hash = audit_res.get("evidence_hash", "")
@@ -183,6 +190,7 @@ class PrimeOrchestrator:
         self.kanban_engine.update_card_status(
             card.card_id, new_status, evidence_hash=evidence_hash
         )
+        self.worktree_manager.merge_and_cleanup(card.card_id)
         self.save_checkpoint(
             LifecycleState.AUDITOR_VERIFICATION.value,
             card_id=card.card_id,
