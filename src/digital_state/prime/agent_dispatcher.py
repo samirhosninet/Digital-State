@@ -106,6 +106,16 @@ class AuditorVerifier:
         with open(audit_file, "w", encoding="utf-8") as f:
             json.dump(audit_record, f, indent=2)
 
+        # 3. Log to persistent hash-chained audit log (.specify/memory/audit_log.jsonl)
+        audit_log_path = self.workspace_root / ".specify" / "memory" / "audit_log.jsonl"
+        if audit_log_path.parent.exists():
+            try:
+                from digital_state.core.audit import AuditLogger
+                logger = AuditLogger(str(audit_log_path))
+                logger.log_event("AUDITOR_VERIFICATION_PASS", audit_record)
+            except Exception:
+                pass
+
         return {
             "status": "PASS",
             "card_id": card.card_id,
