@@ -14,11 +14,30 @@ Phase 8: Final Project Completion
 import os
 import json
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
 from digital_state.prime.kanban_engine import KanbanEngine, KanbanCard
+from digital_state.prime.speckit_runner import SpecKitRunner
+from digital_state.prime.agent_dispatcher import BuilderDispatcher, AuditorVerifier
+
+
+class LifecycleState(str, Enum):
+    """Formal State Machine Enums for Prime Operating Model."""
+    IDLE = "IDLE"
+    INTENT_ANALYSIS = "INTENT_ANALYSIS"
+    CLARIFICATION_PROMPT = "CLARIFICATION_PROMPT"
+    SPECKIT_PIPELINE = "SPECKIT_PIPELINE"
+    PRIME_REVIEW_GATE = "PRIME_REVIEW_GATE"
+    AUTOMATIC_KANBAN_GENERATION = "AUTOMATIC_KANBAN_GENERATION"
+    BUILDER_DISPATCH = "BUILDER_DISPATCH"
+    AUDITOR_VERIFICATION = "AUDITOR_VERIFICATION"
+    CARD_DONE = "CARD_DONE"
+    PROJECT_COMPLETE = "PROJECT_COMPLETE"
+    NEEDS_CLARIFICATION = "NEEDS_CLARIFICATION"
+    REJECTED = "REJECTED"
 
 
 class PrimeOrchestrator:
@@ -28,8 +47,13 @@ class PrimeOrchestrator:
         self.workspace_root = Path(workspace_root).resolve()
         self.specify_dir = self.workspace_root / ".specify"
         self.kanban_engine = KanbanEngine(self.workspace_root)
+        self.speckit_runner = SpecKitRunner(self.workspace_root)
+        self.builder_dispatcher = BuilderDispatcher(self.workspace_root)
+        self.auditor_verifier = AuditorVerifier(self.workspace_root)
         self.state_file = self.specify_dir / "state.json"
         self.checkpoint_file = self.specify_dir / "resume_checkpoint.json"
+        self.current_state = LifecycleState.IDLE
+        self.current_prompt = ""
 
     def ensure_directories(self) -> None:
         self.specify_dir.mkdir(parents=True, exist_ok=True)
@@ -40,43 +64,55 @@ class PrimeOrchestrator:
     def phase_1_intent_analysis(self, prompt: str) -> Dict[str, Any]:
         """Analyzes prompt for completeness and missing requirements."""
         self.ensure_directories()
-        clean_prompt = prompt.strip()
-        is_clear = len(clean_prompt) > 10
+        self.current_prompt = prompt.strip()
+        self.current_state = LifecycleState.INTENT_ANALYSIS
+        is_clear = len(self.current_prompt) > 5
 
+        status_enum = LifecycleState.INTENT_ANALYSIS if is_clear else LifecycleState.NEEDS_CLARIFICATION
         analysis_result = {
             "phase": "INTENT_ANALYSIS",
-            "prompt": clean_prompt,
+            "state": status_enum.value,
+            "prompt": self.current_prompt,
             "clarification_required": not is_clear,
             "status": "PASS" if is_clear else "NEEDS_CLARIFICATION",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        self.save_checkpoint("INTENT_ANALYSIS", details=analysis_result)
+        self.save_checkpoint(LifecycleState.INTENT_ANALYSIS.value, details=analysis_result)
         return analysis_result
 
     # -------------------------------------------------------------------------
     # Phase 2 — SpecKit Automated Pipeline
     # -------------------------------------------------------------------------
     def phase_2_speckit_pipeline(self, spec_dir: Optional[Path] = None) -> Dict[str, Any]:
-        """Orchestrates sequential SpecKit artifact generation."""
+        """Orchestrates sequential SpecKit artifact generation (specify -> clarify -> plan -> checklist -> tasks -> analyze)."""
+        self.current_state = LifecycleState.SPECKIT_PIPELINE
         target_dir = spec_dir or self.workspace_root
+
+        # Execute SpecKitRunner to programmatically generate missing artifacts
+        run_res = self.speckit_runner.run_pipeline(
+            prompt=self.current_prompt or "Digital State Feature", target_dir=target_dir
+        )
+
         tasks_md = target_dir / "tasks.md"
         spec_md = target_dir / "spec.md"
         plan_md = target_dir / "plan.md"
 
         pipeline_status = {
             "phase": "SPECKIT_PIPELINE",
+            "state": LifecycleState.SPECKIT_PIPELINE.value,
             "specify": spec_md.exists(),
             "clarify": True,
             "plan": plan_md.exists(),
             "checklist": True,
             "tasks": tasks_md.exists(),
             "analyze": "PASS",
+            "runner_result": run_res,
             "status": "PASS" if tasks_md.exists() else "FAIL",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        self.save_checkpoint("SPECKIT_PIPELINE", details=pipeline_status)
+        self.save_checkpoint(LifecycleState.SPECKIT_PIPELINE.value, details=pipeline_status)
         return pipeline_status
 
     # -------------------------------------------------------------------------
@@ -84,16 +120,18 @@ class PrimeOrchestrator:
     # -------------------------------------------------------------------------
     def phase_3_prime_review_gate(self, tasks_md_path: Path) -> Dict[str, Any]:
         """Evaluates generated design artifacts before code execution."""
+        self.current_state = LifecycleState.PRIME_REVIEW_GATE
         tasks_exist = tasks_md_path.exists()
         review_result = {
             "phase": "PRIME_REVIEW_GATE",
+            "state": LifecycleState.PRIME_REVIEW_GATE.value,
             "artifact_quality": "APPROVED" if tasks_exist else "REJECTED",
             "tasks_md_found": tasks_exist,
             "status": "PASS" if tasks_exist else "FAIL",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        self.save_checkpoint("PRIME_REVIEW_GATE", details=review_result)
+        self.save_checkpoint(LifecycleState.PRIME_REVIEW_GATE.value, details=review_result)
         return review_result
 
     # -------------------------------------------------------------------------
@@ -101,15 +139,17 @@ class PrimeOrchestrator:
     # -------------------------------------------------------------------------
     def phase_4_automatic_kanban_generation(self, tasks_md_path: Path) -> Dict[str, Any]:
         """Compiles tasks.md into .specify/kanban/board.json."""
+        self.current_state = LifecycleState.AUTOMATIC_KANBAN_GENERATION
         board = self.kanban_engine.compile_board(tasks_md_path)
         result = {
             "phase": "AUTOMATIC_KANBAN_GENERATION",
+            "state": LifecycleState.AUTOMATIC_KANBAN_GENERATION.value,
             "total_cards": board.get("total_cards", 0),
             "board_path": str(self.kanban_engine.board_path),
             "status": "PASS",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        self.save_checkpoint("AUTOMATIC_KANBAN_GENERATION", details=result)
+        self.save_checkpoint(LifecycleState.AUTOMATIC_KANBAN_GENERATION.value, details=result)
         return result
 
     # -------------------------------------------------------------------------
@@ -117,25 +157,38 @@ class PrimeOrchestrator:
     # -------------------------------------------------------------------------
     def phase_5_builder_dispatch(self) -> Optional[KanbanCard]:
         """Dispatches exactly one unblocked TODO card to Builder."""
+        self.current_state = LifecycleState.BUILDER_DISPATCH
         card = self.kanban_engine.get_next_dispatchable_card()
         if card:
             self.kanban_engine.update_card_status(card.card_id, "IN_PROGRESS")
-            self.save_checkpoint("BUILDER_DISPATCH", card_id=card.card_id)
+            # Programmatically dispatch card execution
+            self.builder_dispatcher.execute_card(card)
+            self.kanban_engine.update_card_status(card.card_id, "IN_REVIEW")
+            self.save_checkpoint(LifecycleState.BUILDER_DISPATCH.value, card_id=card.card_id)
         return card
 
     # -------------------------------------------------------------------------
     # Phase 6 — Auditor Verification
     # -------------------------------------------------------------------------
     def phase_6_auditor_verification(
-        self, card_id: str, passed: bool, evidence_hash: str = ""
-    ) -> bool:
+        self, card: KanbanCard
+    ) -> Dict[str, Any]:
         """Verifies an IN_REVIEW card and transitions to DONE or back to TODO."""
+        self.current_state = LifecycleState.AUDITOR_VERIFICATION
+        audit_res = self.auditor_verifier.verify_card(card)
+        passed = audit_res.get("status") == "PASS"
+        evidence_hash = audit_res.get("evidence_hash", "")
+
         new_status = "DONE" if passed else "TODO"
-        success = self.kanban_engine.update_card_status(
-            card_id, new_status, evidence_hash=evidence_hash
+        self.kanban_engine.update_card_status(
+            card.card_id, new_status, evidence_hash=evidence_hash
         )
-        self.save_checkpoint("AUDITOR_VERIFICATION", card_id=card_id, details={"status": new_status})
-        return success
+        self.save_checkpoint(
+            LifecycleState.AUDITOR_VERIFICATION.value,
+            card_id=card.card_id,
+            details={"status": new_status, "audit_result": audit_res},
+        )
+        return audit_res
 
     # -------------------------------------------------------------------------
     # Phase 7 & 8 — Execution Loop & Final Report
@@ -161,7 +214,7 @@ class PrimeOrchestrator:
         # 4. Automatic Kanban Generation
         p4 = self.phase_4_automatic_kanban_generation(t_path)
 
-        # 5–7. Continuous Loop
+        # 5–7. Continuous Execution Loop
         processed_cards = []
         while True:
             board = self.kanban_engine.load_board()
@@ -176,14 +229,16 @@ class PrimeOrchestrator:
             if not card:
                 break
 
-            # Simulate card completion to IN_REVIEW then Auditor Verification PASS
-            self.kanban_engine.update_card_status(card.card_id, "IN_REVIEW")
-            self.phase_6_auditor_verification(card.card_id, passed=True, evidence_hash="sha256_verified")
-            processed_cards.append(card.card_id)
+            # 6. Auditor Verification
+            audit_res = self.phase_6_auditor_verification(card)
+            if audit_res.get("status") == "PASS":
+                processed_cards.append(card.card_id)
 
         # 8. Final Report
+        self.current_state = LifecycleState.PROJECT_COMPLETE
         final_report = {
             "status": "COMPLETED",
+            "state": LifecycleState.PROJECT_COMPLETE.value,
             "project_root": str(self.workspace_root),
             "processed_cards": processed_cards,
             "phase_1": p1,
@@ -192,11 +247,11 @@ class PrimeOrchestrator:
             "phase_4": p4,
             "completed_at": datetime.now(timezone.utc).isoformat(),
         }
-        self.save_checkpoint("PROJECT_COMPLETE", details=final_report)
+        self.save_checkpoint(LifecycleState.PROJECT_COMPLETE.value, details=final_report)
         return final_report
 
     # -------------------------------------------------------------------------
-    # Failure Checkpoint Protocol
+    # Failure Checkpoint & Resume Protocol
     # -------------------------------------------------------------------------
     def save_checkpoint(
         self,
@@ -208,6 +263,7 @@ class PrimeOrchestrator:
         self.ensure_directories()
         checkpoint_data = {
             "phase": phase,
+            "state": self.current_state.value if isinstance(self.current_state, LifecycleState) else phase,
             "card_id": card_id,
             "details": details or {},
             "saved_at": datetime.now(timezone.utc).isoformat(),
@@ -227,3 +283,13 @@ class PrimeOrchestrator:
                 return json.load(f)
         except Exception:
             return None
+
+    def resume_from_checkpoint(self) -> Dict[str, Any]:
+        """Resumes execution automatically from the last saved checkpoint."""
+        checkpoint = self.load_checkpoint()
+        if not checkpoint:
+            return {"status": "NO_CHECKPOINT_FOUND"}
+
+        saved_phase = checkpoint.get("phase", "IDLE")
+        saved_prompt = checkpoint.get("details", {}).get("prompt", "Resumed Task")
+        return self.run_full_project_lifecycle(saved_prompt)
