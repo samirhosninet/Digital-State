@@ -345,17 +345,59 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
             print(json.dumps({"status": "Success", "message": f"Gate '{args.gate}' vetoed."}))
 
         elif args.command == "upgrade":
-            # DEPRECATED: 'upgrade' is a legacy alias that now delegates to the
-            # official Update Lifecycle ('update' command / UserUpdater).
-            print(
-                "WARNING: 'upgrade' is deprecated; use 'digitalstate update' instead.",
-                file=sys.stderr,
-            )
-            from digital_state.cli.updater import UserUpdater
-            updater = UserUpdater(workspace_root=workspace_root)
-            report = updater.run_update(force=True)
-            updater.render_report_text(report)
-            return 0 if report.get("doctor_status") == "PASS" or report.get("migration_status") in ("CHECK_ONLY", "NO_UPDATE_REQUIRED") else 1
+            if sys.platform == "win32":
+                local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+                hermes_root = os.environ.get("HERMES_HOME", "") or os.path.join(
+                    local_appdata if local_appdata else os.path.expanduser(r"~\AppData\Local"),
+                    "hermes"
+                )
+            else:
+                hermes_root = os.environ.get("HERMES_HOME", "") or os.path.expanduser("~/.hermes")
+
+            import shutil
+            import subprocess
+            hermes_cmd = shutil.which("hermes")
+            python_cmd = None
+            if not hermes_cmd:
+                if sys.platform == "win32":
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "hermes.exe")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "Scripts", "python.exe")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+                else:
+                    h_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "hermes")
+                    p_path = os.path.join(hermes_root, "hermes-agent", "venv", "bin", "python")
+                    if os.path.exists(h_path):
+                        hermes_cmd = h_path
+                    if os.path.exists(p_path):
+                        python_cmd = p_path
+            else:
+                cmd_dir = os.path.dirname(hermes_cmd)
+                if sys.platform == "win32":
+                    p_path = os.path.join(cmd_dir, "python.exe")
+                else:
+                    p_path = os.path.join(cmd_dir, "python")
+                if os.path.exists(p_path):
+                    python_cmd = p_path
+
+            if not python_cmd:
+                print(json.dumps({"status": "Error", "message": "Hermes virtualenv python not found."}), file=sys.stderr)
+                return 1
+
+            try:
+                subprocess.run(
+                    [python_cmd, "-m", "pip", "install", "--upgrade", workspace_root],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                print(json.dumps({"status": "Success", "message": "Digital State package successfully upgraded inside Hermes virtualenv."}))
+                return 0
+            except Exception as e:
+                print(json.dumps({"status": "Error", "message": f"Upgrade failed: {e}"}), file=sys.stderr)
+                return 1
 
         elif args.command == "uninstall":
             if sys.platform == "win32":
