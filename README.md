@@ -16,6 +16,45 @@ The system is decoupled into independent engines coordinated by the `GovernanceK
 
 ---
 
+## Prime Operating Model Architecture (v2.0)
+
+Digital State uses the **Prime Operating Model** as its single-endpoint orchestration operating system:
+
+```text
+                               ┌───────────────────────────┐
+                               │           USER            │
+                               └─────────────┬─────────────┘
+                                             │
+                                             ▼
+                               ┌───────────────────────────┐
+                               │           PRIME           │
+                               │   (Single Orchestration   │
+                               │    & User Endpoint)       │
+                               └─────────────┬─────────────┘
+                                             │
+               ┌─────────────────────────────┼─────────────────────────────┐
+               ▼                             ▼                             ▼
+┌─────────────────────────────┐ ┌───────────────────────────┐ ┌───────────────────────────┐
+│     SPECKIT PIPELINE        │ │  AUTOMATIC KANBAN ENGINE  │ │  WORKER AGENT DISPATCH    │
+│ Phase 1: Intent Analysis    │ │ Phase 4: Kanban Gen       │ │ Phase 5: Builder Dispatch │
+│ Phase 2: Pipeline Execution │ │ • Parse tasks.md          │ │ Phase 6: Auditor Verification
+│ Phase 3: Prime Review Gate  │ │ • Track Card Status Flow  │ │ Phase 7-8: Continuous Loop│
+└─────────────────────────────┘ └───────────────────────────┘ └───────────────────────────┘
+```
+
+- **[Prime Operating Model Specification](docs/PRIME_OPERATING_MODEL.md)**: Core architectural rules and 8-phase execution state machine.
+- **[SpecKit Workflow Specification](docs/WORKFLOW_SPECIFICATION.md)**: Automated 6-stage design artifact pipeline (`specify` $\rightarrow$ `clarify` $\rightarrow$ `plan` $\rightarrow$ `checklist` $\rightarrow$ `tasks` $\rightarrow$ `analyze`).
+- **[Planning Engine Specification](docs/PLANNING_ENGINE_SPECIFICATION.md)**: Dependency graph resolution and Prime Review Gate rules.
+- **[Lifecycle State Machine](docs/LIFECYCLE_STATE_MACHINE.md)**: Formal state transition table and event triggers.
+- **[Failure & Recovery Policy](docs/FAILURE_AND_RECOVERY_POLICY.md)**: State preservation, auto-resume checkpoints, and error handling.
+- **[Task Graph & Kanban Specification](docs/TASK_GRAPH_AND_KANBAN_SPECIFICATION.md)**: `tasks.md` parsing and `.specify/kanban/board.json` dispatch schema.
+- **[Agent Dispatch & Verification Rules](docs/AGENT_DISPATCH_AND_VERIFICATION_RULES.md)**: Sandboxed Builder card execution and Auditor card verification rules.
+- **[Repository Convention Rules](docs/REPOSITORY_CONVENTION_RULES.md)**: Layering conventions, frozen scope rules, and commit standards.
+- **[ADR-005: Prime Operating Model Architecture](governance/self-governance/015-prime-operating-model/ADR-005-prime-operating-model.md)**: Architecture Decision Record for single-endpoint orchestration.
+
+
+---
+
 ## Production Hardening Features
 
 The Governance Kernel has been hardened with enterprise-ready parameters:
