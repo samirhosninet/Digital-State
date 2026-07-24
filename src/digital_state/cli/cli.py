@@ -95,6 +95,11 @@ def create_parser() -> argparse.ArgumentParser:
     ver_parser = subparsers.add_parser("version", help="Display Digital State version information.")
     ver_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
 
+    # 16. prime command
+    p_parser = subparsers.add_parser("prime", help="Prime Operating Model single-endpoint project orchestrator.")
+    p_parser.add_argument("--prompt", help="High-level project objective or prompt for Prime.")
+    p_parser.add_argument("--format", choices=["text", "json"], default="json", help="Output format.")
+
     return parser
 
 
@@ -109,7 +114,7 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
     try:
         # Only instantiate the kernel if the command requires it
         kernel = None
-        if args.command not in ("init", "doctor", "install", "update", "version", "upgrade", "uninstall", "repair", "verify-ledger"):
+        if args.command not in ("init", "doctor", "install", "update", "version", "upgrade", "uninstall", "repair", "verify-ledger", "prime"):
             kernel = GovernanceKernel(workspace_root, run_bootstrap=False)
 
         if args.command == "install":
@@ -584,6 +589,14 @@ def run_cli(args_list: List[str], workspace_root: str = ".") -> int:
                 return 1 if has_unverified else 0
 
             return 0
+
+        elif args.command == "prime":
+            from digital_state.prime.orchestrator import PrimeOrchestrator
+            orchestrator = PrimeOrchestrator(workspace_root=workspace_root)
+            prompt_str = getattr(args, "prompt", "") or "Initialize Prime Operating Model Project Lifecycle"
+            res = orchestrator.run_full_project_lifecycle(prompt_str)
+            print(json.dumps(res, indent=2))
+            return 0 if res.get("status") == "COMPLETED" else 1
 
 
 
