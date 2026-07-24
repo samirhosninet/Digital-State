@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_version: ${{ steps.get_version.outputs.version }}
+      hashes: ${{ steps.hash.outputs.hashes }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # tag: v4
@@ -46,6 +47,12 @@ jobs:
           ls -la dist/
           test -f dist/*.whl
           test -f dist/*.tar.gz
+
+      - name: Generate Hashes for SLSA Provenance
+        id: hash
+        run: |
+          cd dist
+          echo "hashes=$(sha256sum * | base64 -w0)" >> $GITHUB_OUTPUT
 
       - name: Clean Environment Artifact Verification (Wheel & Sdist)
         run: |
@@ -89,6 +96,20 @@ jobs:
           name: release-dist-${{ needs.build-and-verify.outputs.release_version }}
           path: dist/
 
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@v0.17.9
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/sbom.spdx.json
+
+      - name: Sigstore Keyless Signing (Sigstore & Cosign)
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            dist/*.whl
+            dist/*.tar.gz
+
       - name: Generate SHA256 Checksums
         run: |
           cd dist
@@ -103,15 +124,30 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
+            dist/*.sig
+            dist/*.bundle
+            dist/sbom.spdx.json
             dist/SHA256SUMS.txt
             README.md
             docs/INSTALLATION_GUIDE.md
             RELEASE_NOTES.md
             RELEASE_CERTIFICATION_REPORT.md
 
+  slsa-provenance:
+    name: Generate SLSA Provenance Attestations
+    needs: [build-and-verify]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: "${{ needs.build-and-verify.outputs.hashes }}"
+      upload-assets: true
+
   publish-pypi:
     name: Publish Package to PyPI
-    needs: [build-and-verify, publish-github-release]
+    needs: [build-and-verify, publish-github-release, slsa-provenance]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     environment:
